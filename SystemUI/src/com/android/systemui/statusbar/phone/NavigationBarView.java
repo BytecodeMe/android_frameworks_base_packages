@@ -51,6 +51,7 @@ import com.android.internal.statusbar.IStatusBarService;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.DelegateViewHelper;
+import com.android.systemui.statusbar.policy.KeyButtonView;
 
 public class NavigationBarView extends LinearLayout {
     final static boolean DEBUG = false;
@@ -143,6 +144,10 @@ public class NavigationBarView extends LinearLayout {
     public View getHomeButton() {
         return mCurrentView.findViewById(R.id.home);
     }
+	
+	public View getSearchButton() {
+        return mCurrentView.findViewById(R.id.search);
+    }
 
     public NavigationBarView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -211,6 +216,21 @@ public class NavigationBarView extends LinearLayout {
                 ? (mVertical ? mBackAltLandIcon : mBackAltIcon)
                 : (mVertical ? mBackLandIcon : mBackIcon));
     }
+	
+	    /**
+     * change the color overlay for the buttons
+     * @return
+     */
+    public void setButtonColor(){
+    	
+        ((KeyButtonView) getBackButton()).setButtonColor();
+        ((KeyButtonView) getHomeButton()).setButtonColor();
+        ((KeyButtonView) getRecentsButton()).setButtonColor();
+        if(getSearchButton() != null)
+            ((KeyButtonView) getSearchButton()).setButtonColor();
+        ((KeyButtonView) getMenuButton()).setButtonColor();
+    }
+
 
     public void setDisabledFlags(int disabledFlags) {
         setDisabledFlags(disabledFlags, false);
@@ -230,6 +250,8 @@ public class NavigationBarView extends LinearLayout {
         getBackButton()   .setVisibility(disableBack       ? View.INVISIBLE : View.VISIBLE);
         getHomeButton()   .setVisibility(disableHome       ? View.INVISIBLE : View.VISIBLE);
         getRecentsButton().setVisibility(disableRecent     ? View.INVISIBLE : View.VISIBLE);
+		if(getSearchButton() != null)
+            getSearchButton().setVisibility(disableRecent     ? View.INVISIBLE : View.VISIBLE);
     }
 
     public void setSlippery(boolean newSlippery) {

@@ -16,19 +16,29 @@
 
 package com.android.systemui.statusbar.policy;
 
+import java.util.Random;
+
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.RectF;
 import android.hardware.input.InputManager;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.os.ServiceManager;
+import android.provider.Settings;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.animation.DecelerateInterpolator;
+import android.view.Display;
 import android.view.HapticFeedbackConstants;
 import android.view.IWindowManager;
 import android.view.InputDevice;
@@ -38,6 +48,7 @@ import android.view.MotionEvent;
 import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.WindowManager;
 import android.widget.ImageView;
 
 import com.android.systemui.R;
@@ -45,18 +56,25 @@ import com.android.systemui.R;
 public class KeyButtonView extends ImageView {
     private static final String TAG = "StatusBar.KeyButtonView";
 
+	private static final int MAX_COLORS = 50;
+	private static final boolean DEBUG = false;
     final float GLOW_MAX_SCALE_FACTOR = 1.8f;
-    final float BUTTON_QUIESCENT_ALPHA = 0.70f;
+    final float BUTTON_QUIESCENT_ALPHA = 1.0f;
+    private static final int GLOW_COLOR_DEFAULT = 0x7d00c3ff;
 
     long mDownTime;
     int mCode;
     int mTouchSlop;
     Drawable mGlowBG;
     int mGlowWidth, mGlowHeight;
+	Drawable mKey;
     float mGlowAlpha = 0f, mGlowScale = 1f, mDrawingAlpha = 1f;
     boolean mSupportsLongpress = true;
     RectF mRect = new RectF(0f,0f,0f,0f);
+    final Display mDisplay;
     AnimatorSet mPressedAnim;
+    private boolean mSetColor = false;
+    private int mColorEgg = 0;
 
     Runnable mCheckLongPress = new Runnable() {
         public void run() {
@@ -98,8 +116,97 @@ public class KeyButtonView extends ImageView {
 
         setClickable(true);
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        
+        mDisplay = ((WindowManager)context.getSystemService(
+                Context.WINDOW_SERVICE)).getDefaultDisplay();
     }
+    
+	public int getColorEgg(){
+    	return mColorEgg;
+    }
+    
+    public void setColorEgg(int x){
+    	// only change once per call
+    	if(mColorEgg==x)return;
+    	mColorEgg = x;
+    	if(DEBUG)Log.d(TAG, "setColorEgg: "+x);
+    	this.clearColorFilter();
+        this.setColorFilter(getFilter(Color.WHITE));
+    	invalidate();
+    }
+    /**
+     * change the color overlay for the button
+     * @return
+     */
+    public void setButtonColor(){
+        // set the color overlay
+        final int color = Settings.System.getInt(mContext.getContentResolver(), 
+                Settings.System.NAVBAR_BUTTON_COLOR, Color.WHITE);
+        Log.d(TAG, "setting color overlay to "+Integer.toHexString(color));
 
+        this.clearColorFilter();
+        this.setColorFilter(getFilter(color));
+        
+        if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.NAVBAR_EASTER_EGG, 0)==1){
+        	mColorEgg = 0;
+        	AnimatorSet as = new AnimatorSet();
+        	as.playTogether(
+                ObjectAnimator.ofInt(this, "colorEgg", MAX_COLORS)
+            );
+        	as.setInterpolator(new DecelerateInterpolator(1.5f));
+            as.setDuration(10 * 1000);
+            as.start();
+        }
+        mSetColor = true;
+        invalidate();
+    }
+    
+    public boolean setGlowColor(){
+    	boolean hasAlpha = true;
+        // set the color overlay
+        if(mGlowBG != null){
+            int color = Settings.System.getInt(mContext.getContentResolver(),Settings.System.NAVBAR_GLOW_COLOR 
+                    , GLOW_COLOR_DEFAULT);
+            Log.d(TAG, "setting color overlay to "+Integer.toHexString(color));
+            if(color == 0){
+            	hasAlpha = false;
+            	Log.d(TAG, "Glow disabled by user");
+            }
+            mGlowBG.clearColorFilter();
+            //this.setColorFilter(color);
+            mGlowBG.setColorFilter(getFilter(color));  
+        }
+		return hasAlpha;
+    }
+    
+    private ColorFilter getFilter(int color){
+        float r = Color.red(color)/255.f;
+        float g = Color.green(color)/255.f;
+        float b = Color.blue(color)/255.f;
+        float a = Color.alpha(color)/255.f;
+        
+        if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.NAVBAR_EASTER_EGG, 0)==1){
+        	
+	        // generates random colors, hehe
+	        Random generator = new Random();
+	        r = (generator.nextInt(255) + 1)/255.f;
+	        g = (generator.nextInt(255) + 1)/255.f;
+	        b = (generator.nextInt(255) + 1)/255.f;
+        
+        }
+        
+        //Log.d(TAG, "red:"+r+" green:"+g+" blue:"+b+" alpha:"+a);
+        
+        ColorMatrix matrix = new ColorMatrix();
+        matrix.set(new float[] {
+                r, 0, 0, 0, 0,
+                0, g, 0, 0, 0,
+                0, 0, b, 0, 0,
+                0, 0, 0, a, 0});
+
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+        return filter;
+    }
     @Override
     protected void onDraw(Canvas canvas) {
         if (mGlowBG != null) {

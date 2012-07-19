@@ -96,6 +96,7 @@ import com.android.systemui.statusbar.phone.quicksettings.QuickSettings;
 import com.android.systemui.statusbar.policy.BatteryController;
 import com.android.systemui.statusbar.policy.DateView;
 import com.android.systemui.statusbar.policy.IntruderAlertView;
+import com.android.systemui.statusbar.policy.KeyButtonView;
 import com.android.systemui.statusbar.policy.LocationController;
 import com.android.systemui.statusbar.policy.OnSizeChangedListener;
 import com.android.systemui.statusbar.policy.NetworkController;
@@ -407,20 +408,10 @@ public class PhoneStatusBar extends BaseStatusBar {
         mStatusBarView.mService = this;
 
         mChoreographer = Choreographer.getInstance();
+	    //Switched to seperate method so we can redraw at runtime.
+        buildNavBarView();        
 
-        try {
-            boolean showNav = mWindowManager.hasNavigationBar();
-            if (DEBUG) Slog.v(TAG, "hasNavigationBar=" + showNav);
-            if (showNav) {
-                mNavigationBarView =
-                    (NavigationBarView) View.inflate(context, R.layout.navigation_bar, null);
-
-                mNavigationBarView.setDisabledFlags(mDisabled);
-                mNavigationBarView.setBar(this);
-            }
-        } catch (RemoteException ex) {
-            // no window manager? good luck with that
-        }
+        
 
         // figure out which pixel-format to use for the status bar.
         mPixelFormat = PixelFormat.OPAQUE;
@@ -533,7 +524,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         return mStatusBarView;
     }
-  private void setupBatteryView(){
+    
+    private void setupBatteryView(){
     	LinearLayout signalCluster =(LinearLayout)mIcons.findViewById(R.id.signal_battery_cluster);
     	if(mBattery!=null){
     		signalCluster.removeView(mBattery);
@@ -565,13 +557,18 @@ public class PhoneStatusBar extends BaseStatusBar {
         
         void observe() {
         	resolver = mContext.getContentResolver();
+		    resolver.registerContentObserver(
+            	Settings.System.getUriFor(Settings.System.SHOW_NAVBAR_SEARCH), false, this);
+
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.QUICK_SETTINGS), false, this);
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.SHOW_STATUSBAR_CLOCK), false, this);
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.CENTER_STATUSBAR_CLOCK), false, this);
-            update();
+            //update();
+            reloadQuickSettings();
+            updateClock();
         }
         
         @Override
@@ -580,11 +577,35 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
         
         public void update(){
+            redrawNavigationBar();
             reloadQuickSettings();
             updateClock();
         }
     }
+    /**
+     * Added so we can redraw the navigation bar during runtime
+     * 
+     */
+    private void buildNavBarView() {
+    	try {
+            boolean showNav = mWindowManager.hasNavigationBar();
+            if (DEBUG) Slog.v(TAG, "hasNavigationBar=" + showNav);
+            if (showNav) {
+            	if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_NAVBAR_SEARCH, 0) == 0)
+            		mNavigationBarView =
+            		(NavigationBarView) View.inflate(mContext, R.layout.navigation_bar, null);
+            	else mNavigationBarView =
+                		(NavigationBarView) View.inflate(mContext, R.layout.navigation_bar_search, null);
 
+                mNavigationBarView.setDisabledFlags(mDisabled);
+                mNavigationBarView.setBar(this);
+            }
+        } catch (RemoteException ex) {
+            // no window manager? good luck with that
+        }    	
+		
+	}
+	
     @Override
     protected WindowManager.LayoutParams getRecentsLayoutParams(LayoutParams layoutParams) {
         boolean opaque = false;
@@ -725,6 +746,40 @@ public class PhoneStatusBar extends BaseStatusBar {
         mNavigationBarView.getRecentsButton().setOnTouchListener(mRecentsPanel);
         mNavigationBarView.getHomeButton().setOnTouchListener(mHomeSearchActionListener);
         updateSearchPanel();
+    }
+    /**
+     * Redraw Navbar if changes are made
+     */
+    private void redrawNavigationBar() {	
+    	if (mNavigationBarView == null) return;    	
+    	if(!shouldRedraw()) return;    	
+    	WindowManagerImpl.getDefault().removeView(mNavigationBarView);    	
+    	buildNavBarView();    	
+    	addNavigationBar();
+    }
+    
+    /**
+     * change the color overlay for the buttons
+     * @return
+     */
+    private void setNavbarButtonColor(){
+        // set the color overlay
+        mNavigationBarView.setButtonColor();
+    }
+    
+    private boolean shouldRedraw(){
+    	boolean hasSearch = false;
+        boolean showSearch = false;  
+        boolean hasReflect = false;
+        boolean showReflect = false;
+        if(mNavigationBarView != null){
+            hasSearch = (mNavigationBarView.findViewById(R.id.search) != null);            
+            showSearch = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_NAVBAR_SEARCH, 0) == 1;
+        }
+        hasReflect = false;//KeyButtonView.hasReflections();
+        showReflect = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_NAVBAR_REFLECTION, 0) == 1;
+        Log.d(TAG, "shouldRedraw: "+(((hasSearch != showSearch)||(hasReflect != showReflect))?"Yes":"No"));
+        return ((hasSearch != showSearch)||(hasReflect != showReflect));
     }
 
     // For small-screen devices (read: phones) that lack hardware navigation buttons
