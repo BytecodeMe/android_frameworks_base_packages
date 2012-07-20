@@ -27,6 +27,7 @@ import android.app.ActivityManagerNative;
 import android.app.Dialog;
 import android.app.KeyguardManager;
 import android.app.Notification;
+import android.app.Notification.Notifications;
 import android.app.PendingIntent;
 import android.app.StatusBarManager;
 import android.content.ActivityNotFoundException;
@@ -522,6 +523,11 @@ public class PhoneStatusBar extends BaseStatusBar {
         // Added to handle Settings change on NavBar settings
         mSettingsObserver.observe();
 
+        // added to clear the settings cache when the user changes something
+        mContext.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(Settings.System.NOTIFICATIONS_DIRTY), 
+                false, mDirtySettingsObserver);
+
         return mStatusBarView;
     }
     
@@ -544,6 +550,13 @@ public class PhoneStatusBar extends BaseStatusBar {
     	@Override
         public void onChange(boolean selfChange) {        	
     		setupBatteryView();
+        }
+    };
+    
+    private ContentObserver mDirtySettingsObserver = new ContentObserver(mHandler){   	
+    	@Override
+        public void onChange(boolean selfChange) {        	
+    		Notifications.clearCache();
         }
     };
 

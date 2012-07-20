@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import android.app.ActivityManagerNative;
 import android.app.KeyguardManager;
 import android.app.Notification;
+import android.app.Notification.Notifications;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -30,6 +31,7 @@ import android.database.ContentObserver;
 import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -753,15 +755,65 @@ public abstract class BaseStatusBar extends SystemUI implements
             return null;
         }
 
-        // Add the expanded view and icon.
-        int pos = mNotificationData.add(entry);
-        if (DEBUG) {
-            Slog.d(TAG, "addNotificationViews: added at " + pos);
+     // Add the expanded view and icon.
+        boolean show = true;
+        
+        // apply user custom background or hide this notification
+        if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.NOTIFICATION_MANAGER, 0)==1){
+	        Bundle values = Notifications.getValues(mContext.getContentResolver(), entry.notification.pkg);
+	        
+	        if(values!=null){
+	        	show = values.getBoolean(Notifications.NOTIFICATION_ENABLED) &&
+	        			!values.getBoolean(Notifications.NOTIFICATION_HIDE) && 
+	        			!isFiltered(values.getString(Notifications.FILTERS, ""), entry.content);
+	        	
+	        	if(values.getInt(Notifications.BACKGROUND_COLOR)<0){
+	        		entry.content.setBackgroundColor(values.getInt(Notifications.BACKGROUND_COLOR));
+	        	}
+	        }
         }
-        updateExpansionStates();
-        updateNotificationIcons();
+        
+        if(show){
+        	
+        	int pos = mNotificationData.add(entry);
+        	if (DEBUG) {
+        		Slog.d(TAG, "addNotificationViews: added at " + pos);
+        	}
+        	updateExpansionStates();
+        	updateNotificationIcons();
 
-        return iconView;
+        	return iconView;
+        }else{
+        	Log.d(TAG, "User decided to hide this notification");
+        	removeNotification(key);
+            return null;
+        }
+        
+        // Add the expanded view and icon.
+        //int pos = mNotificationData.add(entry);
+        //if (DEBUG) {
+        //    Slog.d(TAG, "addNotificationViews: added at " + pos);
+        //}
+        //updateExpansionStates();
+        //updateNotificationIcons();
+
+        //return iconView;
+    }
+    
+    private boolean isFiltered(String value, View v){
+        
+    	boolean match = false;
+		String[] filters = value.split("\\|");
+		for(String filter: filters){
+			final ArrayList<View> outViews = new ArrayList<View>();
+			v.findViewsWithText(outViews, filter, View.FIND_VIEWS_WITH_TEXT);
+			if(!outViews.isEmpty()){
+				match = true;
+				break;
+			}
+		}
+        
+    	return match;
     }
 
     protected boolean expandView(NotificationData.Entry entry, boolean expand) {
