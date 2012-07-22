@@ -19,10 +19,12 @@ package com.android.systemui.statusbar;
 import java.util.ArrayList;
 
 import android.app.ActivityManagerNative;
+import android.app.AlarmManager;
 import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.Notification.Notifications;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -35,6 +37,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.provider.Settings;
@@ -56,6 +59,7 @@ import android.widget.LinearLayout;
 import android.widget.RemoteViews;
 import android.widget.PopupMenu;
 
+import com.android.internal.app.ThemeUtils;
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.internal.statusbar.StatusBarIcon;
 import com.android.internal.statusbar.StatusBarIconList;
@@ -63,6 +67,7 @@ import com.android.internal.statusbar.StatusBarNotification;
 import com.android.internal.widget.SizeAdaptiveLayout;
 import com.android.systemui.SearchPanelView;
 import com.android.systemui.SystemUI;
+import com.android.systemui.SystemUIService;
 import com.android.systemui.recent.RecentsPanelView;
 import com.android.systemui.recent.RecentTasksLoader;
 import com.android.systemui.recent.TaskDescription;
@@ -200,6 +205,8 @@ public abstract class BaseStatusBar extends SystemUI implements
 
         mBarService = IStatusBarService.Stub.asInterface(
                 ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+        
+        ThemeUtils.registerThemeChangeReceiver(mContext, mThemeChangeReceiver);
 
         // Connect in to the status bar manager service
         StatusBarIconList iconList = new StatusBarIconList();
@@ -1014,4 +1021,25 @@ public abstract class BaseStatusBar extends SystemUI implements
         KeyguardManager km = (KeyguardManager) mContext.getSystemService(Context.KEYGUARD_SERVICE);
         return km.inKeyguardRestrictedInputMode();
     }
+    
+	private BroadcastReceiver mThemeChangeReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Normally it will restart on its own, but sometimes it doesn't.
+			// Other times it's slow.
+
+			// This will help it restart reliably and faster.
+			Log.w("SKIN", "SKIN_CHANGED received by systemui.apk ... let's restart");
+
+			PendingIntent restartIntent = PendingIntent.getService(context, 0,
+					new Intent(context, SystemUIService.class), 0);
+
+			AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+			alarmMgr.set(AlarmManager.RTC_WAKEUP,
+					System.currentTimeMillis() + 3000, restartIntent);
+			
+			Process.killProcessQuiet(Process.myPid());
+		}
+	};
 }
