@@ -75,6 +75,7 @@ public class KeyButtonView extends ImageView {
     AnimatorSet mPressedAnim;
     private boolean mSetColor = false;
     private int mColorEgg = 0;
+    private boolean mLongPressed = false;
 
     Runnable mCheckLongPress = new Runnable() {
         public void run() {
@@ -84,7 +85,8 @@ public class KeyButtonView extends ImageView {
                     sendEvent(KeyEvent.ACTION_DOWN, KeyEvent.FLAG_LONG_PRESS);
                     sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
                 } else {
-                    // Just an old-fashioned ImageView
+                    // Just an old-fashioned ImageView                	
+                	mLongPressed = true;                	
                     performLongClick();
                 }
             }
@@ -115,11 +117,28 @@ public class KeyButtonView extends ImageView {
         a.recycle();
 
         setClickable(true);
+        if(getId() == R.id.recent_apps){
+        	setOnLongClickListener(mRecentLongClickListener);
+        }
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
         
         mDisplay = ((WindowManager)context.getSystemService(
                 Context.WINDOW_SERVICE)).getDefaultDisplay();
     }
+    
+    public OnLongClickListener mRecentLongClickListener = new OnLongClickListener(){
+
+		@Override
+		public boolean onLongClick(View v) {			
+			int oldCode = mCode;
+			mCode = 82;
+			sendEvent(KeyEvent.ACTION_DOWN, 0);
+			sendEvent(KeyEvent.ACTION_UP, 0);
+			mCode = oldCode;
+			return true;
+		}
+    	
+    };
     
 	public int getColorEgg(){
     	return mColorEgg;
@@ -285,30 +304,32 @@ public class KeyButtonView extends ImageView {
     public void setPressed(boolean pressed) {
         if (mGlowBG != null) {
             if (pressed != isPressed()) {
-                if (mPressedAnim != null && mPressedAnim.isRunning()) {
-                    mPressedAnim.cancel();
-                }
-                final AnimatorSet as = mPressedAnim = new AnimatorSet();
-                if (pressed) {
-                    if (mGlowScale < GLOW_MAX_SCALE_FACTOR) 
-                        mGlowScale = GLOW_MAX_SCALE_FACTOR;
-                    if (mGlowAlpha < BUTTON_QUIESCENT_ALPHA)
-                        mGlowAlpha = BUTTON_QUIESCENT_ALPHA;
-                    setDrawingAlpha(1f);
-                    as.playTogether(
-                        ObjectAnimator.ofFloat(this, "glowAlpha", 1f),
-                        ObjectAnimator.ofFloat(this, "glowScale", GLOW_MAX_SCALE_FACTOR)
-                    );
-                    as.setDuration(50);
-                } else {
-                    as.playTogether(
-                        ObjectAnimator.ofFloat(this, "glowAlpha", 0f),
-                        ObjectAnimator.ofFloat(this, "glowScale", 1f),
-                        ObjectAnimator.ofFloat(this, "drawingAlpha", BUTTON_QUIESCENT_ALPHA)
-                    );
-                    as.setDuration(500);
-                }
-                as.start();
+            	if(setGlowColor()){
+            		if (mPressedAnim != null && mPressedAnim.isRunning()) {
+            			mPressedAnim.cancel();
+            		}
+            		final AnimatorSet as = mPressedAnim = new AnimatorSet();
+            		if (pressed) {
+            			if (mGlowScale < GLOW_MAX_SCALE_FACTOR) 
+            				mGlowScale = GLOW_MAX_SCALE_FACTOR;
+            			if (mGlowAlpha < BUTTON_QUIESCENT_ALPHA)
+            				mGlowAlpha = BUTTON_QUIESCENT_ALPHA;
+            			setDrawingAlpha(1f);
+            			as.playTogether(
+            					ObjectAnimator.ofFloat(this, "glowAlpha", 1f),
+            						ObjectAnimator.ofFloat(this, "glowScale", GLOW_MAX_SCALE_FACTOR)
+            					);
+            			as.setDuration(50);
+                	} else {
+                		as.playTogether(
+                				ObjectAnimator.ofFloat(this, "glowAlpha", 0f),
+                				ObjectAnimator.ofFloat(this, "glowScale", 1f),
+                				ObjectAnimator.ofFloat(this, "drawingAlpha", BUTTON_QUIESCENT_ALPHA)
+                    		);
+                		as.setDuration(500);
+                	}
+            		as.start();
+            	}
             }
         }
         super.setPressed(pressed);
@@ -322,14 +343,14 @@ public class KeyButtonView extends ImageView {
             case MotionEvent.ACTION_DOWN:
                 //Slog.d("KeyButtonView", "press");
                 mDownTime = SystemClock.uptimeMillis();
-                setPressed(true);
+                setPressed(true);                
                 if (mCode != 0) {
                     sendEvent(KeyEvent.ACTION_DOWN, 0, mDownTime);
                 } else {
                     // Provide the same haptic feedback that the system offers for virtual keys.
                     performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
                 }
-                if (mSupportsLongpress) {
+                if (mSupportsLongpress) {                	
                     removeCallbacks(mCheckLongPress);
                     postDelayed(mCheckLongPress, ViewConfiguration.getLongPressTimeout());
                 }
@@ -343,7 +364,7 @@ public class KeyButtonView extends ImageView {
                         && y < getHeight() + mTouchSlop);
                 break;
             case MotionEvent.ACTION_CANCEL:
-                setPressed(false);
+                setPressed(false);                
                 if (mCode != 0) {
                     sendEvent(KeyEvent.ACTION_UP, KeyEvent.FLAG_CANCELED);
                 }
@@ -353,7 +374,7 @@ public class KeyButtonView extends ImageView {
                 break;
             case MotionEvent.ACTION_UP:
                 final boolean doIt = isPressed();
-                setPressed(false);
+                setPressed(false);                
                 if (mCode != 0) {
                     if (doIt) {
                         sendEvent(KeyEvent.ACTION_UP, 0);
@@ -364,8 +385,10 @@ public class KeyButtonView extends ImageView {
                     }
                 } else {
                     // no key code, just a regular ImageView
-                    if (doIt) {
+                    if (doIt && !mLongPressed) {                    	
                         performClick();
+                    }else if(mLongPressed){
+                    	mLongPressed = false;
                     }
                 }
                 if (mSupportsLongpress) {

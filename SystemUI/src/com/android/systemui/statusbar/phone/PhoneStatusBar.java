@@ -576,12 +576,14 @@ public class PhoneStatusBar extends BaseStatusBar {
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.QUICK_SETTINGS), false, this);
             resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.NAVBAR_BUTTON_COLOR), false, this);            
+            resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.SHOW_STATUSBAR_CLOCK), false, this);
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.CENTER_STATUSBAR_CLOCK), false, this);
-            //update();
-            reloadQuickSettings();
-            updateClock();
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.NAVBAR_EASTER_EGG), false, this);
+            update();
         }
         
         @Override
@@ -591,6 +593,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         
         public void update(){
             redrawNavigationBar();
+            setNavbarButtonColor();
             reloadQuickSettings();
             updateClock();
         }
@@ -804,6 +807,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         WindowManagerImpl.getDefault().addView(
                 mNavigationBarView, getNavigationBarLayoutParams());
+        mNavigationBarView.setButtonColor();
     }
 
     private void repositionNavigationBar() {
@@ -2694,6 +2698,7 @@ public class PhoneStatusBar extends BaseStatusBar {
             ((TextView)mClearButton).setText(context.getText(R.string.status_bar_clear_all_button));
         }
         loadDimens();
+        setNavbarButtonColor();
     }
 
     protected void loadDimens() {
