@@ -29,7 +29,7 @@
     android:layout_marginLeft="@dimen/notification_panel_margin_left"
     >
 
-    <TextView
+    <com.android.systemui.statusbar.phone.CarrierLabel
         android:id="@+id/carrier_label"
         android:textAppearance="@style/TextAppearance.StatusBar.Expanded.Network"
         android:layout_height="@dimen/carrier_label_height"

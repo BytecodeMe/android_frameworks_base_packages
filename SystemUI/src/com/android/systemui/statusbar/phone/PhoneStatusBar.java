@@ -522,6 +522,9 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         // Added to handle Settings change on NavBar settings
         mSettingsObserver.observe();
+        setNavbarButtonColor();
+        setNavbarReflections();            
+        updateClock();
 
         // added to clear the settings cache when the user changes something
         mContext.getContentResolver().registerContentObserver(
@@ -572,7 +575,8 @@ public class PhoneStatusBar extends BaseStatusBar {
         	resolver = mContext.getContentResolver();
 		    resolver.registerContentObserver(
             	Settings.System.getUriFor(Settings.System.SHOW_NAVBAR_SEARCH), false, this);
-
+		    resolver.registerContentObserver(
+	            	Settings.System.getUriFor(Settings.System.SHOW_NAVBAR_REFLECTION), false, this);
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.QUICK_SETTINGS), false, this);
             resolver.registerContentObserver(
@@ -582,8 +586,7 @@ public class PhoneStatusBar extends BaseStatusBar {
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.CENTER_STATUSBAR_CLOCK), false, this);
             resolver.registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NAVBAR_EASTER_EGG), false, this);
-            update();
+                    Settings.System.getUriFor(Settings.System.NAVBAR_EASTER_EGG), false, this);          
         }
         
         @Override
@@ -592,8 +595,9 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
         
         public void update(){
-            redrawNavigationBar();
+        	redrawNavigationBar();
             setNavbarButtonColor();
+            setNavbarReflections();            
             reloadQuickSettings();
             updateClock();
         }
@@ -783,6 +787,11 @@ public class PhoneStatusBar extends BaseStatusBar {
         mNavigationBarView.setButtonColor();
     }
     
+    private void setNavbarReflections(){
+    	mNavigationBarView.setButtonImages(Settings.System.getInt(mContext.getContentResolver(), 
+    			Settings.System.SHOW_NAVBAR_REFLECTION, 0) == 1);
+    }
+    
     private boolean shouldRedraw(){
     	boolean hasSearch = false;
         boolean showSearch = false;  
@@ -791,10 +800,9 @@ public class PhoneStatusBar extends BaseStatusBar {
         if(mNavigationBarView != null){
             hasSearch = (mNavigationBarView.findViewById(R.id.search) != null);            
             showSearch = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_NAVBAR_SEARCH, 0) == 1;
-        }
-        hasReflect = false;//KeyButtonView.hasReflections();
-        showReflect = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_NAVBAR_REFLECTION, 0) == 1;
-        Log.d(TAG, "shouldRedraw: "+(((hasSearch != showSearch)||(hasReflect != showReflect))?"Yes":"No"));
+            hasReflect = mNavigationBarView.mHasReflections;
+            showReflect = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_NAVBAR_REFLECTION, 0) == 1;
+        }        
         return ((hasSearch != showSearch)||(hasReflect != showReflect));
     }
 
@@ -1109,17 +1117,18 @@ public class PhoneStatusBar extends BaseStatusBar {
         if (!SHOW_CARRIER_LABEL) return;
         // The idea here is to only show the carrier label when there is enough room to see it, 
         // i.e. when there aren't enough notifications to fill the panel.
-        if (DEBUG) {
+        if (true) {
             Slog.d(TAG, String.format("pileh=%d scrollh=%d carrierh=%d",
                     mPile.getHeight(), mScrollView.getHeight(), mCarrierLabelHeight));
         }
         
-        final boolean makeVisible = 
-            mPile.getHeight() < (mScrollView.getHeight() - mCarrierLabelHeight);
+//        final boolean makeVisible = 
+//            mPile.getHeight() < (mScrollView.getHeight() - mCarrierLabelHeight);
+        final boolean makeVisible = mScrollView.getHeight() >= mPile.getHeight();
         
         if (force || mCarrierLabelVisible != makeVisible) {
             mCarrierLabelVisible = makeVisible;
-            if (DEBUG) {
+            if (true) {
                 Slog.d(TAG, "making carrier label " + (makeVisible?"visible":"invisible"));
             }
             mCarrierLabel.animate().cancel();
@@ -2310,7 +2319,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         lp.setTitle("StatusBar");
         lp.packageName = mContext.getPackageName();
 
-        makeStatusBarView();
+        makeStatusBarView();        
         WindowManagerImpl.getDefault().addView(mStatusBarWindow, lp);
     }
 

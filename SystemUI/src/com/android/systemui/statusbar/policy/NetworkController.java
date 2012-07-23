@@ -57,6 +57,7 @@ import com.android.server.am.BatteryStatsService;
 import com.android.internal.util.AsyncChannel;
 
 import com.android.systemui.R;
+import com.android.systemui.statusbar.phone.CarrierLabel;
 
 public class NetworkController extends BroadcastReceiver {
     // debug
@@ -1234,11 +1235,13 @@ public class NetworkController extends BroadcastReceiver {
         N = mMobileLabelViews.size();
         for (int i=0; i<N; i++) {
             TextView v = mMobileLabelViews.get(i);
-            v.setText(mobileLabel);
-            if ("".equals(mobileLabel)) {
-                v.setVisibility(View.GONE);
-            } else {
-                v.setVisibility(View.VISIBLE);
+            if(!(v instanceof CarrierLabel)){
+            	v.setText(mobileLabel);
+            	if ("".equals(mobileLabel)) {
+            		v.setVisibility(View.GONE);
+            	} else {
+            		v.setVisibility(View.VISIBLE);
+            	}
             }
         }
     }

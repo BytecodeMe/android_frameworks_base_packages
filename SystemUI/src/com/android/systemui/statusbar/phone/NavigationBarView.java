@@ -29,6 +29,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.Slog;
 import android.view.animation.AccelerateInterpolator;
 import android.view.Display;
@@ -78,6 +79,7 @@ public class NavigationBarView extends LinearLayout {
     private Drawable mBackIcon, mBackLandIcon, mBackAltIcon, mBackAltLandIcon;
     
     private DelegateViewHelper mDelegateHelper;
+    public boolean mHasReflections = false;
 
     // workaround for LayoutTransitions leaving the nav buttons in a weird state (bug 5549288)
     final static boolean WORKAROUND_INVALID_LAYOUT = true;
@@ -210,13 +212,38 @@ public class NavigationBarView extends LinearLayout {
             (0 != (hints & StatusBarManager.NAVIGATION_HINT_HOME_NOP)) ? 0.5f : 1.0f);
         getRecentsButton().setAlpha(
             (0 != (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP)) ? 0.5f : 1.0f);
-
+        if(getSearchButton() != null)
+        	getSearchButton().setAlpha(
+                    (0 != (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP)) ? 0.5f : 1.0f);
+        
         ((ImageView)getBackButton()).setImageDrawable(
             (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT))
                 ? (mVertical ? mBackAltLandIcon : mBackAltIcon)
                 : (mVertical ? mBackLandIcon : mBackIcon));
     }
 	
+    public void setButtonImages (boolean withReflect){
+    	
+    	mHasReflections = withReflect;
+    	Log.d("REFLECT","Settings Images withReflect: "+String.valueOf(withReflect));
+    	final Resources res = mContext.getResources();
+    	mBackIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_back_reflect : R.drawable.ic_sysbar_back);
+    	mBackLandIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_back_land_reflect : R.drawable.ic_sysbar_back_land);
+    	
+    	((ImageView) getBackButton()).setImageDrawable(mVertical ? mBackLandIcon : mBackIcon);
+    	((ImageView) getHomeButton()).setImageDrawable(res.getDrawable(mVertical 
+    			? (withReflect ? R.drawable.ic_sysbar_home_land_reflect : R.drawable.ic_sysbar_home_land) 
+    			: (withReflect ? R.drawable.ic_sysbar_home_reflect : R.drawable.ic_sysbar_home)));
+    	((ImageView) getRecentsButton()).setImageDrawable(res.getDrawable(mVertical 
+    			? (withReflect ? R.drawable.ic_sysbar_recent_land_reflect : R.drawable.ic_sysbar_recent_land) 
+    			: (withReflect ? R.drawable.ic_sysbar_recent_reflect : R.drawable.ic_sysbar_recent)));
+    	if(getSearchButton() != null){
+    		((ImageView) getSearchButton()).setImageDrawable(res.getDrawable(mVertical 
+        			? (withReflect ? R.drawable.ic_sysbar_search_land_reflect : R.drawable.ic_sysbar_search_land) 
+        	    	: (withReflect ? R.drawable.ic_sysbar_search_reflect : R.drawable.ic_sysbar_search)));
+    	}    	
+    	
+    }
 	    /**
      * change the color overlay for the buttons
      * @return
@@ -374,7 +401,7 @@ public class NavigationBarView extends LinearLayout {
         if (DEBUG) {
             Slog.d(TAG, "reorient(): rot=" + mDisplay.getRotation());
         }
-
+        setButtonImages(mHasReflections);
         setNavigationIconHints(mNavigationIconHints, true);
     }
 
