@@ -1117,7 +1117,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         if (!SHOW_CARRIER_LABEL) return;
         // The idea here is to only show the carrier label when there is enough room to see it, 
         // i.e. when there aren't enough notifications to fill the panel.
-        if (true) {
+        if (DEBUG) {
             Slog.d(TAG, String.format("pileh=%d scrollh=%d carrierh=%d",
                     mPile.getHeight(), mScrollView.getHeight(), mCarrierLabelHeight));
         }
@@ -1128,7 +1128,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         
         if (force || mCarrierLabelVisible != makeVisible) {
             mCarrierLabelVisible = makeVisible;
-            if (true) {
+            if (DEBUG) {
                 Slog.d(TAG, "making carrier label " + (makeVisible?"visible":"invisible"));
             }
             mCarrierLabel.animate().cancel();
