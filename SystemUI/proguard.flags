@@ -6,9 +6,11 @@
 }
 
 -keep class com.android.systemui.statusbar.policy.KeyButtonView {
+  public int getColorEgg();
   public float getDrawingAlpha();
   public float getGlowAlpha();
   public float getGlowScale();
+  public void setColorEgg(int);
   public void setDrawingAlpha(float);
   public void setGlowAlpha(float);
   public void setGlowScale(float);
