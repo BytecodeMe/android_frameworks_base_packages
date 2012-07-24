@@ -27,11 +27,13 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.ContentObserver;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -207,6 +209,12 @@ public abstract class BaseStatusBar extends SystemUI implements
                 ServiceManager.getService(Context.STATUS_BAR_SERVICE));
         
         ThemeUtils.registerThemeChangeReceiver(mContext, mThemeChangeReceiver);
+        
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.android.settings.RESTART_SYSTEMUI");
+
+        // protect this receiver so nobody but the system can use it
+        mContext.registerReceiver(mDevRestartReceiver, filter, "com.bamf.ics.permission.RESTART_SYSTEMUI", null);
 
         // Connect in to the status bar manager service
         StatusBarIconList iconList = new StatusBarIconList();
@@ -1030,16 +1038,30 @@ public abstract class BaseStatusBar extends SystemUI implements
 
 			// This will help it restart reliably and faster.
 			Log.w("SKIN", "SKIN_CHANGED received by systemui.apk ... let's restart");
-
-			PendingIntent restartIntent = PendingIntent.getService(context, 0,
-					new Intent(context, SystemUIService.class), 0);
-
-			AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-
-			alarmMgr.set(AlarmManager.RTC_WAKEUP,
-					System.currentTimeMillis() + 3000, restartIntent);
-			
-			Process.killProcessQuiet(Process.myPid());
+			restartMe(context);
 		}
 	};
+	
+	private BroadcastReceiver mDevRestartReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Normally it will restart on its own, but sometimes it doesn't.
+			// Other times it's slow.
+
+			// This will help it restart reliably and faster.
+			restartMe(context);
+		}
+	};
+	
+	void restartMe(Context context){
+		PendingIntent restartIntent = PendingIntent.getService(context, 0,
+				new Intent(context, SystemUIService.class), 0);
+
+		AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+		alarmMgr.set(AlarmManager.RTC_WAKEUP,
+				System.currentTimeMillis() + 3000, restartIntent);
+		
+		Process.killProcessQuiet(Process.myPid());
+	}
 }
