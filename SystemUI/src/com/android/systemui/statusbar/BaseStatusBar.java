@@ -123,6 +123,8 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected RecentTasksLoader mRecentTasksLoader;
 
     protected PopupMenu mNotificationBlamePopup;
+    
+    private DoNotDisturb mDoNotDisturb;
 
     // UI-specific methods
 
@@ -272,6 +274,8 @@ public abstract class BaseStatusBar extends SystemUI implements
                    switches[3]
                    ));
         }
+        
+        mDoNotDisturb = new DoNotDisturb(mContext);
     }
 
     protected View updateNotificationVetoButton(View row, StatusBarNotification n) {
