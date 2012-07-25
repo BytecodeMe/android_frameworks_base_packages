@@ -76,6 +76,12 @@
 				        systemui:rowHeight="@dimen/notification_row_min_height"
 				        />
 				</ScrollView>
+				<ImageView
+	            	android:layout_width="match_parent"
+	            	android:layout_height="match_parent"
+	            	android:src="@drawable/title_bar_shadow"
+	            	android:scaleType="fitXY"
+	        	/>
         	</FrameLayout>
         </LinearLayout>
     </FrameLayout>
