@@ -39,12 +39,20 @@
 			<com.android.systemui.statusbar.phone.quicksettings.QuickSettings
 				android:id="@+id/settings_view"			
 				android:layout_width="match_parent"
-				android:layout_marginTop="5dp"
+				android:layout_marginTop="3dp"
 				android:background="@drawable/notification_row_bg"
 				android:layout_height="wrap_content"
 				android:orientation="vertical"
 				/>
-		</ScrollView>		
+		</ScrollView>	
+		<ImageView
+	            android:layout_width="match_parent"
+	            android:layout_height="wrap_content"
+	            android:layout_marginTop="@dimen/notification_panel_header_height"
+	            android:layout_gravity="top"
+	            android:src="@drawable/title_bar_shadow"
+	            android:scaleType="fitXY"
+	        	/>	
     </FrameLayout>
 </LinearLayout>
 
