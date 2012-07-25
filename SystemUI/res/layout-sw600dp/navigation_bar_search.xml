@@ -1,4 +1,4 @@
-color<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 /* apps/common/assets/default/default/skins/StatusBar.xml
 **
@@ -230,7 +230,7 @@ color<?xml version="1.0" encoding="utf-8"?>
                 android:layout_width="121dp" android:paddingLeft="32dp" android:paddingRight="32dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_sysbar_search"
-		systemui:keyCode="84"
+				systemui:keyCode="84"
                 systemui:keyRepeat="true"
                 android:layout_weight="0"
                 systemui:glowBackground="@drawable/ic_sysbar_highlight"
