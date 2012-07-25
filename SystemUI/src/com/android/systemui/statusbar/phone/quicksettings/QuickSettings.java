@@ -121,6 +121,10 @@ public class QuickSettings extends LinearLayout {
         		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingLTE));
         mConfigs.put(QUICK_MOBILE_DATA, mContext.getResources()
         		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingMobileData));
+        mConfigs.put(QUICK_HOTSPOT, context.getResources()
+        		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingMobileData));
+        mConfigs.put(QUICK_TETHER, context.getResources()
+        		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingMobileData));
     }
     
     public boolean isDirty(){
