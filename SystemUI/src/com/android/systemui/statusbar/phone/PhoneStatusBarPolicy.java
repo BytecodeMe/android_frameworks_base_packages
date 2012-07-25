@@ -107,11 +107,14 @@ public class PhoneStatusBarPolicy {
 
     // state of inet connection - 0 not connected, 100 connected
     private int mInetCondition = 0;
+    
+  //for changes to the layout
     SettingsObserver mSettingsObserver = new SettingsObserver(mHandler);
 
     // sync state
     // If sync is active the SyncActive icon is displayed. If sync is not active but
     // sync is failing the SyncFailing icon is displayed. Otherwise neither are displayed.
+    
     class SettingsObserver extends ContentObserver {
     	
     	ContentResolver resolver;
@@ -151,7 +154,8 @@ public class PhoneStatusBarPolicy {
                     action.equals(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)) {
                 updateBluetooth(intent);
             }
-            else if (action.equals(AudioManager.RINGER_MODE_CHANGED_ACTION)) {
+            else if (action.equals(AudioManager.RINGER_MODE_CHANGED_ACTION) ||
+                    action.equals(AudioManager.VIBRATE_SETTING_CHANGED_ACTION)) {
                 updateVolume();
             }
             else if (action.equals(TelephonyIntents.ACTION_SIM_STATE_CHANGED)) {
@@ -172,6 +176,7 @@ public class PhoneStatusBarPolicy {
         filter.addAction(Intent.ACTION_ALARM_CHANGED);
         filter.addAction(Intent.ACTION_SYNC_STATE_CHANGED);
         filter.addAction(AudioManager.RINGER_MODE_CHANGED_ACTION);
+        filter.addAction(AudioManager.VIBRATE_SETTING_CHANGED_ACTION);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
         filter.addAction(TelephonyIntents.ACTION_SIM_STATE_CHANGED);
@@ -220,18 +225,17 @@ public class PhoneStatusBarPolicy {
         mSettingsObserver.observe();
     }
 
-    private final void updateAlarm(Intent intent) {
-    	//boolean showAlarm = mShouldShowAlarm;
-    	boolean alarmSet = mShouldShowAlarm;
+    private final void updateAlarm(Intent intent) {    	
+    	boolean showAlarm = mShouldShowAlarm;
+    	boolean alarmSet = false;
     	if(intent != null){
     		alarmSet = mShouldShowAlarm = intent.getBooleanExtra("alarmSet", false);
-    		
-        		
-        	
+    		if(alarmSet){
+        		showAlarm = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_STATUSBAR_ALARM,1) == 1;
+        	}
     	}
-		boolean showAlarm = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_STATUSBAR_ALARM,1) == 1;
-        mService.setIconVisibility("alarm_clock", alarmSet && showAlarm);
-    }
+        mService.setIconVisibility("alarm_clock", alarmSet & showAlarm);
+    }    
 
     private final void updateSyncState(Intent intent) {
         if (!SHOW_SYNC_ICON) return;
@@ -274,7 +278,7 @@ public class PhoneStatusBarPolicy {
 
         final int iconId;
         String contentDescription = null;
-        if (ringerMode == AudioManager.RINGER_MODE_VIBRATE) {
+        if (audioManager.shouldVibrate(AudioManager.VIBRATE_TYPE_RINGER)) {
             iconId = R.drawable.stat_sys_ringer_vibrate;
             contentDescription = mContext.getString(R.string.accessibility_ringer_vibrate);
         } else {

@@ -16,6 +16,8 @@
 
 package com.android.vpndialogs;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -30,16 +32,15 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.android.internal.app.AlertActivity;
-
-public class ConfirmDialog extends AlertActivity implements
-        CompoundButton.OnCheckedChangeListener, DialogInterface.OnClickListener {
+public class ConfirmDialog extends Activity implements CompoundButton.OnCheckedChangeListener,
+        DialogInterface.OnClickListener, DialogInterface.OnDismissListener {
     private static final String TAG = "VpnConfirm";
 
     private String mPackage;
 
     private IConnectivityManager mService;
 
+    private AlertDialog mDialog;
     private Button mButton;
 
     @Override
@@ -66,17 +67,18 @@ public class ConfirmDialog extends AlertActivity implements
                     getString(R.string.prompt, app.loadLabel(pm)));
             ((CompoundButton) view.findViewById(R.id.check)).setOnCheckedChangeListener(this);
 
-            mAlertParams.mIconId = android.R.drawable.ic_dialog_alert;
-            mAlertParams.mTitle = getText(android.R.string.dialog_alert_title);
-            mAlertParams.mPositiveButtonText = getText(android.R.string.ok);
-            mAlertParams.mPositiveButtonListener = this;
-            mAlertParams.mNegativeButtonText = getText(android.R.string.cancel);
-            mAlertParams.mNegativeButtonListener = this;
-            mAlertParams.mView = view;
-            setupAlert();
+            mDialog = new AlertDialog.Builder(this)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setTitle(android.R.string.dialog_alert_title)
+                    .setView(view)
+                    .setPositiveButton(android.R.string.ok, this)
+                    .setNegativeButton(android.R.string.cancel, this)
+                    .setCancelable(false)
+                    .create();
+            mDialog.setOnDismissListener(this);
+            mDialog.show();
 
-            getWindow().setCloseOnTouchOutside(false);
-            mButton = mAlert.getButton(DialogInterface.BUTTON_POSITIVE);
+            mButton = mDialog.getButton(DialogInterface.BUTTON_POSITIVE);
             mButton.setEnabled(false);
         } catch (Exception e) {
             Log.e(TAG, "onResume", e);
@@ -85,7 +87,12 @@ public class ConfirmDialog extends AlertActivity implements
     }
 
     @Override
-    public void onBackPressed() {
+    protected void onPause() {
+        super.onPause();
+        if (mDialog != null) {
+            mDialog.setOnDismissListener(null);
+            mDialog.dismiss();
+        }
     }
 
     @Override
@@ -96,11 +103,16 @@ public class ConfirmDialog extends AlertActivity implements
     @Override
     public void onClick(DialogInterface dialog, int which) {
         try {
-            if (which == DialogInterface.BUTTON_POSITIVE && mService.prepareVpn(null, mPackage)) {
+            if (which == AlertDialog.BUTTON_POSITIVE && mService.prepareVpn(null, mPackage)) {
                 setResult(RESULT_OK);
             }
         } catch (Exception e) {
             Log.e(TAG, "onClick", e);
         }
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        finish();
     }
 }

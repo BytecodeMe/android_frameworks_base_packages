@@ -19,7 +19,6 @@
     package="com.android.backupconfirm" >
 
     <uses-permission android:name="android.permission.BACKUP" />
-    <uses-permission android:name="android.permission.CRYPT_KEEPER" />
 
     <application android:allowClearUserData="false"
                  android:allowBackup="false"

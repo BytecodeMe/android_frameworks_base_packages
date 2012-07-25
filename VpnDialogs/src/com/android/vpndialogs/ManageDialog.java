@@ -16,6 +16,8 @@
 
 package com.android.vpndialogs;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -33,24 +35,23 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.android.internal.app.AlertActivity;
 import com.android.internal.net.VpnConfig;
 
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 
-public class ManageDialog extends AlertActivity implements
-        DialogInterface.OnClickListener, Handler.Callback {
+public class ManageDialog extends Activity implements Handler.Callback,
+        DialogInterface.OnClickListener, DialogInterface.OnDismissListener {
     private static final String TAG = "VpnManage";
 
     private VpnConfig mConfig;
 
     private IConnectivityManager mService;
 
+    private AlertDialog mDialog;
     private TextView mDuration;
     private TextView mDataTransmitted;
     private TextView mDataReceived;
-    private boolean mDataRowsHidden;
 
     private Handler mHandler;
 
@@ -77,27 +78,33 @@ public class ManageDialog extends AlertActivity implements
             mDuration = (TextView) view.findViewById(R.id.duration);
             mDataTransmitted = (TextView) view.findViewById(R.id.data_transmitted);
             mDataReceived = (TextView) view.findViewById(R.id.data_received);
-            mDataRowsHidden = true;
 
             if (mConfig.user.equals(VpnConfig.LEGACY_VPN)) {
-                mAlertParams.mIconId = android.R.drawable.ic_dialog_info;
-                mAlertParams.mTitle = getText(R.string.legacy_title);
+                mDialog = new AlertDialog.Builder(this)
+                        .setIcon(android.R.drawable.ic_dialog_info)
+                        .setTitle(R.string.legacy_title)
+                        .setView(view)
+                        .setNeutralButton(R.string.disconnect, this)
+                        .setNegativeButton(android.R.string.cancel, this)
+                        .create();
             } else {
                 PackageManager pm = getPackageManager();
                 ApplicationInfo app = pm.getApplicationInfo(mConfig.user, 0);
-                mAlertParams.mIcon = app.loadIcon(pm);
-                mAlertParams.mTitle = app.loadLabel(pm);
+                mDialog = new AlertDialog.Builder(this)
+                        .setIcon(app.loadIcon(pm))
+                        .setTitle(app.loadLabel(pm))
+                        .setView(view)
+                        .setNeutralButton(R.string.disconnect, this)
+                        .setNegativeButton(android.R.string.cancel, this)
+                        .create();
             }
+
             if (mConfig.configureIntent != null) {
-                mAlertParams.mPositiveButtonText = getText(R.string.configure);
-                mAlertParams.mPositiveButtonListener = this;
+                mDialog.setButton(DialogInterface.BUTTON_POSITIVE,
+                        getText(R.string.configure), this);
             }
-            mAlertParams.mNeutralButtonText = getText(R.string.disconnect);
-            mAlertParams.mNeutralButtonListener = this;
-            mAlertParams.mNegativeButtonText = getText(android.R.string.cancel);
-            mAlertParams.mNegativeButtonListener = this;
-            mAlertParams.mView = view;
-            setupAlert();
+            mDialog.setOnDismissListener(this);
+            mDialog.show();
 
             if (mHandler == null) {
                 mHandler = new Handler(this);
@@ -112,17 +119,18 @@ public class ManageDialog extends AlertActivity implements
     @Override
     protected void onPause() {
         super.onPause();
-        if (!isFinishing()) {
-            finish();
+        if (mDialog != null) {
+            mDialog.setOnDismissListener(null);
+            mDialog.dismiss();
         }
     }
 
     @Override
     public void onClick(DialogInterface dialog, int which) {
         try {
-            if (which == DialogInterface.BUTTON_POSITIVE) {
+            if (which == AlertDialog.BUTTON_POSITIVE) {
                 mConfig.configureIntent.send();
-            } else if (which == DialogInterface.BUTTON_NEUTRAL) {
+            } else if (which == AlertDialog.BUTTON_NEUTRAL) {
                 mService.prepareVpn(mConfig.user, VpnConfig.LEGACY_VPN);
             }
         } catch (Exception e) {
@@ -132,25 +140,23 @@ public class ManageDialog extends AlertActivity implements
     }
 
     @Override
+    public void onDismiss(DialogInterface dialog) {
+        finish();
+    }
+
+    @Override
     public boolean handleMessage(Message message) {
         mHandler.removeMessages(0);
 
-        if (!isFinishing()) {
+        if (mDialog.isShowing()) {
             if (mConfig.startTime != 0) {
                 long seconds = (SystemClock.elapsedRealtime() - mConfig.startTime) / 1000;
                 mDuration.setText(String.format("%02d:%02d:%02d",
                         seconds / 3600, seconds / 60 % 60, seconds % 60));
             }
 
-            String[] numbers = getNumbers();
+            String[] numbers = getStatistics();
             if (numbers != null) {
-                // First unhide the related data rows.
-                if (mDataRowsHidden) {
-                    findViewById(R.id.data_transmitted_row).setVisibility(View.VISIBLE);
-                    findViewById(R.id.data_received_row).setVisibility(View.VISIBLE);
-                    mDataRowsHidden = false;
-                }
-
                 // [1] and [2] are received data in bytes and packets.
                 mDataReceived.setText(getString(R.string.data_value_format,
                         numbers[1], numbers[2]));
@@ -164,7 +170,7 @@ public class ManageDialog extends AlertActivity implements
         return true;
     }
 
-    private String[] getNumbers() {
+    private String[] getStatistics() {
         DataInputStream in = null;
         try {
             // See dev_seq_printf_stats() in net/core/dev.c.

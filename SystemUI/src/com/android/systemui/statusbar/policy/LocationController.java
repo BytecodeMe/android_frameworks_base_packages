@@ -99,14 +99,13 @@ public class LocationController extends BroadcastReceiver {
                 // Notification.Builder will helpfully fill these out for you no matter what you do
                 n.tickerView = null;
                 n.tickerText = null;
-                
-                n.priority = Notification.PRIORITY_HIGH;
 
                 int[] idOut = new int[1];
-                mNotificationService.enqueueNotificationWithTag(
+                mNotificationService.enqueueNotificationWithTagPriority(
                         mContext.getPackageName(),
                         null, 
                         GPS_NOTIFICATION_ID, 
+                        StatusBarNotification.PRIORITY_SYSTEM, // !!!1!one!!!
                         n,
                         idOut);
             } else {

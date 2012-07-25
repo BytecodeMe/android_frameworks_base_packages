@@ -3,14 +3,12 @@ package com.android.systemui.statusbar.phone.quicksettings;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.media.AudioManager;
 import android.media.AudioSystem;
 import android.os.Handler;
 import android.provider.Settings;
-import android.provider.Settings.System;
 import android.database.ContentObserver;
 
 import com.android.systemui.R;
@@ -20,8 +18,6 @@ import com.android.systemui.statusbar.policy.ToggleSlider;
 
 public class Volume extends StatusBarPreference
     implements ToggleSlider.Listener, View.OnKeyListener, View.OnLongClickListener {
-	
-	private static final String TAG = Volume.class.getSimpleName();
    
     protected static final String[] VOLUME_PROPER_NAMES = new String[]{
         "VOICE", "SYSTEM", "RINGER", "MEDIA",
@@ -96,9 +92,7 @@ public class Volume extends StatusBarPreference
         void observe() {
             ContentResolver resolver = mContext.getContentResolver();
             resolver.registerContentObserver(Settings.System.getUriFor(
-                    Settings.System.VOLUME_SETTINGS[STREAM_TYPE] + "_" + getDeviceNameForStream(STREAM_TYPE)), false, this);
-            Log.d(TAG, "registered uri "+Settings.System.getUriFor(
-                    Settings.System.VOLUME_SETTINGS[STREAM_TYPE] + "_" + getDeviceNameForStream(STREAM_TYPE)));
+                    Settings.System.VOLUME_SETTINGS[STREAM_TYPE]), false, this);
             update();
         }
         
@@ -120,8 +114,7 @@ public class Volume extends StatusBarPreference
         public void update() {
             ContentResolver resolver = mContext.getContentResolver();
             int mValue = Settings.System.getInt(resolver,
-                    Settings.System.VOLUME_SETTINGS[STREAM_TYPE] + "_" + getDeviceNameForStream(STREAM_TYPE), 
-                    Settings.System.getInt(resolver, Settings.System.VOLUME_SETTINGS[STREAM_TYPE], 0));
+                    Settings.System.VOLUME_SETTINGS[STREAM_TYPE], 0);
             mSlider.setValue(mValue);
         }
     };
@@ -160,31 +153,8 @@ public class Volume extends StatusBarPreference
 
     @Override
     public void refreshResources() {
-        // hack so I do not have to catch every time the device changes
-    	mVolumeObserver.reset();
-    }
-    
-    /**
-     * this will return the name of the current device so we can determine the correct
-     * value to monitor in the database.
-     * @param stream
-     * @return the current device name
-     */
-    private String getDeviceNameForStream(int stream) {
-        int device = AudioSystem.getDevicesForStream(stream);
-        if ((device & (device - 1)) != 0) {
-            // Multiple device selection is either:
-            //  - speaker + one other device: give priority to speaker in this case.
-            //  - one A2DP device + another device: happens with duplicated output. In this case
-            // retain the device on the A2DP output as the other must not correspond to an active
-            // selection if not the speaker.
-            if ((device & AudioSystem.DEVICE_OUT_SPEAKER) != 0) {
-                device = AudioSystem.DEVICE_OUT_SPEAKER;
-            } else {
-                device &= AudioSystem.DEVICE_OUT_ALL_A2DP;
-            }
-        }
-        return AudioSystem.getDeviceName(device);
+        // TODO Auto-generated method stub
+        
     }
 
 }

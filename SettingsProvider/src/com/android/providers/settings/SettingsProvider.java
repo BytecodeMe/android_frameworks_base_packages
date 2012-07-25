@@ -260,6 +260,7 @@ public class SettingsProvider extends ContentProvider {
         // Watch for external modifications to the database file,
         // keeping our cache in sync.
         SQLiteDatabase db = mOpenHelper.getWritableDatabase();
+        db.enableWriteAheadLogging();
         sObserverInstance = new SettingsFileObserver(db.getPath());
         sObserverInstance.startWatching();
         startAsyncCachePopulation();
@@ -635,7 +636,8 @@ public class SettingsProvider extends ContentProvider {
                 // Only proxy the openFile call to drm or media providers
                 String authority = soundUri.getAuthority();
                 boolean isDrmAuthority = authority.equals(DrmStore.AUTHORITY);
-                if (isDrmAuthority || authority.equals(MediaStore.AUTHORITY)) {
+                if (isDrmAuthority || authority.equals(MediaStore.AUTHORITY) ||
+                        authority.equals(RingtoneManager.THEME_AUTHORITY)) {
 
                     if (isDrmAuthority) {
                         try {
@@ -676,7 +678,8 @@ public class SettingsProvider extends ContentProvider {
                 // Only proxy the openFile call to drm or media providers
                 String authority = soundUri.getAuthority();
                 boolean isDrmAuthority = authority.equals(DrmStore.AUTHORITY);
-                if (isDrmAuthority || authority.equals(MediaStore.AUTHORITY)) {
+                if (isDrmAuthority || authority.equals(MediaStore.AUTHORITY) ||
+                        authority.equals(RingtoneManager.THEME_AUTHORITY)) {
 
                     if (isDrmAuthority) {
                         try {
@@ -689,10 +692,8 @@ public class SettingsProvider extends ContentProvider {
                         }
                     }
 
-                    ParcelFileDescriptor pfd = null;
                     try {
-                        pfd = context.getContentResolver().openFileDescriptor(soundUri, mode);
-                        return new AssetFileDescriptor(pfd, 0, -1);
+                        return context.getContentResolver().openAssetFileDescriptor(soundUri, mode);
                     } catch (FileNotFoundException ex) {
                         // fall through and open the fallback ringtone below
                     }

@@ -37,8 +37,8 @@ public class Brightness extends StatusBarPreference
 
     // Backlight range is from 0 - 255. Need to make sure that user
     // doesn't set the backlight to 0 and get stuck
-    private static final int MINIMUM_BACKLIGHT = android.os.PowerManager.BRIGHTNESS_DIM;
-    private static final int MAXIMUM_BACKLIGHT = android.os.PowerManager.BRIGHTNESS_ON;
+    private static final int MINIMUM_BACKLIGHT = android.os.Power.BRIGHTNESS_DIM;
+    private static final int MAXIMUM_BACKLIGHT = android.os.Power.BRIGHTNESS_ON;
 
     private IPowerManager mPower;
     private boolean mAutomaticAvailable = false;

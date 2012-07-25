@@ -19,40 +19,36 @@
 	android:orientation="vertical"
    	android:id="@+id/quick_settings_minimal" 
    	android:layout_width="fill_parent" 
-   	android:layout_height="wrap_content"
-    > 
+   	android:layout_height="wrap_content"> 
    	<FrameLayout
-        android:layout_width="match_parent" 
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        >  
-		<ScrollView android:layout_width="match_parent"
-			android:layout_height="match_parent"
-            android:layout_marginTop="@dimen/notification_panel_header_height"
-            android:fadingEdge="none"
-			android:overScrollMode="ifContentScrolls"
-			android:scrollbarThumbVertical="@drawable/scrollbar_handle_holo_dark"
-			android:scrollbarSize="14.0sp"
-			android:scrollbarStyle="insideOverlay"
-			android:scrollbarTrackVertical="@drawable/fastscroll_track_holo_dark"
-			android:scrollbarAlwaysDrawVerticalTrack="true">
-			<com.android.systemui.statusbar.phone.quicksettings.QuickSettings
-				android:id="@+id/settings_view"			
-				android:layout_width="match_parent"
-				android:layout_marginTop="3dp"
-				android:background="@drawable/notification_row_bg"
-				android:layout_height="wrap_content"
-				android:orientation="vertical"
-				/>
-		</ScrollView>	
-		<ImageView
+	        android:layout_width="match_parent" 
+	        android:layout_height="wrap_content"
+	        android:layout_weight="1"
+	        >  
+	<ScrollView android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:fadingEdge="none"
+		android:overScrollMode="ifContentScrolls"
+		android:scrollbarThumbVertical="@drawable/scrollbar_handle_holo_dark"
+		android:scrollbarSize="14.0sp"
+		android:scrollbarStyle="insideOverlay"
+		android:scrollbarTrackVertical="@drawable/fastscroll_track_holo_dark"
+		android:scrollbarAlwaysDrawVerticalTrack="true">
+		<com.android.systemui.statusbar.phone.quicksettings.QuickSettings
+			android:id="@+id/settings_view"			
+		    android:layout_width="match_parent"
+		    android:background="@drawable/notification_row_bg"
+		    android:layout_height="wrap_content"
+		    android:orientation="vertical"
+		    />
+    </ScrollView>
+    <ImageView
 	            android:layout_width="match_parent"
-	            android:layout_height="wrap_content"
-	            android:layout_marginTop="@dimen/notification_panel_header_height"
-	            android:layout_gravity="top"
+	            android:layout_height="match_parent"
 	            android:src="@drawable/title_bar_shadow"
 	            android:scaleType="fitXY"
-	        	/>	
-    </FrameLayout>
+	        />
+	
+	    </FrameLayout>
 </LinearLayout>
 

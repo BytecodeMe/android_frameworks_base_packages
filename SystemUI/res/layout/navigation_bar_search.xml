@@ -54,7 +54,6 @@
                 android:src="@drawable/ic_sysbar_back"
                 systemui:keyCode="4"
                 android:layout_weight="0"
-                android:scaleType="center"
                 systemui:glowBackground="@drawable/ic_sysbar_highlight"
                 android:contentDescription="@string/accessibility_back"
                 />
@@ -105,7 +104,7 @@
 				systemui:glowBackground="@drawable/ic_sysbar_highlight" 
 				/>
             <com.android.systemui.statusbar.policy.KeyButtonView android:id="@+id/menu"
-                android:layout_width="@dimen/navigation_menu_key_width"
+                android:layout_width="40dp"
                 android:layout_height="match_parent"
                 android:src="@drawable/ic_sysbar_menu"
                 systemui:keyCode="82"
@@ -174,11 +173,11 @@
                 />
         </LinearLayout>
 
-        <com.android.systemui.statusbar.policy.DeadZone
-            android:id="@+id/deadzone"
+        <View android:id="@+id/deadzone"
             android:layout_height="@dimen/navigation_bar_deadzone_size"
             android:layout_width="match_parent"
             android:layout_gravity="top"
+            android:clickable="true"
             />
     </FrameLayout>
 
@@ -260,7 +259,6 @@
                 android:layout_height="60dp"
                 android:layout_width="match_parent"
                 android:src="@drawable/ic_sysbar_back_land"
-                android:scaleType="center"
                 systemui:keyCode="4"
                 android:layout_weight="0"
                 android:contentDescription="@string/accessibility_back"
@@ -332,11 +330,11 @@
                 />
         </LinearLayout>
 
-        <com.android.systemui.statusbar.policy.DeadZone
-            android:id="@+id/deadzone"
+        <View android:id="@+id/deadzone"
             android:layout_width="@dimen/navigation_bar_deadzone_size"
             android:layout_height="match_parent"
             android:layout_gravity="left"
+            android:clickable="true"
             />
     </FrameLayout>
 

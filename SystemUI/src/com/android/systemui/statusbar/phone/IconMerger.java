@@ -65,12 +65,13 @@ public class IconMerger extends LinearLayout {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        super.onLayout(changed, l, t, r, b);
-        checkOverflow(r - l);
+        super.onLayout(changed, l, t, r, b);   
+        checkOverflow(r - l); 
     }
 
     private void checkOverflow(int width) {
         if (mMoreView == null) return;
+        
 
         final int N = getChildCount();
         int visibleChildren = 0;
@@ -81,17 +82,18 @@ public class IconMerger extends LinearLayout {
         // let's assume we have one more slot if the more icon is already showing
         if ((mCenteredClock && (visibleChildren != 6)) && overflowShown) visibleChildren --;
         else if (!mCenteredClock && overflowShown) visibleChildren --;
-        final boolean moreRequired = visibleChildren * mIconSize > width;
+        final boolean moreRequired = visibleChildren * mIconSize > width;        
         if (moreRequired != overflowShown) {
             post(new Runnable() {
                 @Override
                 public void run() {
                 	Log.w(TAG,"posting runnable and moreRequired: " +String.valueOf(moreRequired));
-                    mMoreView.setVisibility(moreRequired ? View.VISIBLE : View.GONE);
+                    mMoreView.setVisibility(moreRequired ? View.VISIBLE : View.GONE);                    
                 }
             });
         }
     }
+
 	public void setCenteredClock(boolean b) {
 		mCenteredClock = b;		
 	}
