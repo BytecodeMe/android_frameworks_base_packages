@@ -42,6 +42,8 @@ public class QuickSettings extends LinearLayout {
     private LayoutInflater mInflater;
     private Context mContext;
     
+    private final HashMap<String, Boolean> mConfigs = new HashMap<String, Boolean>();
+    
     /**
      *  These must be in sync with QuickSettingsUtil in BAMF settings and vice versa
      */
@@ -91,8 +93,9 @@ public class QuickSettings extends LinearLayout {
     }
     
     private static final String SETTING_DELIMITER = "|";
+    // do not use anything here that may not work on ALL devices
     private static final String SETTINGS_DEFAULT = QUICK_AIRPLANE
-                             + SETTING_DELIMITER + QUICK_TORCH
+                             + SETTING_DELIMITER + QUICK_MEDIA
                              + SETTING_DELIMITER + QUICK_VOLUME
                              + SETTING_DELIMITER + QUICK_ROTATE
                              + SETTING_DELIMITER + QUICK_BRIGHTNESS
@@ -110,6 +113,14 @@ public class QuickSettings extends LinearLayout {
         mContext = context;
         mLoadedSettings = EMPTY_STRING;
         mInflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        
+        // setup config values - only need to load these once
+        mConfigs.put(QUICK_TORCH, mContext.getResources()
+        		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingTorch));
+        mConfigs.put(QUICK_LTE, mContext.getResources()
+        		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingLTE));
+        mConfigs.put(QUICK_MOBILE_DATA, mContext.getResources()
+        		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingMobileData));
     }
     
     public boolean isDirty(){
@@ -137,12 +148,19 @@ public class QuickSettings extends LinearLayout {
             return;
         }
         
+        // just in case one sneaks in, get rid of it
+    	for(String config: mConfigs.keySet()){
+    		if(settings.contains(config) && !mConfigs.get(config))
+    			settings = settings.replace(config, EMPTY_STRING).replace("||", "|");
+    	}
+        
         mLoadedSettings = settings;
         
         removeAllViews();
         
         mSettingItems = new StatusBarPreference[settings.split("\\|").length];
         int count = 0;
+
         for(String setting : settings.split("\\|")) {
             Log.i(TAG, "Inflating setting: " + setting);
 
