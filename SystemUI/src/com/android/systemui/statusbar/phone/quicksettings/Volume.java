@@ -120,7 +120,8 @@ public class Volume extends StatusBarPreference
         public void update() {
             ContentResolver resolver = mContext.getContentResolver();
             int mValue = Settings.System.getInt(resolver,
-                    Settings.System.VOLUME_SETTINGS[STREAM_TYPE] + "_" + getDeviceNameForStream(STREAM_TYPE), 0);
+                    Settings.System.VOLUME_SETTINGS[STREAM_TYPE] + "_" + getDeviceNameForStream(STREAM_TYPE), 
+                    Settings.System.getInt(resolver, Settings.System.VOLUME_SETTINGS[STREAM_TYPE], 0));
             mSlider.setValue(mValue);
         }
     };
