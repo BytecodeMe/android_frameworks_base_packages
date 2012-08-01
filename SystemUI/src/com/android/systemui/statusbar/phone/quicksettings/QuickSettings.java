@@ -211,6 +211,8 @@ public class QuickSettings extends LinearLayout {
     }
 
     public void release(){
+    	//TODO: add a setting to disable them instead
+    	if(mLoadedSettings.trim().equals(EMPTY_STRING)) return;
         synchronized (mSettingItems) {
             // cycle through our settings and release them
             for(StatusBarPreference qs : mSettingItems) {
@@ -225,6 +227,8 @@ public class QuickSettings extends LinearLayout {
     }
     
     public void refreshResources(){
+    	//TODO: add a setting to disable them instead
+    	if(mLoadedSettings.trim().equals(EMPTY_STRING)) return;
         synchronized (mSettingItems) {
             // cycle through our settings and refresh anything necessary
             for(StatusBarPreference qs : mSettingItems) {

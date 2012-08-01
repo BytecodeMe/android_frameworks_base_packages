@@ -16,8 +16,11 @@
 
 package com.android.systemui.statusbar.phone;
 
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+
 import android.animation.Animator;
-import android.animation.Animator.AnimatorListener;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
@@ -87,9 +90,9 @@ import com.android.internal.statusbar.StatusBarNotification;
 import com.android.systemui.R;
 import com.android.systemui.recent.RecentTasksLoader;
 import com.android.systemui.statusbar.BaseStatusBar;
+import com.android.systemui.statusbar.CommandQueue;
 import com.android.systemui.statusbar.NotificationData;
 import com.android.systemui.statusbar.NotificationData.Entry;
-import com.android.systemui.statusbar.CommandQueue;
 import com.android.systemui.statusbar.RotationToggle;
 import com.android.systemui.statusbar.SignalClusterView;
 import com.android.systemui.statusbar.StatusBarIconView;
@@ -97,15 +100,10 @@ import com.android.systemui.statusbar.phone.quicksettings.QuickSettings;
 import com.android.systemui.statusbar.policy.BatteryController;
 import com.android.systemui.statusbar.policy.DateView;
 import com.android.systemui.statusbar.policy.IntruderAlertView;
-import com.android.systemui.statusbar.policy.KeyButtonView;
 import com.android.systemui.statusbar.policy.LocationController;
-import com.android.systemui.statusbar.policy.OnSizeChangedListener;
 import com.android.systemui.statusbar.policy.NetworkController;
 import com.android.systemui.statusbar.policy.NotificationRowLayout;
-
-import java.io.FileDescriptor;
-import java.io.PrintWriter;
-import java.util.ArrayList;
+import com.android.systemui.statusbar.policy.OnSizeChangedListener;
 
 public class PhoneStatusBar extends BaseStatusBar {
     static final String TAG = "PhoneStatusBar";
@@ -262,6 +260,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     // tracking calls to View.setSystemUiVisibility()
     int mSystemUiVisibility = View.SYSTEM_UI_FLAG_VISIBLE;
+    
+    String EMPTY_STRING = "";
 
     DisplayMetrics mDisplayMetrics = new DisplayMetrics();
 
@@ -2553,6 +2553,17 @@ public class PhoneStatusBar extends BaseStatusBar {
                 // Dismiss the lock screen when Settings starts.
                 ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
             } catch (RemoteException e) {}
+            
+            final String settings = Settings.System.getString(mContext.getContentResolver(), 
+                    Settings.System.QUICK_SETTINGS, EMPTY_STRING);
+            
+            if(settings.trim().equals(EMPTY_STRING)){
+            	// user disabled quick settings so just open Settings app
+            	v.getContext().startActivity(new Intent(Settings.ACTION_SETTINGS)
+            		.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));  	
+            	animateCollapse();
+            	return;
+            }
             
             final boolean useAnimations = (Settings.System.getInt(mContext.getContentResolver(), 
                         Settings.System.QUICK_SETTINGS_ANIMATION, 1)==1);
