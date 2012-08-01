@@ -2554,8 +2554,9 @@ public class PhoneStatusBar extends BaseStatusBar {
                 ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
             } catch (RemoteException e) {}
             
+            // return a non-null value so the next statement does not fail
             final String settings = Settings.System.getString(mContext.getContentResolver(), 
-                    Settings.System.QUICK_SETTINGS, EMPTY_STRING);
+                    Settings.System.QUICK_SETTINGS, "default");
             
             if(settings.trim().equals(EMPTY_STRING)){
             	// user disabled quick settings so just open Settings app
