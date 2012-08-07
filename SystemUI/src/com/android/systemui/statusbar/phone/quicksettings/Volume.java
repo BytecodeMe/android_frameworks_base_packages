@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.media.AudioManager;
+import android.media.AudioService;
 import android.media.AudioSystem;
 import android.os.Handler;
 import android.provider.Settings;
@@ -25,7 +26,7 @@ public class Volume extends StatusBarPreference
    
     protected static final String[] VOLUME_PROPER_NAMES = new String[]{
         "VOICE", "SYSTEM", "RINGER", "MEDIA",
-        "ALARM", "NOTIFY", "BT"
+        "ALARM", "NOTIFY"
     };
     
     /* STREAM_VOLUME_ALIAS[] indicates for each stream if it uses the volume settings
@@ -73,12 +74,27 @@ public class Volume extends StatusBarPreference
     	mContentView.setOnLongClickListener(this);
     	
         mSlider.setVisibility(View.VISIBLE);
-        mSlider.setLabel(VOLUME_PROPER_NAMES[STREAM_TYPE]);
+        //mSlider.setLabel(VOLUME_PROPER_NAMES[STREAM_TYPE]);
         mSlider.setChecked(true);
         
         mContentView.getChildAt(1).setVisibility(View.GONE);
         
-        mIcon.setImageResource(R.drawable.ic_lock_silent_mode_off);
+        //mIcon.setImageResource(R.drawable.ic_lock_silent_mode_off);
+        // set the icon and label
+    	if (STREAM_TYPE==AudioManager.STREAM_MUSIC &&
+    			(mAudioManager.getDevicesForStream(AudioManager.STREAM_MUSIC) &
+                (AudioManager.DEVICE_OUT_BLUETOOTH_A2DP |
+                AudioManager.DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES |
+                AudioManager.DEVICE_OUT_BLUETOOTH_A2DP_SPEAKER)) != 0) {
+    		mSlider.setLabel("BT");
+            setMusicIcon(com.android.internal.R.drawable.ic_audio_bt, 
+            		com.android.internal.R.drawable.ic_audio_bt_mute);
+        } else {
+        	mSlider.setLabel(VOLUME_PROPER_NAMES[STREAM_TYPE]);
+            setMusicIcon(com.android.internal.R.drawable.ic_audio_vol, 
+            		com.android.internal.R.drawable.ic_audio_vol_mute);
+        }
+        
         mContentView.setClickable(false);
         
         mSlider.setMax(mAudioManager.getStreamMaxVolume(STREAM_TYPE));
@@ -138,12 +154,27 @@ public class Volume extends StatusBarPreference
 
         mSlider.setChecked(true);
         if(!checked && !tracking){
-            if(STREAM_TYPE < Settings.System.VOLUME_SETTINGS.length - 1){
+            if(STREAM_TYPE < Settings.System.VOLUME_SETTINGS.length - 2){
                 STREAM_TYPE++;
             }else{
                 STREAM_TYPE = 0;
             }
-            mSlider.setLabel(VOLUME_PROPER_NAMES[STREAM_TYPE]);
+            
+            // set the icon and label
+        	if (STREAM_TYPE==AudioManager.STREAM_MUSIC &&
+        			(mAudioManager.getDevicesForStream(AudioManager.STREAM_MUSIC) &
+                    (AudioManager.DEVICE_OUT_BLUETOOTH_A2DP |
+                    AudioManager.DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES |
+                    AudioManager.DEVICE_OUT_BLUETOOTH_A2DP_SPEAKER)) != 0) {
+        		mSlider.setLabel("BT");
+                setMusicIcon(com.android.internal.R.drawable.ic_audio_bt, 
+                		com.android.internal.R.drawable.ic_audio_bt_mute);
+            } else {
+            	mSlider.setLabel(VOLUME_PROPER_NAMES[STREAM_TYPE]);
+                setMusicIcon(com.android.internal.R.drawable.ic_audio_vol, 
+                		com.android.internal.R.drawable.ic_audio_vol_mute);
+            }
+            
             mSlider.setMax(mAudioManager.getStreamMaxVolume(STREAM_TYPE));
             mSlider.setValue(mAudioManager.getStreamVolume(STREAM_TYPE));
             mVolumeObserver.reset();
@@ -161,7 +192,21 @@ public class Volume extends StatusBarPreference
     @Override
     public void refreshResources() {
         // hack so I do not have to catch every time the device changes
-    	mVolumeObserver.reset();
+    	//mVolumeObserver.reset();
+    	STREAM_TYPE--;
+    	onChanged(null, false, false, 0);
+    }
+    
+    /**
+     * Switch between icons because Bluetooth music is same as music volume, but with
+     * different icons.
+     */
+    private void setMusicIcon(int resId, int resMuteId) {
+    	mIcon.setImageResource(isMuted(STREAM_TYPE) ? resMuteId : resId);
+    }
+    
+    private boolean isMuted(int streamType) {
+        return mAudioManager.isStreamMute(streamType);
     }
     
     /**
