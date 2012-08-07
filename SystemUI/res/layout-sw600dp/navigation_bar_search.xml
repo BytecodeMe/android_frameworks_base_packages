@@ -30,7 +30,12 @@
         android:layout_height="match_parent"
         android:layout_width="match_parent"
         >
-
+		<ImageView
+            android:id="@+id/blackout"
+            android:layout_height="match_parent"
+    		android:layout_width="match_parent"
+    		android:visibility="gone"
+    		android:background="#ff000000" />
         <LinearLayout
             android:layout_height="match_parent"
             android:layout_width="match_parent"
@@ -116,6 +121,7 @@
             android:layout_width="match_parent"
             android:orientation="horizontal"
             android:id="@+id/lights_out"
+            android:background="#ff000000"
             android:visibility="gone"
             >
             <Space 
@@ -175,7 +181,12 @@
         android:visibility="gone"
         android:paddingTop="0dp"
         >
-
+		<ImageView
+            android:id="@+id/blackout"
+            android:layout_height="match_parent"
+    		android:layout_width="match_parent"
+    		android:visibility="gone"
+    		android:background="#ff000000" />
         <LinearLayout
             android:layout_height="match_parent"
             android:layout_width="match_parent"
@@ -261,6 +272,7 @@
             android:layout_width="match_parent"
             android:orientation="horizontal"
             android:id="@+id/lights_out"
+            android:background="#ff000000"
             android:visibility="gone"
             >
             <Space 

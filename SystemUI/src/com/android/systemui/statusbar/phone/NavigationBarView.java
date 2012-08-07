@@ -279,6 +279,9 @@ public class NavigationBarView extends LinearLayout {
         getRecentsButton().setVisibility(disableRecent     ? View.INVISIBLE : View.VISIBLE);
 		if(getSearchButton() != null)
             getSearchButton().setVisibility(disableRecent     ? View.INVISIBLE : View.VISIBLE);
+		
+		View blackout = mCurrentView.findViewById(R.id.blackout);		
+		blackout.setVisibility(disableHome ? View.VISIBLE : View.GONE);
     }
 
     public void setSlippery(boolean newSlippery) {
