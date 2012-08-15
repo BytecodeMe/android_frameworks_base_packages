@@ -104,11 +104,11 @@ public class MediaPlayerWidget extends LinearLayout
     }
     
     public void setPlayImage(){
-        mPlayPause.setImageResource(R.drawable.btn_playback_play_holo);
+        mPlayPause.setImageResource(android.R.drawable.ic_media_play);
     }
     
     public void setPauseImage(){
-        mPlayPause.setImageResource(R.drawable.btn_playback_pause_holo);
+        mPlayPause.setImageResource(android.R.drawable.ic_media_pause);
     }
 }
 
