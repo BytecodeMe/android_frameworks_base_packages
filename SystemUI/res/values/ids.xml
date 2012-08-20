@@ -18,4 +18,6 @@
 <resources>
     <item type="id" name="expandable_tag" />
     <item type="id" name="user_expanded_tag" />
+    <item type="id" name="menu_large" />
+    <item type="id" name="menu_left" />
 </resources>

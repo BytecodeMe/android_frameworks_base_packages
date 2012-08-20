@@ -224,12 +224,14 @@ public class NavigationBarView extends LinearLayout {
 	
     public void setButtonImages (boolean withReflect){
     	
-    	mHasReflections = withReflect;
-    	Log.d("REFLECT","Settings Images withReflect: "+String.valueOf(withReflect));
+    	mHasReflections = withReflect;   	
     	final Resources res = mContext.getResources();
     	mBackIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_back_reflect : R.drawable.ic_sysbar_back);
     	mBackLandIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_back_land_reflect : R.drawable.ic_sysbar_back_land);
     	
+    	((ImageView) getMenuButton()).setImageDrawable(res.getDrawable(mVertical 
+    			? (withReflect ? R.drawable.ic_sysbar_menu_land_reflect : R.drawable.ic_sysbar_menu_land) 
+    			: (withReflect ? R.drawable.ic_sysbar_menu_reflect : R.drawable.ic_sysbar_menu)));
     	((ImageView) getBackButton()).setImageDrawable(mVertical ? mBackLandIcon : mBackIcon);
     	((ImageView) getHomeButton()).setImageDrawable(res.getDrawable(mVertical 
     			? (withReflect ? R.drawable.ic_sysbar_home_land_reflect : R.drawable.ic_sysbar_home_land) 
@@ -408,11 +410,11 @@ public class NavigationBarView extends LinearLayout {
         setNavigationIconHints(mNavigationIconHints, true);
     }
 
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        super.onLayout(changed, l, t, r, b);
-        mDelegateHelper.setInitialTouchRegion(getHomeButton(), getBackButton(), getRecentsButton());
-    }
+//    @Override
+//    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+//        super.onLayout(changed, l, t, r, b);
+//        mDelegateHelper.setInitialTouchRegion(getHomeButton(), getBackButton(), getRecentsButton());
+//    }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -530,5 +532,9 @@ public class NavigationBarView extends LinearLayout {
                 );
         pw.println("    }");
     }
+
+	public DelegateViewHelper getDelegateHelper() {
+		return mDelegateHelper;
+	}
 
 }

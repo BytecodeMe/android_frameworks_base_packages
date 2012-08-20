@@ -98,6 +98,7 @@ import com.android.systemui.statusbar.SignalClusterView;
 import com.android.systemui.statusbar.StatusBarIconView;
 import com.android.systemui.statusbar.phone.quicksettings.QuickSettings;
 import com.android.systemui.statusbar.policy.BatteryController;
+import com.android.systemui.statusbar.policy.CustomKeyButtonView;
 import com.android.systemui.statusbar.policy.DateView;
 import com.android.systemui.statusbar.policy.IntruderAlertView;
 import com.android.systemui.statusbar.policy.LocationController;
@@ -127,7 +128,7 @@ public class PhoneStatusBar extends BaseStatusBar {
     // will likely move to a resource or other tunable param at some point
     private static final int INTRUDER_ALERT_DECAY_MS = 0; // disabled, was 10000;
 
-    private static final boolean CLOSE_PANEL_WHEN_EMPTIED = true;
+    private static final boolean CLOSE_PANEL_WHEN_EMPTIED = true;    
 
     private static final int NOTIFICATION_PRIORITY_MULTIPLIER = 10; // see NotificationManagerService
     private static final int HIDE_ICONS_BELOW_SCORE = Notification.PRIORITY_LOW * NOTIFICATION_PRIORITY_MULTIPLIER;
@@ -611,11 +612,13 @@ public class PhoneStatusBar extends BaseStatusBar {
             boolean showNav = mWindowManager.hasNavigationBar();
             if (DEBUG) Slog.v(TAG, "hasNavigationBar=" + showNav);
             if (showNav) {
-            	if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_NAVBAR_SEARCH, 0) == 0)
-            		mNavigationBarView =
-            		(NavigationBarView) View.inflate(mContext, R.layout.navigation_bar, null);
-            	else mNavigationBarView =
-                		(NavigationBarView) View.inflate(mContext, R.layout.navigation_bar_search, null);
+            	mNavigationBarView =
+            			(NavigationBarView) View.inflate(mContext, R.layout.custom_navigation_bar, null);
+//            	}else if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_NAVBAR_SEARCH, 0) == 0)
+//            		mNavigationBarView =
+//            		(NavigationBarView) View.inflate(mContext, R.layout.navigation_bar, null);
+//            	else mNavigationBarView =
+//                		(NavigationBarView) View.inflate(mContext, R.layout.navigation_bar_search, null);
 
                 mNavigationBarView.setDisabledFlags(mDisabled);
                 mNavigationBarView.setBar(this);
@@ -764,7 +767,9 @@ public class PhoneStatusBar extends BaseStatusBar {
 
         mNavigationBarView.getRecentsButton().setOnClickListener(mRecentsClickListener);
         mNavigationBarView.getRecentsButton().setOnTouchListener(mRecentsPanel);
-        mNavigationBarView.getHomeButton().setOnTouchListener(mHomeSearchActionListener);
+        if(CustomKeyButtonView.ACTION_DEFAULT.equals(Settings.System.getString(mContext.getContentResolver(),
+						Settings.System.LONG_ACTION_HOME, CustomKeyButtonView.ACTION_DEFAULT)))
+        	mNavigationBarView.getHomeButton().setOnTouchListener(mHomeSearchActionListener);
         updateSearchPanel();
     }
     /**

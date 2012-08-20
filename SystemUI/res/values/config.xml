@@ -65,5 +65,6 @@
 
     <!-- Vibration duration for MultiWaveView used in SearchPanelView -->
     <integer translatable="false" name="config_search_panel_view_vibration_duration">20</integer>
+    <bool name="config_isPhablet">false</bool>
 </resources>
 

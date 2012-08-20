@@ -23,4 +23,8 @@
     <!-- Gravity for the notification panel -->
     <!-- 0x33 = left|top -->
     <integer name="notification_panel_layout_gravity">0x33</integer>
+    
+    
+
+    
 </resources>
