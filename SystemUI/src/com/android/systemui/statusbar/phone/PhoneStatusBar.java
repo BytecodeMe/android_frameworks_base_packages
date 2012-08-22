@@ -587,7 +587,11 @@ public class PhoneStatusBar extends BaseStatusBar {
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.CENTER_STATUSBAR_CLOCK), false, this);
             resolver.registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NAVBAR_EASTER_EGG), false, this);          
+                    Settings.System.getUriFor(Settings.System.NAVBAR_EASTER_EGG), false, this); 
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.NAVBAR_KEY_ORDER), false, this);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.LONG_ACTION_HOME), false, this);
         }
         
         @Override
@@ -614,12 +618,6 @@ public class PhoneStatusBar extends BaseStatusBar {
             if (showNav) {
             	mNavigationBarView =
             			(NavigationBarView) View.inflate(mContext, R.layout.custom_navigation_bar, null);
-//            	}else if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_NAVBAR_SEARCH, 0) == 0)
-//            		mNavigationBarView =
-//            		(NavigationBarView) View.inflate(mContext, R.layout.navigation_bar, null);
-//            	else mNavigationBarView =
-//                		(NavigationBarView) View.inflate(mContext, R.layout.navigation_bar_search, null);
-
                 mNavigationBarView.setDisabledFlags(mDisabled);
                 mNavigationBarView.setBar(this);
             }
@@ -776,8 +774,14 @@ public class PhoneStatusBar extends BaseStatusBar {
      * Redraw Navbar if changes are made
      */
     private void redrawNavigationBar() {	
-    	if (mNavigationBarView == null) return;    	
-    	if(!shouldRedraw()) return;    	
+    	if (mNavigationBarView == null) return; 
+    	boolean force = Settings.System.getInt(mContext.getContentResolver(),
+				Settings.System.NAVBAR_ORDER_CHANGED, 0) == 1;
+    	if(!force && !shouldRedraw()){
+    		prepareNavigationBarView();
+    		return;    	
+    	}
+    	Settings.System.putInt(mContext.getContentResolver(), Settings.System.NAVBAR_ORDER_CHANGED, 0);
     	WindowManagerImpl.getDefault().removeView(mNavigationBarView);    	
     	buildNavBarView();    	
     	addNavigationBar();

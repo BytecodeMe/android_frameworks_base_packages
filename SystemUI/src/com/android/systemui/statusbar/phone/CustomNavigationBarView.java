@@ -52,6 +52,12 @@ public class CustomNavigationBarView extends NavigationBarView {
     final static int MENU_BOTH_HIDDEN = 5;
     final static int MENU_DISABLED = 6;
     
+    private static final String KEY_BACK = "back";
+    private static final String KEY_MENU = "menu_large";
+    private static final String KEY_HOME = "home";
+    private static final String KEY_RECENT = "recent_apps";
+    private static final String KEY_SEARCH = "search";
+    
     final static int ID_MENU = R.id.menu_large;
     
     private int mMenuWidth;
@@ -108,9 +114,8 @@ public class CustomNavigationBarView extends NavigationBarView {
         	resolver = mContext.getContentResolver();
 		    
             resolver.registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NAVBAR_MENU_MODE), false, this); 
-            resolver.registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NAVBAR_KEY_ORDER), false, this); 
+                    Settings.System.getUriFor(Settings.System.NAVBAR_MENU_MODE), false, this);
+             
         }
         
         @Override
@@ -157,7 +162,7 @@ public class CustomNavigationBarView extends NavigationBarView {
     			: getResources().getDimensionPixelSize(R.dimen.navigation_key_padding);
     	
     	String[] temp = Settings.System.getString(mContext.getContentResolver(),
-    			Settings.System.NAVBAR_KEY_ORDER,"back home recent_apps").split(" ");
+    			Settings.System.NAVBAR_KEY_ORDER,KEY_BACK+" "+KEY_HOME+" "+KEY_RECENT).split(" ");
     	String[] keys = new String[temp.length];
     	if(landscape && !phablet){
     		int j = 0;
@@ -291,15 +296,15 @@ public class CustomNavigationBarView extends NavigationBarView {
 		
     	int[] ids = new int[input.length];
     	for(int i = 0;i<input.length;i++){    		
-    		if(input[i].equals("back"))
+    		if(input[i].equals(KEY_BACK))
     			ids[i] = R.id.back;
-    		else if(input[i].equals("menu_large"))
+    		else if(input[i].equals(KEY_MENU))
     			ids[i] = R.id.menu_large;
-    		else if(input[i].equals("home"))
+    		else if(input[i].equals(KEY_HOME))
     			ids[i] = R.id.home;
-    		else if(input[i].equals("recent_apps"))
+    		else if(input[i].equals(KEY_RECENT))
     			ids[i] = R.id.recent_apps;
-    		else if(input[i].equals("search"))
+    		else if(input[i].equals(KEY_SEARCH))
     			ids[i] = R.id.search;   		
     	}
 		return ids;

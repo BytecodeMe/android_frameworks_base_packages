@@ -26,6 +26,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
+import android.database.ContentObserver;
+import android.os.Handler;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.SystemClock;
@@ -48,11 +50,12 @@ import com.android.systemui.R;
 public class CustomKeyButtonView extends KeyButtonView implements OnLongClickListener {
     private static final String TAG = "StatusBar.CustomKeyButtonView";
     
-    final static String ACTION_NONE = "none";
-    public final static String ACTION_DEFAULT = "default";    
-    final static String ACTION_MENU = "menu";
-    final static String ACTION_RECENT = "recent";
-    final static String ACTION_KILL = "kill";
+    final static String ACTION_NONE = "None";
+    public final static String ACTION_DEFAULT = "Default"; 
+    public final static String ACTION_DEFAULT_NONE = "Default(none)";
+    final static String ACTION_MENU = "Menu";
+    final static String ACTION_RECENT = "Recent Apps";
+    final static String ACTION_KILL = "Kill Current App";
     
     final static int ID_MENU = R.id.menu_large;
     final static int ID_BACK = R.id.back;
@@ -67,6 +70,8 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 	private String mLongPressFunction = ACTION_DEFAULT;
 	private boolean mLongPressed = false;
 	private ContentResolver mResolver;
+	//for changes to the layout
+    SettingsObserver mSettingsObserver = new SettingsObserver(new Handler());
     
     public CustomKeyButtonView(Context context) {
         this(context, null);
@@ -79,6 +84,7 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
     public CustomKeyButtonView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs);        
         mResolver = context.getContentResolver();
+        mSettingsObserver.observe();
     }
     
     @Override
@@ -90,6 +96,36 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
     	mCode = code;
     }
     
+    class SettingsObserver extends ContentObserver {
+    	
+    	ContentResolver resolver;
+    	
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+        
+        void observe() {
+        	resolver = mContext.getContentResolver();
+		    resolver.registerContentObserver(
+		    		Settings.System.getUriFor(Settings.System.LONG_ACTION_BACK), false, this);
+		    resolver.registerContentObserver(
+	            	Settings.System.getUriFor(Settings.System.LONG_ACTION_HOME), false, this);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.LONG_ACTION_MENU), false, this);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.LONG_ACTION_RECENT), false, this);            
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.LONG_ACTION_SEARCH), false, this);            
+        }
+        
+        @Override
+        public void onChange(boolean selfChange) {        	
+            setLongPress();
+        }
+        
+       
+    }
+    
     public void setLongPress(){
     	
     	boolean support = false;    	
@@ -98,7 +134,7 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
     	switch(getId()){
 			case ID_RECENT:
 				action = Settings.System.getString(mResolver,
-						Settings.System.LONG_ACTION_RECENT, ACTION_MENU);				
+						Settings.System.LONG_ACTION_RECENT, ACTION_DEFAULT_NONE);				
 				break;
 			case ID_SEARCH:
 				action = Settings.System.getString(mResolver,
@@ -111,14 +147,14 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 				break;
 			case ID_BACK:
 				action = Settings.System.getString(mResolver,
-						Settings.System.LONG_ACTION_BACK, ACTION_DEFAULT);				
+						Settings.System.LONG_ACTION_BACK, ACTION_DEFAULT_NONE);				
 				break;
 			case ID_MENU:
 				action = Settings.System.getString(mResolver,
-						Settings.System.LONG_ACTION_MENU, ACTION_DEFAULT);					
+						Settings.System.LONG_ACTION_MENU, ACTION_DEFAULT_NONE);					
 				break;
     	}
-    	if(!(action.equals(ACTION_DEFAULT)) && !action.equals(ACTION_NONE)){ 		
+    	if(!action.equals(ACTION_DEFAULT) && !action.equals(ACTION_DEFAULT_NONE) && !action.equals(ACTION_NONE)){ 		
 		    support = true;			
 			setOnLongClickListener(this);			
 		}	
@@ -222,7 +258,8 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 	Runnable mLongPressCheck = new Runnable() {
         public void run() {
             if (isPressed()) {                
-                if (mCode != 0 && (mLongPressFunction == ACTION_NONE || mLongPressFunction == ACTION_DEFAULT)) {
+                if (mCode != 0 && (mLongPressFunction == ACTION_NONE ||
+                		mLongPressFunction == ACTION_DEFAULT || mLongPressFunction == ACTION_DEFAULT_NONE)) {
                 	sendEvent(KeyEvent.ACTION_DOWN, KeyEvent.FLAG_LONG_PRESS);
                     sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
                 } else {
@@ -260,9 +297,9 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 			return performKill();
 		}else{
 			performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-			launchUserApp(mLongPressFunction);
+			launchUserApp(mLongPressFunction);			
 		}
-		return false;
+		return true;
 	}
 	
 	private void launchUserApp(String action){
