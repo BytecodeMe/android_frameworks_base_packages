@@ -21,6 +21,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.app.StatusBarManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -28,6 +29,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Slog;
@@ -54,6 +56,7 @@ import com.android.systemui.R;
 import com.android.systemui.recent.RecentsPanelView;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.DelegateViewHelper;
+import com.android.systemui.statusbar.policy.CustomKeyButtonView;
 import com.android.systemui.statusbar.policy.KeyButtonView;
 
 public class NavigationBarView extends LinearLayout {
@@ -77,6 +80,7 @@ public class NavigationBarView extends LinearLayout {
     boolean mHidden, mLowProfile, mShowMenu;
     int mDisabledFlags = 0;
     int mNavigationIconHints = 0;
+    private String mOldBackFunction = null;
 
     private Drawable mBackIcon, mBackLandIcon, mBackAltIcon, mBackAltLandIcon;
     
@@ -210,12 +214,24 @@ public class NavigationBarView extends LinearLayout {
 
         // since the user can remove these, check to see if they are null first
         if(getBackButton() != null){
-        	getBackButton().setAlpha(
-        			(0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_NOP)) ? 0.5f : 1.0f);
-        	getBackButton().setImageDrawable(
-                    (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT))
+        	final boolean IME = (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT));
+        	//getBackButton().setAlpha(IME ? 0.5f : 1.0f);
+        	getBackButton().setImageDrawable(IME
                         ? (mVertical ? mBackAltLandIcon : mBackAltIcon)
                         : (mVertical ? mBackLandIcon : mBackIcon));
+        	if(IME){
+        		if(mOldBackFunction ==null)
+        			mOldBackFunction = Settings.System.getString(
+        				mContext.getContentResolver(), Settings.System.LONG_ACTION_BACK,CustomKeyButtonView.ACTION_DEFAULT_NONE);        		
+        		Settings.System.putString(mContext.getContentResolver(), Settings.System.LONG_ACTION_BACK, CustomKeyButtonView.ACTION_PICKER);
+        		((CustomKeyButtonView) getBackButton()).setLongPress();
+        	}else if(mOldBackFunction != null){        		
+        		Settings.System.putString(mContext.getContentResolver(), Settings.System.LONG_ACTION_BACK, mOldBackFunction);
+        		((CustomKeyButtonView) getBackButton()).setLongPress();
+        		mOldBackFunction = null;
+        	}
+        	
+        	
         }
         if(getHomeButton() != null){
         	getHomeButton().setAlpha(

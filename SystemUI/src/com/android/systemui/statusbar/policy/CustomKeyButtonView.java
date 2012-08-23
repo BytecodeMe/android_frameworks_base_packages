@@ -56,6 +56,7 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
     final static String ACTION_MENU = "Menu";
     final static String ACTION_RECENT = "Recent Apps";
     final static String ACTION_KILL = "Kill Current App";
+    public final static String ACTION_PICKER = "action_picker";
     
     final static int ID_MENU = R.id.menu_large;
     final static int ID_BACK = R.id.back;
@@ -295,6 +296,9 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 		    return true;
 		}else if(mLongPressFunction.equals(ACTION_KILL)){			
 			return performKill();
+		}else if(mLongPressFunction.equals(ACTION_PICKER)){
+			Intent intent = new Intent(Settings.ACTION_SHOW_INPUT_METHOD_PICKER);
+			mContext.sendBroadcast(intent);
 		}else{
 			performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
 			launchUserApp(mLongPressFunction);			
