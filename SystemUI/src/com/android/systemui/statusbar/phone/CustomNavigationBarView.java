@@ -364,8 +364,8 @@ public class CustomNavigationBarView extends NavigationBarView {
         CustomKeyButtonView right = (CustomKeyButtonView) getRightMenuButton();
         CustomKeyButtonView left = (CustomKeyButtonView) getLeftMenuButton();
         
-        right.setVisibility((arrows || mShowMenu) && !mHasMenuKey && !right.isDisabled() ? View.VISIBLE : View.INVISIBLE);
-        left.setVisibility((arrows || mShowMenu) && !mHasMenuKey && !left.isDisabled()? View.VISIBLE : View.INVISIBLE);
+        right.setVisibility((!mHasMenuKey && mShowMenu) || arrows  && !right.isDisabled() ? View.VISIBLE : View.INVISIBLE);
+        left.setVisibility((!mHasMenuKey && mShowMenu) || arrows  && !left.isDisabled()? View.VISIBLE : View.INVISIBLE);
     }
 	
 	@Override
