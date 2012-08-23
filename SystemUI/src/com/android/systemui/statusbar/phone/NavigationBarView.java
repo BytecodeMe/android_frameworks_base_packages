@@ -260,8 +260,10 @@ public class NavigationBarView extends LinearLayout {
     		getSearchButton().setImageDrawable(res.getDrawable(mVertical 
         			? (withReflect ? R.drawable.ic_sysbar_search_land_reflect : R.drawable.ic_sysbar_search_land) 
         	    	: (withReflect ? R.drawable.ic_sysbar_search_reflect : R.drawable.ic_sysbar_search)));
-    	}    	
-    	
+    	}
+    	// this needs to be here to fix the buttons appearing white after the first
+    	// orientation change
+    	setButtonColor();
     }
 	    /**
      * change the color overlay for the buttons
