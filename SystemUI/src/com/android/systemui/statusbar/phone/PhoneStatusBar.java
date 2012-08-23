@@ -592,6 +592,8 @@ public class PhoneStatusBar extends BaseStatusBar {
                     Settings.System.getUriFor(Settings.System.NAVBAR_KEY_ORDER), false, this);
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.LONG_ACTION_HOME), false, this);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.NAVBAR_FLIP_OVER), false, this);
         }
         
         @Override
@@ -771,6 +773,8 @@ public class PhoneStatusBar extends BaseStatusBar {
         if(CustomKeyButtonView.ACTION_DEFAULT.equals(Settings.System.getString(mContext.getContentResolver(),
 						Settings.System.LONG_ACTION_HOME, CustomKeyButtonView.ACTION_DEFAULT)))
         	mNavigationBarView.getHomeButton().setOnTouchListener(mHomeSearchActionListener);
+        else
+        	mNavigationBarView.getHomeButton().setOnTouchListener(null);
         updateSearchPanel();
     }
     /**

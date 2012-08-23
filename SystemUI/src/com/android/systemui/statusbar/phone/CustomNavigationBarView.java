@@ -21,13 +21,14 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.database.ContentObserver;
+import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.provider.Settings;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -36,9 +37,7 @@ import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout;
 
 import com.android.systemui.R;
-import com.android.systemui.statusbar.phone.PhoneStatusBar.SettingsObserver;
 import com.android.systemui.statusbar.policy.CustomKeyButtonView;
-import com.android.systemui.statusbar.policy.KeyButtonView;
 
 public class CustomNavigationBarView extends NavigationBarView {
     final static boolean DEBUG = false;
@@ -474,6 +473,33 @@ public class CustomNavigationBarView extends NavigationBarView {
             		getBackButton(), getRecentsButton());            
         }
         
+    }
+	
+//	@Override
+//	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec){
+//		super.onMeasure(heightMeasureSpec, widthMeasureSpec);
+//	    
+//		setMeasuredDimension(getMeasuredHeight(), getMeasuredWidth());
+//	}
+	
+	@Override
+	protected void dispatchDraw(Canvas canvas){	      
+
+		if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.NAVBAR_FLIP_OVER,0)==1){	         
+	         canvas.rotate(180,getWidth() / 2, getHeight() / 2);	         
+	    }
+		canvas.save();
+	    super.dispatchDraw(canvas);
+	    canvas.restore();
+	    invalidate();
+	}
+	
+	@Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+		if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.NAVBAR_FLIP_OVER,0)==1){        
+			event.setLocation(getWidth() - event.getX(), getHeight() - event.getY());
+		}
+        return super.dispatchTouchEvent(event);
     }
 
 }
