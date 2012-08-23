@@ -45,6 +45,7 @@ import android.view.ViewConfiguration;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.View.OnLongClickListener;
 import com.android.internal.statusbar.IStatusBarService;
+import com.android.systemui.PowToast;
 import com.android.systemui.R;
 
 public class CustomKeyButtonView extends KeyButtonView implements OnLongClickListener {
@@ -364,6 +365,9 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
                 }
                 if (targetKilled) {                    
                     //Toast.makeText(mContext, "Unable to kill Application", Toast.LENGTH_SHORT).show();
+                	Intent pow = new Intent(mContext, PowToast.class);
+                	pow.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                	mContext.startActivity(pow);
                     break;
                 }
             }

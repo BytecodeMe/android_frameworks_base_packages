@@ -164,6 +164,17 @@
             android:launchMode="singleTop"
             android:taskAffinity="com.android.systemui.net"
             android:excludeFromRecents="true" />
+        
+        <!-- started from ... somewhere -->
+        <activity
+            android:name=".PowToast"
+            android:exported="false"
+            android:label="Pow"
+            android:icon="@drawable/redbeandroid"
+            android:theme="@*android:style/Theme.Holo.Dialog.Alert"
+            android:hardwareAccelerated="true"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true" />
 
         <!-- started from ... somewhere -->
         <activity
