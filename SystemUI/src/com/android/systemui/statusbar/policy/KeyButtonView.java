@@ -99,7 +99,7 @@ public class KeyButtonView extends ImageView {
 
     public KeyButtonView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs);
-
+        
         if(attrs != null ){
         	TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.KeyButtonView,
                 defStyle, 0);
@@ -281,6 +281,7 @@ public class KeyButtonView extends ImageView {
 
     public void setGlowScale(float x) {
         if (mGlowBG == null) return;
+        boolean menu = (getId() == R.id.menu || getId() == R.id.menu_left);
         mGlowScale = x;
         final float w = getWidth();
         final float h = getHeight();
@@ -288,8 +289,8 @@ public class KeyButtonView extends ImageView {
             // this only works if we know the glow will never leave our bounds
             invalidate();
         } else {
-            final float rx = (w * (GLOW_MAX_SCALE_FACTOR - 1.0f)) / 2.0f + 1.0f;
-            final float ry = (h * (GLOW_MAX_SCALE_FACTOR - 1.0f)) / 2.0f + 1.0f;
+            final float rx = (w * (!menu ? GLOW_MAX_SCALE_FACTOR : 1.1f - 1.0f)) / 2.0f + 1.0f;
+            final float ry = (h * (!menu ? GLOW_MAX_SCALE_FACTOR : 1.1f - 1.0f)) / 2.0f + 1.0f;
             com.android.systemui.SwipeHelper.invalidateGlobalRegion(
                     this,
                     new RectF(getLeft() - rx,
@@ -304,6 +305,7 @@ public class KeyButtonView extends ImageView {
     }
 
     public void setPressed(boolean pressed) {
+    	boolean menu = (getId() == R.id.menu || getId() == R.id.menu_left);
         if (mGlowBG != null) {
             if (pressed != isPressed()) {
             	if(setGlowColor()){
@@ -312,14 +314,14 @@ public class KeyButtonView extends ImageView {
             		}
             		final AnimatorSet as = mPressedAnim = new AnimatorSet();
             		if (pressed) {
-            			if (mGlowScale < GLOW_MAX_SCALE_FACTOR) 
-            				mGlowScale = GLOW_MAX_SCALE_FACTOR;
+            			if (mGlowScale < (!menu ? GLOW_MAX_SCALE_FACTOR : 1.1f)) 
+            				mGlowScale = (!menu ? GLOW_MAX_SCALE_FACTOR : 1.1f);
             			if (mGlowAlpha < BUTTON_QUIESCENT_ALPHA)
             				mGlowAlpha = BUTTON_QUIESCENT_ALPHA;
             			setDrawingAlpha(1f);
             			as.playTogether(
             					ObjectAnimator.ofFloat(this, "glowAlpha", 1f),
-            						ObjectAnimator.ofFloat(this, "glowScale", GLOW_MAX_SCALE_FACTOR)
+            						ObjectAnimator.ofFloat(this, "glowScale", !menu ? GLOW_MAX_SCALE_FACTOR : 1.1f)
             					);
             			as.setDuration(50);
                 	} else {
