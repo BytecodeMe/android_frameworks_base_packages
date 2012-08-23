@@ -16,6 +16,8 @@
 
 package com.android.systemui.statusbar.phone;
 
+import android.app.Activity;
+import android.app.KeyguardManager;
 import android.app.StatusBarManager;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -355,7 +357,10 @@ public class CustomNavigationBarView extends NavigationBarView {
 	}			
 	
 	public void setMenuVisibility(final boolean show, final boolean force, final boolean arrows) {
-        if (!force && mShowMenu == show) return;
+		final KeyguardManager keyguardManager = (KeyguardManager)mContext.getSystemService(Activity.KEYGUARD_SERVICE);
+		boolean isRestrictedInput = keyguardManager.inKeyguardRestrictedInputMode();
+		
+		if (!isRestrictedInput && !force && mShowMenu == show) return;
 
         if(!arrows)
         	mShowMenu = show;
@@ -363,8 +368,8 @@ public class CustomNavigationBarView extends NavigationBarView {
         CustomKeyButtonView right = (CustomKeyButtonView) getRightMenuButton();
         CustomKeyButtonView left = (CustomKeyButtonView) getLeftMenuButton();
         
-        right.setVisibility((!mHasMenuKey && mShowMenu) || arrows  && !right.isDisabled() ? View.VISIBLE : View.INVISIBLE);
-        left.setVisibility((!mHasMenuKey && mShowMenu) || arrows  && !left.isDisabled()? View.VISIBLE : View.INVISIBLE);
+        right.setVisibility((!mHasMenuKey && mShowMenu) || (arrows && !isRestrictedInput)  && !right.isDisabled() ? View.VISIBLE : View.INVISIBLE);
+        left.setVisibility((!mHasMenuKey && mShowMenu) || (arrows && !isRestrictedInput)  && !left.isDisabled()? View.VISIBLE : View.INVISIBLE);
     }
 	
 	@Override

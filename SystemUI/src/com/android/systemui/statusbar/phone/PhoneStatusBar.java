@@ -220,7 +220,7 @@ public class PhoneStatusBar extends BaseStatusBar {
     private IntruderAlertView mIntruderAlertView;
 
     // on-screen navigation buttons
-    private NavigationBarView mNavigationBarView = null;
+    private CustomNavigationBarView mNavigationBarView = null;
 
     // the tracker view
     int mTrackingPosition; // the position of the top of the tracking view.
@@ -619,7 +619,7 @@ public class PhoneStatusBar extends BaseStatusBar {
             if (DEBUG) Slog.v(TAG, "hasNavigationBar=" + showNav);
             if (showNav) {
             	mNavigationBarView =
-            			(NavigationBarView) View.inflate(mContext, R.layout.custom_navigation_bar, null);
+            			(CustomNavigationBarView) View.inflate(mContext, R.layout.custom_navigation_bar, null);
                 mNavigationBarView.setDisabledFlags(mDisabled);
                 mNavigationBarView.setBar(this);
             }
@@ -2077,7 +2077,8 @@ public class PhoneStatusBar extends BaseStatusBar {
             Slog.d(TAG, (showMenu?"showing":"hiding") + " the MENU button");
         }
         if (mNavigationBarView != null) {
-            mNavigationBarView.setMenuVisibility(showMenu);
+            mNavigationBarView.setMenuVisibility(showMenu, true, 
+            		(mNavigationIconHints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) != 0);
         }
 
         // See above re: lights-out policy for legacy apps.
