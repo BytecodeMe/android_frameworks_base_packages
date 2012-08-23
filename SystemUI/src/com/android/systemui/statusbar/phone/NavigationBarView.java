@@ -36,6 +36,7 @@ import android.view.Display;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.Surface;
 import android.view.Window;
@@ -50,6 +51,7 @@ import java.lang.StringBuilder;
 
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.systemui.R;
+import com.android.systemui.recent.RecentsPanelView;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.DelegateViewHelper;
 import com.android.systemui.statusbar.policy.KeyButtonView;
@@ -131,24 +133,24 @@ public class NavigationBarView extends LinearLayout {
 
     private H mHandler = new H();
 
-    public View getRecentsButton() {
-        return mCurrentView.findViewById(R.id.recent_apps);
+    public ImageView getRecentsButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.recent_apps);
     }
 
-    public View getMenuButton() {
-        return mCurrentView.findViewById(R.id.menu);
+    public ImageView getRightMenuButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.menu);
     }
 
-    public View getBackButton() {
-        return mCurrentView.findViewById(R.id.back);
+    public ImageView getBackButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.back);
     }
 
-    public View getHomeButton() {
-        return mCurrentView.findViewById(R.id.home);
+    public ImageView getHomeButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.home);
     }
 	
-	public View getSearchButton() {
-        return mCurrentView.findViewById(R.id.search);
+	public ImageView getSearchButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.search);
     }
 
     public NavigationBarView(Context context, AttributeSet attrs) {
@@ -206,20 +208,27 @@ public class NavigationBarView extends LinearLayout {
 
         mNavigationIconHints = hints;
 
-        getBackButton().setAlpha(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_NOP)) ? 0.5f : 1.0f);
-        getHomeButton().setAlpha(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_HOME_NOP)) ? 0.5f : 1.0f);
-        getRecentsButton().setAlpha(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP)) ? 0.5f : 1.0f);
-        if(getSearchButton() != null)
+        // since the user can remove these, check to see if they are null first
+        if(getBackButton() != null){
+        	getBackButton().setAlpha(
+        			(0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_NOP)) ? 0.5f : 1.0f);
+        	getBackButton().setImageDrawable(
+                    (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT))
+                        ? (mVertical ? mBackAltLandIcon : mBackAltIcon)
+                        : (mVertical ? mBackLandIcon : mBackIcon));
+        }
+        if(getHomeButton() != null){
+        	getHomeButton().setAlpha(
+        			(0 != (hints & StatusBarManager.NAVIGATION_HINT_HOME_NOP)) ? 0.5f : 1.0f);
+        }
+        if(getRecentsButton() != null){
+        	getRecentsButton().setAlpha(
+        			(0 != (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP)) ? 0.5f : 1.0f);
+        }
+        if(getSearchButton() != null){
         	getSearchButton().setAlpha(
                     (0 != (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP)) ? 0.5f : 1.0f);
-        
-        ((ImageView)getBackButton()).setImageDrawable(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT))
-                ? (mVertical ? mBackAltLandIcon : mBackAltIcon)
-                : (mVertical ? mBackLandIcon : mBackIcon));
+        }
     }
 	
     public void setButtonImages (boolean withReflect){
@@ -229,18 +238,26 @@ public class NavigationBarView extends LinearLayout {
     	mBackIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_back_reflect : R.drawable.ic_sysbar_back);
     	mBackLandIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_back_land_reflect : R.drawable.ic_sysbar_back_land);
     	
-    	((ImageView) getMenuButton()).setImageDrawable(res.getDrawable(mVertical 
-    			? (withReflect ? R.drawable.ic_sysbar_menu_land_reflect : R.drawable.ic_sysbar_menu_land) 
-    			: (withReflect ? R.drawable.ic_sysbar_menu_reflect : R.drawable.ic_sysbar_menu)));
-    	((ImageView) getBackButton()).setImageDrawable(mVertical ? mBackLandIcon : mBackIcon);
-    	((ImageView) getHomeButton()).setImageDrawable(res.getDrawable(mVertical 
-    			? (withReflect ? R.drawable.ic_sysbar_home_land_reflect : R.drawable.ic_sysbar_home_land) 
-    			: (withReflect ? R.drawable.ic_sysbar_home_reflect : R.drawable.ic_sysbar_home)));
-    	((ImageView) getRecentsButton()).setImageDrawable(res.getDrawable(mVertical 
-    			? (withReflect ? R.drawable.ic_sysbar_recent_land_reflect : R.drawable.ic_sysbar_recent_land) 
-    			: (withReflect ? R.drawable.ic_sysbar_recent_reflect : R.drawable.ic_sysbar_recent)));
+    	if(getRightMenuButton() != null){
+	    	getRightMenuButton().setImageDrawable(res.getDrawable(mVertical 
+	    			? (withReflect ? R.drawable.ic_sysbar_menu_land_reflect : R.drawable.ic_sysbar_menu_land) 
+	    			: (withReflect ? R.drawable.ic_sysbar_menu_reflect : R.drawable.ic_sysbar_menu)));
+    	}
+    	if(getBackButton() != null){
+	    	getBackButton().setImageDrawable(mVertical ? mBackLandIcon : mBackIcon);
+    	}
+    	if(getHomeButton() != null){
+	    	getHomeButton().setImageDrawable(res.getDrawable(mVertical 
+	    			? (withReflect ? R.drawable.ic_sysbar_home_land_reflect : R.drawable.ic_sysbar_home_land) 
+	    			: (withReflect ? R.drawable.ic_sysbar_home_reflect : R.drawable.ic_sysbar_home)));
+    	}
+    	if(getRecentsButton() != null){
+	    	getRecentsButton().setImageDrawable(res.getDrawable(mVertical 
+	    			? (withReflect ? R.drawable.ic_sysbar_recent_land_reflect : R.drawable.ic_sysbar_recent_land) 
+	    			: (withReflect ? R.drawable.ic_sysbar_recent_reflect : R.drawable.ic_sysbar_recent)));
+    	}
     	if(getSearchButton() != null){
-    		((ImageView) getSearchButton()).setImageDrawable(res.getDrawable(mVertical 
+    		getSearchButton().setImageDrawable(res.getDrawable(mVertical 
         			? (withReflect ? R.drawable.ic_sysbar_search_land_reflect : R.drawable.ic_sysbar_search_land) 
         	    	: (withReflect ? R.drawable.ic_sysbar_search_reflect : R.drawable.ic_sysbar_search)));
     	}    	
@@ -251,13 +268,17 @@ public class NavigationBarView extends LinearLayout {
      * @return
      */
     public void setButtonColor(){
-    	
-        ((KeyButtonView) getBackButton()).setButtonColor();
-        ((KeyButtonView) getHomeButton()).setButtonColor();
-        ((KeyButtonView) getRecentsButton()).setButtonColor();
-        if(getSearchButton() != null)
-            ((KeyButtonView) getSearchButton()).setButtonColor();
-        ((KeyButtonView) getMenuButton()).setButtonColor();
+    	setButtonColor(getBackButton());
+    	setButtonColor(getHomeButton());
+    	setButtonColor(getRecentsButton());
+    	setButtonColor(getSearchButton());
+    	setButtonColor(getRightMenuButton());
+    }
+    
+    protected void setButtonColor(View view){
+    	if(view!=null){
+    		((KeyButtonView) view).setButtonColor();
+    	}
     }
 
 
@@ -275,15 +296,20 @@ public class NavigationBarView extends LinearLayout {
         final boolean disableBack = ((disabledFlags & View.STATUS_BAR_DISABLE_BACK) != 0);
 
         setSlippery(disableHome && disableRecent && disableBack);
-
-        getBackButton()   .setVisibility(disableBack       ? View.INVISIBLE : View.VISIBLE);
-        getHomeButton()   .setVisibility(disableHome       ? View.INVISIBLE : View.VISIBLE);
-        getRecentsButton().setVisibility(disableRecent     ? View.INVISIBLE : View.VISIBLE);
-		if(getSearchButton() != null)
-            getSearchButton().setVisibility(disableRecent     ? View.INVISIBLE : View.VISIBLE);
+		
+		setButtonVisibility(getBackButton(), disableBack);
+		setButtonVisibility(getHomeButton(), disableHome);
+		setButtonVisibility(getRecentsButton(), disableRecent);
+		setButtonVisibility(getSearchButton(), disableRecent);
 		
 		View blackout = mCurrentView.findViewById(R.id.blackout);		
 		blackout.setVisibility(disableHome ? View.VISIBLE : View.GONE);
+    }
+    
+    protected void setButtonVisibility(View view, boolean disable){
+    	if(view != null){
+    		view.setVisibility(disable ? View.INVISIBLE:View.VISIBLE);
+    	}
     }
 
     public void setSlippery(boolean newSlippery) {
@@ -307,10 +333,10 @@ public class NavigationBarView extends LinearLayout {
 
     public void setMenuVisibility(final boolean show, final boolean force) {
         if (!force && mShowMenu == show) return;
-
         mShowMenu = show;
-
-        getMenuButton().setVisibility(mShowMenu ? View.VISIBLE : View.INVISIBLE);
+        
+        if(getRightMenuButton()==null) return;
+        getRightMenuButton().setVisibility(mShowMenu ? View.VISIBLE : View.INVISIBLE);
     }
 
     public void setLowProfile(final boolean lightsOut) {
@@ -512,29 +538,43 @@ public class NavigationBarView extends LinearLayout {
         final View back = getBackButton();
         final View home = getHomeButton();
         final View recent = getRecentsButton();
-        final View menu = getMenuButton();
+        final View menu = getRightMenuButton();
 
-        pw.println("      back: "
-                + PhoneStatusBar.viewInfo(back)
-                + " " + visibilityToString(back.getVisibility())
-                );
-        pw.println("      home: "
-                + PhoneStatusBar.viewInfo(home)
-                + " " + visibilityToString(home.getVisibility())
-                );
-        pw.println("      rcnt: "
-                + PhoneStatusBar.viewInfo(recent)
-                + " " + visibilityToString(recent.getVisibility())
-                );
-        pw.println("      menu: "
-                + PhoneStatusBar.viewInfo(menu)
-                + " " + visibilityToString(menu.getVisibility())
-                );
-        pw.println("    }");
+        try{
+	        pw.println("      back: "
+	                + PhoneStatusBar.viewInfo(back)
+	                + " " + visibilityToString(back.getVisibility())
+	                );
+	        pw.println("      home: "
+	                + PhoneStatusBar.viewInfo(home)
+	                + " " + visibilityToString(home.getVisibility())
+	                );
+	        pw.println("      rcnt: "
+	                + PhoneStatusBar.viewInfo(recent)
+	                + " " + visibilityToString(recent.getVisibility())
+	                );
+	        pw.println("      menu: "
+	                + PhoneStatusBar.viewInfo(menu)
+	                + " " + visibilityToString(menu.getVisibility())
+	                );
+	        pw.println("    }");
+        }catch(NullPointerException e){}
     }
 
 	public DelegateViewHelper getDelegateHelper() {
 		return mDelegateHelper;
+	}
+
+	public void setRecentButtonOnTouchListener(RecentsPanelView mRecentsPanel) {
+		if(getRecentsButton()!=null){
+			getRecentsButton().setOnTouchListener(mRecentsPanel);
+		}
+	}
+
+	public void setRecentButtonOnClickListener(OnClickListener mRecentsClickListener) {
+		if(getRecentsButton()!=null){
+			getRecentsButton().setOnClickListener(mRecentsClickListener);
+		}
 	}
 
 }

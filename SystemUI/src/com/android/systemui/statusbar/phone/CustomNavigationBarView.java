@@ -68,18 +68,24 @@ public class CustomNavigationBarView extends NavigationBarView {
     private boolean mHideRight = false;
     
     public int mMenuMode = 0;
-	private Drawable mMenuLeftIcon, mMenuLeftLandIcon, mMenuLeftAltIcon, mMenuLeftAltLandIcon;
-	private Drawable mMenuRightIcon, mMenuRightLandIcon, mMenuRightAltIcon, mMenuRightAltLandIcon;
+	private Drawable mMenuLeftIcon;
+	private Drawable mMenuLeftLandIcon;
+	private Drawable mMenuLeftAltIcon;
+	private Drawable mMenuLeftAltLandIcon;
+	private Drawable mMenuRightIcon;
+	private Drawable mMenuRightLandIcon;
+	private Drawable mMenuRightAltIcon;
+	private Drawable mMenuRightAltLandIcon;
 	
 	//for changes to the layout
     SettingsObserver mSettingsObserver = new SettingsObserver(new Handler());
 
-    public View getLeftMenuButton() {
-        return mCurrentView.findViewById(R.id.menu_left);
+    public ImageView getLeftMenuButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.menu_left);
     }
     
-    public View getLargeMenuButton() {
-        return mCurrentView.findViewById(ID_MENU);
+    public ImageView getLargeMenuButton() {
+        return (ImageView)mCurrentView.findViewById(ID_MENU);
     }    
 
     public CustomNavigationBarView(Context context, AttributeSet attrs) {
@@ -134,19 +140,15 @@ public class CustomNavigationBarView extends NavigationBarView {
     }
 
     @Override
-    public void onFinishInflate() {
-    	
+    public void onFinishInflate() {	
     	mRotatedViews[Surface.ROTATION_0] = 
     	mRotatedViews[Surface.ROTATION_180] = buildCustomKeys((FrameLayout) findViewById(R.id.rot0),Surface.ROTATION_0);
-
-    	mRotatedViews[Surface.ROTATION_90] = buildCustomKeys((FrameLayout) findViewById(R.id.rot90),Surface.ROTATION_90);
-    	        
+    	mRotatedViews[Surface.ROTATION_90] = buildCustomKeys((FrameLayout) findViewById(R.id.rot90),Surface.ROTATION_90);       
     	mRotatedViews[Surface.ROTATION_270] = NAVBAR_ALWAYS_AT_RIGHT
-    	                                                ? mRotatedViews[Surface.ROTATION_90]
-    	                                                : buildCustomKeys((FrameLayout) findViewById(R.id.rot270),Surface.ROTATION_270);
+		        ? mRotatedViews[Surface.ROTATION_90]
+		        : buildCustomKeys((FrameLayout) findViewById(R.id.rot270),Surface.ROTATION_270);
 
-    	mCurrentView = mRotatedViews[Surface.ROTATION_0];    	       
-            	
+    	mCurrentView = mRotatedViews[Surface.ROTATION_0];    	          	
     }
 
     private View buildCustomKeys(FrameLayout container,int rot) {
@@ -208,7 +210,7 @@ public class CustomNavigationBarView extends NavigationBarView {
         			landscape && !phablet ? mKeyWidth : LayoutParams.MATCH_PARENT, 0f);
         	v.setLayoutParams(params);
         	v.setPadding(padding, 0, padding, 0);
-        	((ImageView) v).setScaleType(ScaleType.CENTER);
+        	v.setScaleType(ScaleType.CENTER);
         	navButtons.addView(v);
         	lightsOut.addView(createLightsOut(
         			(landscape && !phablet),(i == 0),(i == count-1)));
@@ -359,7 +361,7 @@ public class CustomNavigationBarView extends NavigationBarView {
         if(!arrows)
         	mShowMenu = show;
 
-        CustomKeyButtonView right = (CustomKeyButtonView) getMenuButton();
+        CustomKeyButtonView right = (CustomKeyButtonView) getRightMenuButton();
         CustomKeyButtonView left = (CustomKeyButtonView) getLeftMenuButton();
         
         right.setVisibility((arrows || mShowMenu) && !mHasMenuKey && !right.isDisabled() ? View.VISIBLE : View.INVISIBLE);
@@ -374,36 +376,37 @@ public class CustomNavigationBarView extends NavigationBarView {
     	mMenuLeftIcon = mMenuRightIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_menu_reflect : R.drawable.ic_sysbar_menu);
     	mMenuLeftLandIcon = mMenuRightIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_menu_land_reflect : R.drawable.ic_sysbar_menu_land);    	
     	
-    	if(((ImageView) getLargeMenuButton()) != null){
-    		((ImageView) getLargeMenuButton()).setImageDrawable(res.getDrawable(mVertical 
+    	if(getLargeMenuButton() != null){
+    		getLargeMenuButton().setImageDrawable(res.getDrawable(mVertical 
         			? (withReflect ? R.drawable.ic_sysbar_menu_large_land_reflect : R.drawable.ic_sysbar_menu_large_land) 
         			: (withReflect ? R.drawable.ic_sysbar_menu_large_reflect : R.drawable.ic_sysbar_menu_large)));
     	}
-    	((ImageView) getMenuButton()).setImageDrawable(mHideRight ? null :
+    	getRightMenuButton().setImageDrawable(mHideRight ? null :
     				mVertical ? mMenuRightLandIcon : mMenuRightIcon);
-    	((ImageView) getLeftMenuButton()).setImageDrawable(mHideLeft ? null :
+    	getLeftMenuButton().setImageDrawable(mHideLeft ? null :
 			mVertical ? mMenuLeftLandIcon : mMenuLeftIcon);
     	   	
     	
     }
 	
 	public void updateMenuImages(){
-		((ImageView) getMenuButton()).setImageDrawable(mHideRight ? null :
+		getRightMenuButton().setImageDrawable(mHideRight ? null :
 			mVertical ? mMenuRightLandIcon : mMenuRightIcon);
-		((ImageView) getLeftMenuButton()).setImageDrawable(mHideLeft ? null :
+		getLeftMenuButton().setImageDrawable(mHideLeft ? null :
 			mVertical ? mMenuLeftLandIcon : mMenuLeftIcon);
 	}
 	
 	public void setNavigationIconHints(int hints, boolean force) {
 		super.setNavigationIconHints(hints, force);        
-		if(getLargeMenuButton() != null)
+		if(getLargeMenuButton() != null){
         	getLargeMenuButton().setAlpha(
                     (0 != (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP)) ? 0.5f : 1.0f);
+		}
 		
 		if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_KEYBOARD_CURSOR, 1) ==1){
 			final boolean IMEShowing = (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT));
 			CustomKeyButtonView left = (CustomKeyButtonView) getLeftMenuButton();
-			CustomKeyButtonView right = (CustomKeyButtonView) getMenuButton();
+			CustomKeyButtonView right = (CustomKeyButtonView) getRightMenuButton();
 			left.setVisibility(View.INVISIBLE);
 			right.setVisibility(View.INVISIBLE);
 		
@@ -437,10 +440,9 @@ public class CustomNavigationBarView extends NavigationBarView {
 	
 	@Override    
     public void setButtonColor(){
-    	super.setButtonColor();        
-        if(getLargeMenuButton() != null)
-            ((KeyButtonView) getLargeMenuButton()).setButtonColor();
-        ((KeyButtonView) getLeftMenuButton()).setButtonColor();
+    	super.setButtonColor();
+        setButtonColor(getLargeMenuButton());
+        setButtonColor(getLeftMenuButton());
     }
 	
 	@Override
@@ -448,22 +450,23 @@ public class CustomNavigationBarView extends NavigationBarView {
 		super.setDisabledFlags(disabledFlags, force);       
 
         final boolean disableMenu = ((disabledFlags & View.STATUS_BAR_DISABLE_RECENT) != 0);
-        
-		if(getLargeMenuButton() != null)
-            getLargeMenuButton().setVisibility(disableMenu ? View.INVISIBLE : View.VISIBLE);		
-		
+		setButtonVisibility(getLargeMenuButton(), disableMenu);	
     }
 	
 	@Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
-        if(getSearchButton() != null && getLargeMenuButton() != null){
+        boolean searchButton = (getSearchButton()!=null);
+        boolean largeMenuButton = (getLargeMenuButton()!=null);
+        
+        // dont need to worry about nulls here
+        if(searchButton && largeMenuButton){
         	getDelegateHelper().setInitialTouchRegion(getHomeButton(), 
         			getBackButton(), getRecentsButton(), getSearchButton(),getLargeMenuButton());
-        }else if(getSearchButton() != null && getLargeMenuButton() == null){
+        }else if(searchButton && !largeMenuButton){
         	getDelegateHelper().setInitialTouchRegion(getHomeButton(), 
         			getBackButton(), getRecentsButton(), getSearchButton());
-        }else if(getSearchButton() == null && getLargeMenuButton() != null){
+        }else if(!searchButton && largeMenuButton){
         	getDelegateHelper().setInitialTouchRegion(getHomeButton(), 
         			getBackButton(), getRecentsButton(), getLargeMenuButton());
         }else{       	

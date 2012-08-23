@@ -682,7 +682,8 @@ public class PhoneStatusBar extends BaseStatusBar {
         // a bit jarring
         mRecentsPanel.setMinSwipeAlpha(0.03f);
         if (mNavigationBarView != null) {
-            mNavigationBarView.getRecentsButton().setOnTouchListener(mRecentsPanel);
+           // mNavigationBarView.getRecentsButton().setOnTouchListener(mRecentsPanel);
+        	mNavigationBarView.setRecentButtonOnTouchListener(mRecentsPanel);
         }
     }
 
@@ -763,8 +764,10 @@ public class PhoneStatusBar extends BaseStatusBar {
     private void prepareNavigationBarView() {
         mNavigationBarView.reorient();
 
-        mNavigationBarView.getRecentsButton().setOnClickListener(mRecentsClickListener);
-        mNavigationBarView.getRecentsButton().setOnTouchListener(mRecentsPanel);
+        //mNavigationBarView.getRecentsButton().setOnClickListener(mRecentsClickListener);
+        //mNavigationBarView.getRecentsButton().setOnTouchListener(mRecentsPanel);
+        mNavigationBarView.setRecentButtonOnTouchListener(mRecentsPanel);
+        mNavigationBarView.setRecentButtonOnClickListener(mRecentsClickListener);
         if(CustomKeyButtonView.ACTION_DEFAULT.equals(Settings.System.getString(mContext.getContentResolver(),
 						Settings.System.LONG_ACTION_HOME, CustomKeyButtonView.ACTION_DEFAULT)))
         	mNavigationBarView.getHomeButton().setOnTouchListener(mHomeSearchActionListener);
