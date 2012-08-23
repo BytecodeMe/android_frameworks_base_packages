@@ -28,6 +28,7 @@ public class PowToast extends Activity {
 		mToast = Toast.makeText(this, "", Toast.LENGTH_LONG);
         mToast.setView(makeView());
         makePowSound();
+        finish();
 	}
 	
 	private View makeView() {
@@ -78,9 +79,7 @@ public class PowToast extends Activity {
 						 while(mMediaPlayer.isPlaying()){
 									// wait for it to finish
 						}
-						finish();
 					 }catch(Exception e){
-						finish();
 					 }			
 			}
 		 }).start();
