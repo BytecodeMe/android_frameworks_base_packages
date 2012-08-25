@@ -28,6 +28,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.provider.Settings;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -349,20 +350,23 @@ public class CustomNavigationBarView extends NavigationBarView {
 				break;			
 		}	
 		
-	}	
+	}
 	
 	@Override 
 	public void setMenuVisibility(final boolean show, final boolean force){
 		setMenuVisibility(show,force,false);
 	}			
 	
-	public void setMenuVisibility(final boolean show, final boolean force, final boolean arrows) {
+	public void setMenuVisibility(final boolean show, final boolean force, boolean arrows) {
+
 		final KeyguardManager keyguardManager = (KeyguardManager)mContext.getSystemService(Activity.KEYGUARD_SERVICE);
 		boolean isRestrictedInput = keyguardManager.inKeyguardRestrictedInputMode();
+	
+		if(DEBUG)Log.d(TAG,"arrows: "+arrows+", keyguard: "+isRestrictedInput);
 		
 		if (!isRestrictedInput && !force && mShowMenu == show) return;
 
-        if(!arrows)
+        if(!arrows || isRestrictedInput)
         	mShowMenu = show;
 
         CustomKeyButtonView right = (CustomKeyButtonView) getRightMenuButton();

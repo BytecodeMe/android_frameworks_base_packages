@@ -16,40 +16,31 @@
 
 package com.android.systemui.statusbar.phone;
 
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
+
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
-import android.animation.ObjectAnimator;
 import android.app.StatusBarManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
 import android.provider.Settings;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.Slog;
-import android.view.animation.AccelerateInterpolator;
 import android.view.Display;
 import android.view.MotionEvent;
-import android.view.VelocityTracker;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.view.Surface;
-import android.view.Window;
+import android.view.View;
 import android.view.WindowManager;
 import android.view.WindowManagerImpl;
+import android.view.animation.AccelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-
-import java.io.FileDescriptor;
-import java.io.PrintWriter;
-import java.lang.StringBuilder;
 
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.systemui.R;
@@ -438,6 +429,9 @@ public class NavigationBarView extends LinearLayout {
         mCurrentView = mRotatedViews[rot];
         mCurrentView.setVisibility(View.VISIBLE);
 
+        setButtonImages(mHasReflections);
+        setNavigationIconHints(mNavigationIconHints, true);
+        
         // force the low profile & disabled states into compliance
         setLowProfile(mLowProfile, false, true /* force */);
         setDisabledFlags(mDisabledFlags, true /* force */);
@@ -450,8 +444,7 @@ public class NavigationBarView extends LinearLayout {
         if (DEBUG) {
             Slog.d(TAG, "reorient(): rot=" + mDisplay.getRotation());
         }
-        setButtonImages(mHasReflections);
-        setNavigationIconHints(mNavigationIconHints, true);
+        
     }
 
 //    @Override
