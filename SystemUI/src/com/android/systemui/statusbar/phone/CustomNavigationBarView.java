@@ -199,6 +199,11 @@ public class CustomNavigationBarView extends NavigationBarView {
     	menu.setVisibility(View.INVISIBLE);    	
     	navButtons.addView(menu);
     	
+    	if(phablet){
+    		navButtons.addView(createSpacer());
+    		lightsOut.addView(createSpacer());
+    	}
+    	
     	int count = keyIds.length;
     	mKeyWidth = totalWidth/count;
     	for(int i = 0;i<count;i++){
@@ -216,7 +221,7 @@ public class CustomNavigationBarView extends NavigationBarView {
         	navButtons.addView(v);
         	lightsOut.addView(createLightsOut(
         			(landscape && !phablet),(i == 0),(i == count-1)));
-        	if(i < (count-1)){
+        	if(!phablet && (i < (count-1))){
         		navButtons.addView(createSpacer());
         		lightsOut.addView(createSpacer());
         	}
@@ -224,7 +229,12 @@ public class CustomNavigationBarView extends NavigationBarView {
         		mHasMenuKey = true;
         		mMenuMode = MENU_DISABLED;
         	}        	
-    	}    	
+    	}
+    	
+    	if(phablet){
+    		navButtons.addView(createSpacer());
+    		lightsOut.addView(createSpacer());
+    	}
     	
     	menu = new CustomKeyButtonView(mContext);
     	menu.setId(landscape && !phablet ? R.id.menu_left : R.id.menu);    	
