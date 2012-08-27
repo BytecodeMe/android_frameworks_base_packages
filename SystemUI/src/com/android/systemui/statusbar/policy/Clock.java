@@ -16,25 +16,22 @@
 
 package com.android.systemui.statusbar.policy;
 
+import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
-import android.graphics.Canvas;
-import android.graphics.Typeface;
-import android.graphics.drawable.Drawable;
+import android.provider.AlarmClock;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.format.DateFormat;
 import android.text.style.CharacterStyle;
-import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.text.style.RelativeSizeSpan;
-import android.text.style.StyleSpan;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
@@ -47,7 +44,7 @@ import com.android.internal.R;
  * This widget display an analogic clock with two hands for hours and
  * minutes.
  */
-public class Clock extends TextView {
+public class Clock extends TextView implements OnClickListener {
     private boolean mAttached;
     private Calendar mCalendar;
     private String mClockFormatString;
@@ -69,6 +66,7 @@ public class Clock extends TextView {
 
     public Clock(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        setOnClickListener(this);
     }
 
     @Override
@@ -203,6 +201,25 @@ public class Clock extends TextView {
  
         return result;
 
+    }
+
+	@Override
+	public void onClick(View v) {
+		
+		try{
+			Intent i = new Intent(Intent.ACTION_MAIN);
+			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			i.setComponent(new ComponentName("com.android.deskclock","com.android.deskclock.AlarmClock"));
+			mContext.startActivity(i);
+			getStatusBarManager().collapse();
+		}catch (Exception e){
+			Log.w("CLOCK","Activity not found");
+		}
+		
+	}
+	
+	private StatusBarManager getStatusBarManager() {
+        return (StatusBarManager)mContext.getSystemService(Context.STATUS_BAR_SERVICE);
     }
 }
 

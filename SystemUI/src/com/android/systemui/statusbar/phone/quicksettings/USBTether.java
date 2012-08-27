@@ -65,7 +65,7 @@ public class USBTether extends StatusBarPreference
     
     @Override
 	public boolean onLongClick(View v) {
-		this.getStatusBarManager().collapse();
+		getStatusBarManager().collapse();
         mContext.startActivity(new Intent(Intent.ACTION_MAIN)
         	.setClassName("com.android.settings", "com.android.settings.Settings$TetherSettingsActivity")
         	.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
