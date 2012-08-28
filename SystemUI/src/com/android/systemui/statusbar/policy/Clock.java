@@ -38,7 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import com.android.internal.R;
+import com.android.systemui.R;
 
 /**
  * This widget display an analogic clock with two hands for hours and
@@ -130,9 +130,9 @@ public class Clock extends TextView implements OnClickListener {
         int res;
 
         if (b24) {
-            res = R.string.twenty_four_hour_time_format;
+            res = com.android.internal.R.string.twenty_four_hour_time_format;
         } else {
-            res = R.string.twelve_hour_time_format;
+            res = com.android.internal.R.string.twelve_hour_time_format;
         }
 
         final char MAGIC1 = '\uEF00';
@@ -206,6 +206,8 @@ public class Clock extends TextView implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		
+		if(((View) getParent()).getId() != R.id.signal_battery_cluster 
+				&& ((View) getParent()).getId() != R.id.clock_center){
 		try{
 			Intent i = new Intent(Intent.ACTION_MAIN);
 			i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -214,6 +216,7 @@ public class Clock extends TextView implements OnClickListener {
 			getStatusBarManager().collapse();
 		}catch (Exception e){
 			Log.w("CLOCK","Activity not found");
+		}
 		}
 		
 	}
