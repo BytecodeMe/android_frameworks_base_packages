@@ -2583,24 +2583,37 @@ public class PhoneStatusBar extends BaseStatusBar {
             	return;
             }
             
-            final boolean useAnimations = (Settings.System.getInt(mContext.getContentResolver(), 
-                        Settings.System.QUICK_SETTINGS_ANIMATION, 1)==1);
+            final int selectedAnimation = Settings.System.getInt(mContext.getContentResolver(), 
+                    Settings.System.QUICK_SETTINGS_ANIMATION, 1);
+            final boolean useAnimations = (selectedAnimation!=0);
             
             if(!useAnimations){
                 quickSwap();
                 return;
             }
             
-            final boolean notifications = (mExpandedPage.getVisibility()==View.VISIBLE);   
+            final boolean notifications = (mExpandedPage.getVisibility()==View.VISIBLE);
+            AnimatorSet outLeftAnim;
+            AnimatorSet inLeftAnim;
+            AnimatorSet outRightAnim;
+            AnimatorSet inRightAnim;
             
-            AnimatorSet outLeftAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext,
-                    R.anim.push_left_out);
-            AnimatorSet inLeftAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext,
-                    R.anim.push_left_in);
-            AnimatorSet outRightAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext,
-                    R.anim.push_right_out);
-            AnimatorSet inRightAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext,
-                    R.anim.push_right_in);
+            // put all of the different animation styles here
+            switch(selectedAnimation){
+	            case 2:
+		            outLeftAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.slide_out_left);
+		            inLeftAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.slide_in_left);
+		            outRightAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.slide_out_right);
+		            inRightAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.slide_in_right);
+		            break;
+	            case 1:
+	            default:
+	            	outLeftAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.push_left_out);
+		            inLeftAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.push_left_in);
+		            outRightAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.push_right_out);
+		            inRightAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.push_right_in);
+		            break;
+            }
             AnimatorSet set = new AnimatorSet();
             
             if(notifications){                              
@@ -2619,7 +2632,6 @@ public class PhoneStatusBar extends BaseStatusBar {
                 inLeftAnim.addListener(new AnimatorListenerAdapter(){
                     @Override
                     public void onAnimationStart(Animator animation){
-                        //mQuickSettingsPage.setTranslationX(600f);
                         mQuickSettingsPage.setVisibility(View.VISIBLE);                     
                     }
                     
@@ -2645,7 +2657,6 @@ public class PhoneStatusBar extends BaseStatusBar {
                 inRightAnim.addListener(new AnimatorListenerAdapter(){
                     @Override
                     public void onAnimationStart(Animator animation){
-                        //mExpandedPage.setTranslationX(-600f);
                         mExpandedPage.setVisibility(View.VISIBLE);                     
                     }
                     
