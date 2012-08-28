@@ -2602,9 +2602,9 @@ public class PhoneStatusBar extends BaseStatusBar {
             switch(selectedAnimation){
 	            case 2:
 		            outLeftAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.slide_out_left);
-		            inLeftAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.slide_in_left);
+		            inLeftAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.slide_in_right);
 		            outRightAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.slide_out_right);
-		            inRightAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.slide_in_right);
+		            inRightAnim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.slide_in_left);
 		            break;
 	            case 1:
 	            default:
