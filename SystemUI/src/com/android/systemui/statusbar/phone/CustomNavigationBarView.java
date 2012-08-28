@@ -29,6 +29,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.Slog;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -78,6 +79,7 @@ public class CustomNavigationBarView extends NavigationBarView {
 	private Drawable mMenuRightLandIcon;
 	private Drawable mMenuRightAltIcon;
 	private Drawable mMenuRightAltLandIcon;
+	private boolean mArrows = false;
 	
 	//for changes to the layout
     SettingsObserver mSettingsObserver = new SettingsObserver(new Handler());
@@ -137,7 +139,7 @@ public class CustomNavigationBarView extends NavigationBarView {
 				configureMenuKeys(mRotatedViews[i].findViewById(R.id.nav_buttons));        		
 			}  
         	updateMenuImages();
-			setMenuVisibility(mShowMenu, true /* force */);
+			setMenuVisibility(mShowMenu, true /* force */,mArrows);
         }
     }
 
@@ -368,22 +370,23 @@ public class CustomNavigationBarView extends NavigationBarView {
 	}			
 	
 	public void setMenuVisibility(final boolean show, final boolean force, boolean arrows) {
-
+		
+		mArrows = arrows;
 		final KeyguardManager keyguardManager = (KeyguardManager)mContext.getSystemService(Activity.KEYGUARD_SERVICE);
 		boolean isRestrictedInput = keyguardManager.inKeyguardRestrictedInputMode();
 	
-		if(DEBUG)Log.d(TAG,"arrows: "+arrows+", keyguard: "+isRestrictedInput);
+		if(DEBUG)Log.d(TAG,"arrows: "+mArrows+", keyguard: "+isRestrictedInput);
 		
 		if (!isRestrictedInput && !force && mShowMenu == show) return;
 
-        if(!arrows || isRestrictedInput)
+        if(!mArrows || isRestrictedInput)
         	mShowMenu = show;
 
         CustomKeyButtonView right = (CustomKeyButtonView) getRightMenuButton();
         CustomKeyButtonView left = (CustomKeyButtonView) getLeftMenuButton();
         
-        right.setVisibility((!mHasMenuKey && mShowMenu) || (arrows && !isRestrictedInput)  && !right.isDisabled() ? View.VISIBLE : View.INVISIBLE);
-        left.setVisibility((!mHasMenuKey && mShowMenu) || (arrows && !isRestrictedInput)  && !left.isDisabled()? View.VISIBLE : View.INVISIBLE);
+        right.setVisibility((!mHasMenuKey && mShowMenu) || (mArrows && !isRestrictedInput)  && !right.isDisabled() ? View.VISIBLE : View.INVISIBLE);
+        left.setVisibility((!mHasMenuKey && mShowMenu) || (mArrows && !isRestrictedInput)  && !left.isDisabled()? View.VISIBLE : View.INVISIBLE);
     }
 	
 	@Override
@@ -519,6 +522,33 @@ public class CustomNavigationBarView extends NavigationBarView {
 			event.setLocation(getWidth() - event.getX(), getHeight() - event.getY());
 		}
         return super.dispatchTouchEvent(event);
+    }
+	
+	@Override
+	public void reorient() {
+        final int rot = mDisplay.getRotation();
+        for (int i=0; i<4; i++) {
+            mRotatedViews[i].setVisibility(View.GONE);
+        }
+        mCurrentView = mRotatedViews[rot];
+        mCurrentView.setVisibility(View.VISIBLE);
+
+        setButtonImages(mHasReflections);
+        setNavigationIconHints(mNavigationIconHints, true);
+        
+        // force the low profile & disabled states into compliance
+        setLowProfile(mLowProfile, false, true /* force */);
+        setDisabledFlags(mDisabledFlags, true /* force */);
+        setMenuVisibility(mShowMenu, true /* force */,mArrows);
+
+        if (DEBUG_DEADZONE) {
+            mCurrentView.findViewById(R.id.deadzone).setBackgroundColor(0x808080FF);
+        }
+
+        if (DEBUG) {
+            Slog.d(TAG, "reorient(): rot=" + mDisplay.getRotation());
+        }
+        
     }
 
 }
