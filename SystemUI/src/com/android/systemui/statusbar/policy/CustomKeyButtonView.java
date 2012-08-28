@@ -17,6 +17,7 @@
 package com.android.systemui.statusbar.policy;
 
 import java.util.List;
+import java.util.Random;
 
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManagerNative;
@@ -365,9 +366,12 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
                 }
                 if (targetKilled) {                    
                     //Toast.makeText(mContext, "Unable to kill Application", Toast.LENGTH_SHORT).show();
-                	Intent pow = new Intent(mContext, PowToast.class);
-                	pow.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                	mContext.startActivity(pow);
+                	final Random generator = new Random();
+                	if(generator.nextInt(100) % 5 == 0){
+	                	Intent pow = new Intent(mContext, PowToast.class);
+	                	pow.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	                	mContext.startActivity(pow);
+	                }
                     break;
                 }
             }
