@@ -79,7 +79,7 @@ public class Volume extends StatusBarPreference
         
         mContentView.getChildAt(1).setVisibility(View.GONE);
         
-        //mIcon.setImageResource(R.drawable.ic_lock_silent_mode_off);
+        mIcon.setImageResource(R.drawable.ic_lock_silent_mode_off);
         // set the icon and label
     	if (STREAM_TYPE==AudioManager.STREAM_MUSIC &&
     			(mAudioManager.getDevicesForStream(AudioManager.STREAM_MUSIC) &
@@ -87,12 +87,12 @@ public class Volume extends StatusBarPreference
                 AudioManager.DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES |
                 AudioManager.DEVICE_OUT_BLUETOOTH_A2DP_SPEAKER)) != 0) {
     		mSlider.setLabel("BT");
-            setMusicIcon(com.android.internal.R.drawable.ic_audio_bt, 
-            		com.android.internal.R.drawable.ic_audio_bt_mute);
+            //setMusicIcon(com.android.internal.R.drawable.ic_audio_bt, 
+            		//com.android.internal.R.drawable.ic_audio_bt_mute);
         } else {
         	mSlider.setLabel(VOLUME_PROPER_NAMES[STREAM_TYPE]);
-            setMusicIcon(com.android.internal.R.drawable.ic_audio_vol, 
-            		com.android.internal.R.drawable.ic_audio_vol_mute);
+            //setMusicIcon(com.android.internal.R.drawable.ic_audio_vol, 
+            		//com.android.internal.R.drawable.ic_audio_vol_mute);
         }
         
         mContentView.setClickable(false);
@@ -167,12 +167,12 @@ public class Volume extends StatusBarPreference
                     AudioManager.DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES |
                     AudioManager.DEVICE_OUT_BLUETOOTH_A2DP_SPEAKER)) != 0) {
         		mSlider.setLabel("BT");
-                setMusicIcon(com.android.internal.R.drawable.ic_audio_bt, 
-                		com.android.internal.R.drawable.ic_audio_bt_mute);
+//                setMusicIcon(com.android.internal.R.drawable.ic_audio_bt, 
+//                		com.android.internal.R.drawable.ic_audio_bt_mute);
             } else {
             	mSlider.setLabel(VOLUME_PROPER_NAMES[STREAM_TYPE]);
-                setMusicIcon(com.android.internal.R.drawable.ic_audio_vol, 
-                		com.android.internal.R.drawable.ic_audio_vol_mute);
+//                setMusicIcon(com.android.internal.R.drawable.ic_audio_vol, 
+//                		com.android.internal.R.drawable.ic_audio_vol_mute);
             }
             
             mSlider.setMax(mAudioManager.getStreamMaxVolume(STREAM_TYPE));

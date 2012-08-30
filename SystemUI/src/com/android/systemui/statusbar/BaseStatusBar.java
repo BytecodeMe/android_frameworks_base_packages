@@ -1041,7 +1041,7 @@ public abstract class BaseStatusBar extends SystemUI implements
 			// Other times it's slow.
 
 			// This will help it restart reliably and faster.
-			Log.w("SKIN", "SKIN_CHANGED received by systemui.apk ... let's restart");
+			//Log.w("SKIN", "SKIN_CHANGED received by systemui.apk ... let's restart");
 			restartMe(context);
 		}
 	};
