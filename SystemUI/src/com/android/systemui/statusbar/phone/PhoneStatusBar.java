@@ -98,6 +98,7 @@ import com.android.systemui.statusbar.SignalClusterView;
 import com.android.systemui.statusbar.StatusBarIconView;
 import com.android.systemui.statusbar.phone.quicksettings.QuickSettings;
 import com.android.systemui.statusbar.policy.BatteryController;
+import com.android.systemui.statusbar.policy.Clock;
 import com.android.systemui.statusbar.policy.CustomKeyButtonView;
 import com.android.systemui.statusbar.policy.DateView;
 import com.android.systemui.statusbar.policy.IntruderAlertView;
@@ -213,6 +214,9 @@ public class PhoneStatusBar extends BaseStatusBar {
     boolean mExpanded;
     boolean mExpandedVisible;
 
+    // the clock next to the date
+    Clock mClockView;
+    
     // the date view
     DateView mDateView;
 
@@ -454,7 +458,10 @@ public class PhoneStatusBar extends BaseStatusBar {
         mSetupButton.setOnClickListener(mSetupButtonListener);
         mSetupButton.setVisibility(View.GONE);
 
+        mClockView = (Clock)mStatusBarWindow.findViewById(R.id.big_clock);
+        mClockView.setOnClickListener(mClockClickListener);
         mDateView = (DateView)mStatusBarWindow.findViewById(R.id.date);
+        mDateView.setOnClickListener(mDateViewClickListener);
         mSettingsButton = mStatusBarWindow.findViewById(R.id.settings_button);
         mSettingsButton.setOnClickListener(mSettingsButtonListener);
         mRotationButton = (RotationToggle) mStatusBarWindow.findViewById(R.id.rotation_lock_button);
@@ -2467,17 +2474,42 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
     }
     
+	private View.OnClickListener mClockClickListener = new View.OnClickListener() {
+
+		@Override
+		public void onClick(View v) {
+			try {
+				launchActivitySafely(new Intent(Intent.ACTION_MAIN)
+					.setComponent(new ComponentName("com.android.deskclock",
+						"com.android.deskclock.AlarmClock")));
+			} catch (Exception e) {
+				Log.w("CLOCK", "Activity not found");
+			}
+		}
+	};
+	
+	private View.OnClickListener mDateViewClickListener = new View.OnClickListener() {
+		
+		@Override
+		public void onClick(View v) {
+			try {
+				launchActivitySafely(new Intent(Intent.ACTION_MAIN)
+					.setComponent(new ComponentName("com.google.android.calendar",
+						"com.android.calendar.AllInOneActivity")));
+			} catch (Exception e) {
+				Log.w("DateView", "Activity not found");
+			}
+		}
+	};
+    
     private View.OnClickListener mSetupButtonListener = new View.OnClickListener() {
         
         @Override
         public void onClick(View v) {
             try{
-                Intent intent = new Intent();
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.setComponent(new ComponentName("com.bamf.settings", 
-                        "com.bamf.settings.activities.QuickSettingsActivity"));
-                mContext.startActivity(intent);
-                animateCollapse();
+            	launchActivitySafely(new Intent()
+                	.setComponent(new ComponentName("com.bamf.settings", 
+                        "com.bamf.settings.activities.QuickSettingsActivity")));
             }catch(ActivityNotFoundException e){
                 Toast.makeText(mContext, "BAMF Settings not found", Toast.LENGTH_SHORT);
             }
@@ -2563,13 +2595,6 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     private View.OnClickListener mSettingsButtonListener = new View.OnClickListener() {
         public void onClick(View v) {
-            // We take this as a good indicator that Setup is running and we shouldn't
-            // allow you to go somewhere else
-            if (!isDeviceProvisioned()) return;
-            try {
-                // Dismiss the lock screen when Settings starts.
-                ActivityManagerNative.getDefault().dismissKeyguardOnNextActivity();
-            } catch (RemoteException e) {}
             
             // return a non-null value so the next statement does not fail
             final String settings = Settings.System.getString(mContext.getContentResolver(), 
@@ -2577,9 +2602,7 @@ public class PhoneStatusBar extends BaseStatusBar {
             
             if(settings.trim().equals(EMPTY_STRING)){
             	// user disabled quick settings so just open Settings app
-            	v.getContext().startActivity(new Intent(Settings.ACTION_SETTINGS)
-            		.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));  	
-            	animateCollapse();
+            	launchActivitySafely(new Intent(Settings.ACTION_SETTINGS));
             	return;
             }
             
@@ -2688,6 +2711,28 @@ public class PhoneStatusBar extends BaseStatusBar {
             }
         }
     };
+    
+    private void launchActivitySafely(Intent intent) throws ActivityNotFoundException {
+    	// We take this as a good indicator that Setup is running and we shouldn't
+        // allow you to go somewhere else
+        if (!isDeviceProvisioned()) return;
+        try {
+        	// The intent we are sending is for the application, which
+			// won't have permission to immediately start an activity after
+			// the user switches to home. We know it is safe to do at this
+			// point, so make sure new activity switches are now allowed.
+			ActivityManagerNative.getDefault().resumeAppSwitches();
+			// Also, notifications can be launched from the lock screen,
+			// so dismiss the lock screen when the activity starts.
+			ActivityManagerNative.getDefault()
+					.dismissKeyguardOnNextActivity();
+        } catch (RemoteException e) {}
+        
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        mContext.startActivity(intent);
+        
+        animateCollapse();
+    }
 
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {

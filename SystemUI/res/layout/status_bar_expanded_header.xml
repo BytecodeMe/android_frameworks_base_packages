@@ -26,20 +26,23 @@
     android:baselineAligned="false"
     >
     <com.android.systemui.statusbar.policy.Clock
-        android:id="@+id/clock"
+        android:id="@+id/big_clock"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginLeft="8dp"
         android:singleLine="true"
         android:textAppearance="@style/TextAppearance.StatusBar.Expanded.Clock"
+        android:background="?android:attr/selectableItemBackground"
         />
 
     <com.android.systemui.statusbar.policy.DateView android:id="@+id/date"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
+        android:gravity="center_vertical"
         android:textAppearance="@style/TextAppearance.StatusBar.Expanded.Date"
+        android:background="?android:attr/selectableItemBackground"
         />
 
     <com.android.systemui.statusbar.RotationToggle android:id="@+id/rotation_lock_button"
