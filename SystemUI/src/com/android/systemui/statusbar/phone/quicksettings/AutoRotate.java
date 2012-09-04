@@ -24,10 +24,9 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.provider.Settings;
 import android.util.Log;
-import android.util.Slog;
 import android.view.IWindowManager;
-import android.widget.CompoundButton;
 import android.view.View;
+import android.widget.CompoundButton;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.StatusBarPreference;
@@ -49,10 +48,7 @@ public class AutoRotate extends StatusBarPreference
     
     @Override
 	public boolean onLongClick(View v) {
-		this.getStatusBarManager().collapse();
-        mContext.startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
-        	.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        
+    	launchActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS));
 		return true;
 	}
 

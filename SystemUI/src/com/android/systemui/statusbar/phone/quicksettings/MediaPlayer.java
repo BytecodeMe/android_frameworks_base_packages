@@ -112,13 +112,8 @@ public class MediaPlayer extends StatusBarPreference
     public void onClick(View v) {
     	
     	if(findMusicService()){
-    		this.getStatusBarManager().collapse();
-    		
-	    	Intent intent = new Intent("com.google.android.music.PLAYBACK_VIEWER");
-	    	intent.setClassName(mMusicPackage, "com.android.music.activitymanagement.TopLevelActivity");
-	    	intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-	    	mContext.startActivity(intent);
-	    	
+    		launchActivity(new Intent("com.google.android.music.PLAYBACK_VIEWER")
+	    		.setClassName(mMusicPackage, "com.android.music.activitymanagement.TopLevelActivity"));
 	    	return;
     	}
     }

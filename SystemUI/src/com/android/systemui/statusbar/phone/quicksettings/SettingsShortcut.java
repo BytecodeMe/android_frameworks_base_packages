@@ -48,19 +48,13 @@ public class SettingsShortcut extends StatusBarPreference
 
     @Override
     public void onClick(View v) {
-        mContext.startActivity(new Intent(android.provider.Settings.ACTION_SETTINGS)
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        getStatusBarManager().collapse();        
+    	launchActivity(new Intent(android.provider.Settings.ACTION_SETTINGS));  
     }
     
     @Override
 	public boolean onLongClick(View v) {
-        mContext.startActivity(new Intent(Intent.ACTION_MAIN)
-        	.setClassName("com.bamf.settings", "com.bamf.settings.activities.SettingsActivity")
-        	.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        
-        this.getStatusBarManager().collapse();
-        
+        launchActivity(new Intent(Intent.ACTION_MAIN)
+        	.setClassName("com.bamf.settings", "com.bamf.settings.activities.SettingsActivity"));
 		return true;
 	}
 

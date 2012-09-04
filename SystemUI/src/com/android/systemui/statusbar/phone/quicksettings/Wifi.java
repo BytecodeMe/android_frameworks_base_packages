@@ -224,9 +224,7 @@ public class Wifi extends StatusBarPreference
 
     @Override
     public boolean onLongClick(View v) {
-        mContext.startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        getStatusBarManager().collapse();   
+    	launchActivity(new Intent(Settings.ACTION_WIFI_SETTINGS));
         return true;
     }
 

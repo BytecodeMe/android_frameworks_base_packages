@@ -63,13 +63,8 @@ public class LTE extends StatusBarPreference
     
     @Override
 	public boolean onLongClick(View v) {
-		this.getStatusBarManager().collapse();
-		
-		Intent intent = new Intent(Intent.ACTION_MAIN);
-		intent.setClassName("com.android.phone", "com.android.phone.Settings");
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        mContext.startActivity(intent);
-        
+    	launchActivity(new Intent(Intent.ACTION_MAIN)
+			.setClassName("com.android.phone", "com.android.phone.Settings"));        
 		return true;
 	}
     

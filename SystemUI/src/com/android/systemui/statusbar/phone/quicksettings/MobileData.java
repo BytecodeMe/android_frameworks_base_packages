@@ -39,11 +39,8 @@ public class MobileData extends StatusBarPreference
     
     @Override
 	public boolean onLongClick(View v) {
-		this.getStatusBarManager().collapse();
-        mContext.startActivity(new Intent(Intent.ACTION_MAIN)
-        	.setClassName("com.android.settings", "com.android.settings.Settings$DataUsageSummaryActivity")
-        	.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        
+    	launchActivity(new Intent(Intent.ACTION_MAIN)
+        	.setClassName("com.android.settings", "com.android.settings.Settings$DataUsageSummaryActivity"));
 		return true;
 	}
 

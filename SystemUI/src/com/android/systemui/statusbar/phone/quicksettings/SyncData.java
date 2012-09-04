@@ -44,10 +44,7 @@ public class SyncData extends StatusBarPreference
     
     @Override
 	public boolean onLongClick(View v) {
-		this.getStatusBarManager().collapse();
-        mContext.startActivity(new Intent(android.provider.Settings.ACTION_SYNC_SETTINGS)
-        	.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        
+        launchActivity(new Intent(android.provider.Settings.ACTION_SYNC_SETTINGS));
 		return true;
 	}
 

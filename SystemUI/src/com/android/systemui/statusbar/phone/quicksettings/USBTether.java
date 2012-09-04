@@ -21,22 +21,15 @@ import java.util.ArrayList;
 import android.app.ActivityManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
-import android.os.AsyncTask;
 import android.os.Environment;
-import android.os.RemoteException;
-import android.os.ServiceManager;
-import android.provider.Settings;
 import android.util.Log;
-import android.util.Slog;
-import android.view.IWindowManager;
-import android.widget.CompoundButton;
 import android.view.View;
+import android.widget.CompoundButton;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.StatusBarPreference;
@@ -65,11 +58,8 @@ public class USBTether extends StatusBarPreference
     
     @Override
 	public boolean onLongClick(View v) {
-		getStatusBarManager().collapse();
-        mContext.startActivity(new Intent(Intent.ACTION_MAIN)
-        	.setClassName("com.android.settings", "com.android.settings.Settings$TetherSettingsActivity")
-        	.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-        
+    	launchActivity(new Intent(Intent.ACTION_MAIN)
+        	.setClassName("com.android.settings", "com.android.settings.Settings$TetherSettingsActivity"));
 		return true;
 	}
 

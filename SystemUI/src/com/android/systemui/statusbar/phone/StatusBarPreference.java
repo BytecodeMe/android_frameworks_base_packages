@@ -16,8 +16,15 @@
 
 package com.android.systemui.statusbar.phone;
 
+import android.app.ActivityManagerNative;
 import android.app.StatusBarManager;
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.os.RemoteException;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.CompoundButton;
@@ -74,6 +81,35 @@ public abstract class StatusBarPreference {
     
     public String getTag(){
         return mTag;
+    }
+    
+    protected void launchActivity(Intent intent) throws ActivityNotFoundException {
+    	// We take this as a good indicator that Setup is running and we shouldn't
+        // allow you to go somewhere else
+        if (!isDeviceProvisioned()) return;
+    	try {
+			// The intent we are sending is for the application, which
+			// won't have permission to immediately start an activity after
+			// the user switches to home. We know it is safe to do at this
+			// point, so make sure new activity switches are now allowed.
+			ActivityManagerNative.getDefault().resumeAppSwitches();
+			// Also, notifications can be launched from the lock screen,
+			// so dismiss the lock screen when the activity starts.
+			ActivityManagerNative.getDefault()
+					.dismissKeyguardOnNextActivity();
+		} catch (RemoteException e) {
+		}
+
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		mContext.startActivity(intent);
+		
+		getStatusBarManager().collapse();
+    }
+    
+    private boolean isDeviceProvisioned(){
+    	final boolean provisioned = 0 != Settings.Secure.getInt(
+                mContext.getContentResolver(), Settings.Secure.DEVICE_PROVISIONED, 0);
+    	return provisioned;
     }
     
 }

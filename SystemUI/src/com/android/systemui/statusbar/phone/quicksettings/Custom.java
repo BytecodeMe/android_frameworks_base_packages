@@ -39,9 +39,7 @@ public class Custom extends StatusBarPreference
     @Override
 	public void onClick(View v) {
 		try {
-			mContext.startActivity(Intent.parseUri(mCustomURI, 0)
-			        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-			this.getStatusBarManager().collapse();
+			launchActivity(Intent.parseUri(mCustomURI, 0));
 		} catch (Throwable t) {
 			t.printStackTrace();
 			openSettings();
@@ -57,9 +55,7 @@ public class Custom extends StatusBarPreference
 	private void openSettings(){
 		mContext.startActivity(new Intent()
 		    .setComponent(new ComponentName("com.bamf.settings", 
-				"com.bamf.settings.activities.QuickSettingsActivity"))
-				.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-		this.getStatusBarManager().collapse();
+				"com.bamf.settings.activities.QuickSettingsActivity")));
 	}
 	
 	class SettingsObserver extends ContentObserver {

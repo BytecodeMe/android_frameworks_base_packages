@@ -16,7 +16,11 @@
 
 package com.android.systemui.statusbar.phone.quicksettings;
 
+import java.util.ArrayList;
+
+import android.app.ActivityManagerNative;
 import android.app.AlertDialog;
+import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -25,11 +29,12 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiConfiguration;
-import android.net.wifi.WifiManager;
 import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.RemoteException;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.InputType;
@@ -46,9 +51,6 @@ import android.widget.TextView;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.StatusBarPreference;
-import com.android.systemui.statusbar.phone.quicksettings.Wifi.PskType;
-
-import java.util.ArrayList;
 
 public class Hotspot extends StatusBarPreference
         implements CompoundButton.OnCheckedChangeListener, 
@@ -355,6 +357,12 @@ public class Hotspot extends StatusBarPreference
 
     @Override
     public boolean onLongClick(View v) {
+		KeyguardManager kgm =
+                (KeyguardManager) mContext.getSystemService(Context.KEYGUARD_SERVICE);
+		if(kgm.isKeyguardLocked()){
+			return false;
+		}
+    	
     	mDialog.getWindow().setType(LayoutParams.TYPE_SYSTEM_ALERT);
     	getStatusBarManager().collapse();    	
     	mDialog.show();
