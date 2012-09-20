@@ -73,8 +73,10 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 	private String mLongPressFunction = ACTION_DEFAULT;
 	private boolean mLongPressed = false;
 	private ContentResolver mResolver;
+	
+	Handler mHandler = new Handler();
 	//for changes to the layout
-    SettingsObserver mSettingsObserver = new SettingsObserver(new Handler());
+    SettingsObserver mSettingsObserver = new SettingsObserver(mHandler);
     
     public CustomKeyButtonView(Context context) {
         this(context, null);
@@ -201,7 +203,12 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
             case MotionEvent.ACTION_DOWN:
                 //Slog.d("KeyButtonView", "press");
                 mDownTime = SystemClock.uptimeMillis();
-                setPressed(true);                
+                setPressed(true);
+                // allow the arrow keys to repeat their action while holding the button down
+                if(mCode==KeyEvent.KEYCODE_DPAD_LEFT || mCode==KeyEvent.KEYCODE_DPAD_RIGHT){
+                	mHandler.removeCallbacks(mUpdateTask); 
+                    mHandler.postAtTime(mUpdateTask, SystemClock.uptimeMillis() + 500); 
+                }
                 if (mCode != 0) {
                     sendEvent(KeyEvent.ACTION_DOWN, 0, mDownTime);
                 } else {
@@ -222,7 +229,8 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
                         && y < getHeight() + mTouchSlop);
                 break;
             case MotionEvent.ACTION_CANCEL:
-                setPressed(false);                
+                setPressed(false);
+                mHandler.removeCallbacks(mUpdateTask);
                 if (mCode != 0) {
                     sendEvent(KeyEvent.ACTION_UP, KeyEvent.FLAG_CANCELED);
                 }
@@ -232,7 +240,8 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
                 break;
             case MotionEvent.ACTION_UP:
                 final boolean doIt = isPressed();
-                setPressed(false);                
+                setPressed(false);
+                mHandler.removeCallbacks(mUpdateTask);
                 if ((mCode != 0 && !mLongPressed)) {
                     if (doIt) {                    	
                         sendEvent(KeyEvent.ACTION_UP, 0);
@@ -257,6 +266,16 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 
         return true;
     }
+	
+	private Runnable mUpdateTask = new Runnable() 
+    { 
+        public void run() 
+        { 
+            //Log.i("repeatBtn", "repeat click");
+            sendEvent(KeyEvent.ACTION_DOWN, 0, SystemClock.uptimeMillis());
+            mHandler.postAtTime(this, SystemClock.uptimeMillis() + 100); 
+        } 
+    }; 
     
 	Runnable mLongPressCheck = new Runnable() {
         public void run() {
