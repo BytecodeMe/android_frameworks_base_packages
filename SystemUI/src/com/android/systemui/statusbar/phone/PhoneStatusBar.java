@@ -807,12 +807,16 @@ public class PhoneStatusBar extends BaseStatusBar {
      */
     private void setNavbarButtonColor(){
         // set the color overlay
-        mNavigationBarView.setButtonColor();
+    	if(mNavigationBarView != null){
+    		mNavigationBarView.setButtonColor();
+    	}
     }
     
     private void setNavbarReflections(){
-    	mNavigationBarView.setButtonImages(Settings.System.getInt(mContext.getContentResolver(), 
+    	if(mNavigationBarView != null){
+    		mNavigationBarView.setButtonImages(Settings.System.getInt(mContext.getContentResolver(), 
     			Settings.System.SHOW_NAVBAR_REFLECTION, 0) == 1);
+    	}
     }
     
     private boolean shouldRedraw(){
@@ -2751,6 +2755,7 @@ public class PhoneStatusBar extends BaseStatusBar {
             else if (Intent.ACTION_CONFIGURATION_CHANGED.equals(action)) {
                 updateResources();
                 repositionNavigationBar();
+                setNavbarButtonColor();
                 updateExpandedViewPos(EXPANDED_LEAVE_ALONE);
             }
         }
@@ -2792,7 +2797,6 @@ public class PhoneStatusBar extends BaseStatusBar {
             ((TextView)mClearButton).setText(context.getText(R.string.status_bar_clear_all_button));
         }
         loadDimens();
-        setNavbarButtonColor();
     }
 
     protected void loadDimens() {
