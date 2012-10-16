@@ -204,6 +204,7 @@ public class PhoneStatusBar extends BaseStatusBar {
     private TextView mCarrierLabel;
     private boolean mCarrierLabelVisible = false;
     private int mCarrierLabelHeight;
+    private TextView mEmergencyCallLabel;
 
     // drag bar
     CloseDragHandle mCloseView;
@@ -228,7 +229,6 @@ public class PhoneStatusBar extends BaseStatusBar {
 
     // the tracker view
     int mTrackingPosition; // the position of the top of the tracking view.
-    private boolean mPanelSlightlyVisible;
 
     // ticker
     private Ticker mTicker;
@@ -430,14 +430,6 @@ public class PhoneStatusBar extends BaseStatusBar {
         mPile = (NotificationRowLayout)mStatusBarWindow.findViewById(R.id.latestItems);
         mPile.setLayoutTransitionsEnabled(false);
         mPile.setLongPressListener(getNotificationLongClicker());
-        if (SHOW_CARRIER_LABEL) {
-            mPile.setOnSizeChangedListener(new OnSizeChangedListener() {
-                @Override
-                public void onSizeChanged(View view, int w, int h, int oldw, int oldh) {
-                    updateCarrierLabelVisibility(false);
-                }
-            });
-        }
         
         mExpandedView = (FrameLayout)mStatusBarWindow.findViewById(R.id.expanded_view);
         mExpandedPage = (LinearLayout)mStatusBarWindow.findViewById(R.id.expanded_page);
@@ -466,8 +458,30 @@ public class PhoneStatusBar extends BaseStatusBar {
         mSettingsButton.setOnClickListener(mSettingsButtonListener);
         mRotationButton = (RotationToggle) mStatusBarWindow.findViewById(R.id.rotation_lock_button);
         
-        mCarrierLabel = (TextView)mStatusBarWindow.findViewById(R.id.carrier_label);
-        mCarrierLabel.setVisibility(mCarrierLabelVisible ? View.VISIBLE : View.INVISIBLE);        
+        mNetworkController = new NetworkController(mContext);
+        final SignalClusterView signalCluster =
+                (SignalClusterView)mStatusBarView.findViewById(R.id.signal_cluster);
+
+        mNetworkController.addSignalCluster(signalCluster);
+        signalCluster.setNetworkController(mNetworkController);
+        
+        if (SHOW_CARRIER_LABEL) {
+            mCarrierLabel = (TextView)mStatusBarWindow.findViewById(R.id.carrier_label);
+            mCarrierLabel.setVisibility(mCarrierLabelVisible ? View.VISIBLE : View.INVISIBLE);
+            // for mobile devices, we always show mobile connection info here (SPN/PLMN)
+            // for other devices, we show whatever network is connected
+            if (mNetworkController.hasMobileDataFeature()) {
+                mNetworkController.addMobileLabelView(mCarrierLabel);
+            } else {
+                mNetworkController.addCombinedLabelView(mCarrierLabel);
+            }
+            mPile.setOnSizeChangedListener(new OnSizeChangedListener() {
+                @Override
+                public void onSizeChanged(View view, int w, int h, int oldw, int oldh) {
+                    updateCarrierLabelVisibility(false);
+                }
+            });
+        }
 
         mScrollView = (ScrollView)mStatusBarWindow.findViewById(R.id.scroll);
         mScrollView.setVerticalScrollBarEnabled(false); // less drawing during pulldowns
@@ -495,21 +509,20 @@ public class PhoneStatusBar extends BaseStatusBar {
                 Settings.System.getUriFor(Settings.System.BATTERY_TEXT_SIZE), 
                 false, mBatteryTextObserver);
         setupBatteryView();
-        mNetworkController = new NetworkController(mContext);
-        final SignalClusterView signalCluster =
-                (SignalClusterView)mStatusBarView.findViewById(R.id.signal_cluster);
+        
 
-        mNetworkController.addSignalCluster(signalCluster);
-        signalCluster.setNetworkController(mNetworkController);
-
-        if (SHOW_CARRIER_LABEL) {
-            // for mobile devices, we always show mobile connection info here (SPN/PLMN)
-            // for other devices, we show whatever network is connected
-            if (mNetworkController.hasMobileDataFeature()) {
-                mNetworkController.addMobileLabelView(mCarrierLabel);
-            } else {
-                mNetworkController.addCombinedLabelView(mCarrierLabel);
-            }
+        
+        
+        
+        mEmergencyCallLabel = (TextView)mStatusBarWindow.findViewById(R.id.emergency_calls_only);
+        if (mEmergencyCallLabel != null) {
+            mNetworkController.addEmergencyLabelView(mEmergencyCallLabel);
+            mEmergencyCallLabel.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                @Override
+                public void onLayoutChange(View v, int left, int top, int right, int bottom,
+                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    updateCarrierLabelVisibility(false);
+                }});
         }
 
 //        final ImageView wimaxRSSI =
@@ -1149,9 +1162,10 @@ public class PhoneStatusBar extends BaseStatusBar {
                     mPile.getHeight(), mScrollView.getHeight(), mCarrierLabelHeight));
         }
         
+        final boolean emergencyCallsShownElsewhere = mEmergencyCallLabel != null;
 //        final boolean makeVisible = 
 //            mPile.getHeight() < (mScrollView.getHeight() - mCarrierLabelHeight);
-        final boolean makeVisible = mScrollView.getHeight() >= mPile.getHeight();
+        final boolean makeVisible = !(emergencyCallsShownElsewhere && mNetworkController.isEmergencyOnly()) && mScrollView.getHeight() >= mPile.getHeight();
         
         if (force || mCarrierLabelVisible != makeVisible) {
             mCarrierLabelVisible = makeVisible;
@@ -1554,6 +1568,7 @@ public class PhoneStatusBar extends BaseStatusBar {
                     + " mExpandedVisible=" + mExpandedVisible
                     + " mExpanded=" + mExpanded
                     + " mAnimating=" + mAnimating
+                    + " mAnimatingReveal=" + mAnimatingReveal
                     + " mAnimY=" + mAnimY
                     + " mAnimVel=" + mAnimVel
                     + " flags=" + flags);
@@ -1574,7 +1589,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
 
         int y;
-        if (mAnimating) {
+        if (mAnimating || mAnimatingReveal) {
             y = (int)mAnimY;
         } else {
             y = getExpandedViewMaxHeight()-1;
@@ -1609,6 +1624,8 @@ public class PhoneStatusBar extends BaseStatusBar {
         if (!mExpandedVisible) {
             return;
         }
+        // Ensure the panel is fully collapsed (just in case; bug 6765842)
+        updateExpandedViewPos(0);
         mExpandedVisible = false;
         mPile.setLayoutTransitionsEnabled(false);
         if (mNavigationBarView != null)
@@ -2376,9 +2393,14 @@ public class PhoneStatusBar extends BaseStatusBar {
     @Override
     protected void updateExpandedViewPos(int expandedPosition) {
         if (SPEW) {
-            Slog.d(TAG, "updateExpandedViewPos before expandedPosition=" + expandedPosition
+            Slog.d(TAG, "updateExpandedViewPos: expandedPosition=" + expandedPosition
                     //+ " mTrackingParams.y=" + ((mTrackingParams == null) ? "?" : mTrackingParams.y)
+                    + " mTracking=" + mTracking
                     + " mTrackingPosition=" + mTrackingPosition
+                    + " mExpandedVisible=" + mExpandedVisible
+                    + " mAnimating=" + mAnimating
+                    + " mAnimatingReveal=" + mAnimatingReveal
+                    + " mClosing=" + mClosing
                     + " gravity=" + mNotificationPanelGravity);
         }
         int panelh = 0;
@@ -2387,6 +2409,7 @@ public class PhoneStatusBar extends BaseStatusBar {
         // If the expanded view is not visible, make sure they're still off screen.
         // Maybe the view was resized.
         if (!mExpandedVisible) {
+            if (SPEW) Slog.d(TAG, "updateExpandedViewPos: view not visible, bailing");
             updateExpandedInvisiblePosition();
             return;
         }
@@ -2408,13 +2431,21 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
 
         // catch orientation changes and other peculiar cases
-        if (panelh > disph || (panelh < disph && !mTracking && !mAnimating)) {
+        if (panelh > 0 &&
+                ((panelh > disph) ||
+                 (panelh < disph && !mTracking && !mAnimating))) {
+            if (SPEW) Slog.d(TAG, "updateExpandedViewPos: orientation change?");
             panelh = disph;
         } else if (panelh < 0) {
             panelh = 0;
         }
 
-        if (panelh == mTrackingPosition) return;
+        if (SPEW) Slog.d(TAG, "updateExpandedViewPos: adjusting size to panelh=" + panelh);
+
+        if (panelh == mTrackingPosition) {
+            if (SPEW) Slog.d(TAG, "updateExpandedViewPos: panelh == mTrackingPosition, bailing");
+            return;
+        }
 
         mTrackingPosition = panelh;
 
@@ -2741,8 +2772,7 @@ public class PhoneStatusBar extends BaseStatusBar {
     private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(action)
-                    || Intent.ACTION_SCREEN_OFF.equals(action)) {
+            if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(action)) {
                 int flags = CommandQueue.FLAG_EXCLUDE_NONE;
                 if (Intent.ACTION_CLOSE_SYSTEM_DIALOGS.equals(action)) {
                     String reason = intent.getStringExtra("reason");
@@ -2751,6 +2781,10 @@ public class PhoneStatusBar extends BaseStatusBar {
                     }
                 }
                 animateCollapse(flags);
+            }
+            else if (Intent.ACTION_SCREEN_OFF.equals(action)) {
+                // no waiting!
+                performCollapse();
             }
             else if (Intent.ACTION_CONFIGURATION_CHANGED.equals(action)) {
                 updateResources();
