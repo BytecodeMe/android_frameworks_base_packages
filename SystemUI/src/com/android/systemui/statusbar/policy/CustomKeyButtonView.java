@@ -58,6 +58,7 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
     final static String ACTION_MENU = "Menu";
     final static String ACTION_RECENT = "Recent Apps";
     final static String ACTION_KILL = "Kill Current App";
+    final static String ACTION_SCREEN_OFF = "Turn Off Screen";
     public final static String ACTION_PICKER = "action_picker";
     
     final static int ID_MENU = R.id.menu_large;
@@ -152,7 +153,8 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 				break;
 			case ID_BACK:
 				action = Settings.System.getString(mResolver,
-						Settings.System.LONG_ACTION_BACK, ACTION_DEFAULT_NONE);				
+						Settings.System.LONG_ACTION_BACK, ACTION_DEFAULT_NONE);	
+				support = true;
 				break;
 			case ID_MENU:
 				action = Settings.System.getString(mResolver,
@@ -280,8 +282,8 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 	Runnable mLongPressCheck = new Runnable() {
         public void run() {
             if (isPressed()) {                
-                if (mCode != 0 && (mLongPressFunction == ACTION_NONE ||
-                		mLongPressFunction == ACTION_DEFAULT || mLongPressFunction == ACTION_DEFAULT_NONE)) {
+                if (mCode != 0 && (mLongPressFunction.equals(ACTION_NONE) ||
+                		mLongPressFunction.equals(ACTION_DEFAULT) || mLongPressFunction.equals(ACTION_DEFAULT_NONE))) {
                 	sendEvent(KeyEvent.ACTION_DOWN, KeyEvent.FLAG_LONG_PRESS);
                     sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
                 } else {
@@ -303,6 +305,13 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 			sendEvent(KeyEvent.ACTION_UP, 0);
 			mCode = oldCode;	
 			return true;
+		}else if(mLongPressFunction.equals(ACTION_SCREEN_OFF)){
+			int oldCode = mCode;
+			mCode = KeyEvent.KEYCODE_POWER;
+			sendEvent(KeyEvent.ACTION_DOWN, 0);
+			sendEvent(KeyEvent.ACTION_UP, 0);
+			mCode = oldCode;	
+			return true;		
 		}else if(mLongPressFunction.equals(ACTION_RECENT)){		   
 			try {
                 IStatusBarService statusbar = getStatusBarService();
