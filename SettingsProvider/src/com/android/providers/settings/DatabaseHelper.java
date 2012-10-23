@@ -1501,8 +1501,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     RILConstants.CDMA_CELL_BROADCAST_SMS_DISABLED);
     
             // Set the preferred cdma subscription to 0 = Subscription from RUIM, when available
-            loadSetting(stmt, Settings.Secure.PREFERRED_CDMA_SUBSCRIPTION,
-                    RILConstants.PREFERRED_CDMA_SUBSCRIPTION);
+            //loadSetting(stmt, Settings.Secure.PREFERRED_CDMA_SUBSCRIPTION,
+                    //RILConstants.PREFERRED_CDMA_SUBSCRIPTION);
     
             // Don't do this.  The SystemServer will initialize ADB_ENABLED from a
             // persistent system property instead.
