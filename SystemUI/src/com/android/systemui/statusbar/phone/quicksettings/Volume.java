@@ -157,6 +157,11 @@ public class Volume extends StatusBarPreference
                 STREAM_TYPE = 0;
             }
             
+            // skip system now since it cannot be unlinked
+            if(STREAM_TYPE==AudioManager.STREAM_SYSTEM){
+            	STREAM_TYPE++;
+            }
+            
             // set the icon and label
         	if (STREAM_TYPE==AudioManager.STREAM_MUSIC &&
         			(mAudioManager.getDevicesForStream(AudioManager.STREAM_MUSIC) &
