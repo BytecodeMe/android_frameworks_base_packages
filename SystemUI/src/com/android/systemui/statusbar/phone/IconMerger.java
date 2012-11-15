@@ -19,7 +19,6 @@ package com.android.systemui.statusbar.phone;
 import android.content.Context;
 import android.os.Handler;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.Slog;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -35,7 +34,6 @@ public class IconMerger extends LinearLayout {
 
     private int mIconSize;
     private View mMoreView;
-    private boolean mCenteredClock =false;    
 
     public IconMerger(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -56,10 +54,7 @@ public class IconMerger extends LinearLayout {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         // we need to constrain this to an integral multiple of our children
-        int width = 0;
-        if(mCenteredClock){
-        	width = mIconSize * 5;
-        }else width = getMeasuredWidth();        
+        int width = getMeasuredWidth();
         setMeasuredDimension(width - (width % mIconSize), getMeasuredHeight());
     }
 
@@ -79,20 +74,15 @@ public class IconMerger extends LinearLayout {
         }
         final boolean overflowShown = (mMoreView.getVisibility() == View.VISIBLE);
         // let's assume we have one more slot if the more icon is already showing
-        if ((mCenteredClock && (visibleChildren != 6)) && overflowShown) visibleChildren --;
-        else if (!mCenteredClock && overflowShown) visibleChildren --;
+        if (overflowShown) visibleChildren --;
         final boolean moreRequired = visibleChildren * mIconSize > width;
         if (moreRequired != overflowShown) {
             post(new Runnable() {
                 @Override
                 public void run() {
-                	Log.w(TAG,"posting runnable and moreRequired: " +String.valueOf(moreRequired));
                     mMoreView.setVisibility(moreRequired ? View.VISIBLE : View.GONE);
                 }
             });
         }
     }
-	public void setCenteredClock(boolean b) {
-		mCenteredClock = b;		
-	}
 }

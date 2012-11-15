@@ -18,7 +18,6 @@ package com.android.systemui.statusbar.phone;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.LinearLayout;
 
@@ -37,14 +36,16 @@ public class CloseDragHandle extends LinearLayout {
      */
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() != MotionEvent.ACTION_DOWN) {        	
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            setPressed(true);
+        } else {
             mService.interceptTouchEvent(event);
-        }        
+        }
         return true;
     }
 
     @Override
-    public boolean onInterceptTouchEvent(MotionEvent event) {    	
+    public boolean onInterceptTouchEvent(MotionEvent event) {
         return mService.interceptTouchEvent(event)
                 ? true : super.onInterceptTouchEvent(event);
     }

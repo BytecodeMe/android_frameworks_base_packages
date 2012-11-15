@@ -165,6 +165,7 @@ public class NotificationRowLayout
     public boolean setUserLockedChild(View v, boolean userLocked) {
         return NotificationData.setUserLocked(v, userLocked);
     }
+
     public void onChildDismissed(View v) {
         if (DEBUG) Slog.v(TAG, "onChildDismissed: " + v + " mRemoveViews=" + mRemoveViews);
         final View veto = v.findViewById(R.id.veto);

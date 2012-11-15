@@ -19,11 +19,9 @@ package com.android.systemui.statusbar.phone;
 import android.app.StatusBarManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.database.ContentObserver;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
@@ -38,10 +36,10 @@ import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.util.Slog;
 
 import com.android.internal.telephony.IccCard;
+import com.android.internal.telephony.IccCardConstants;
 import com.android.internal.telephony.TelephonyIntents;
 import com.android.internal.telephony.cdma.EriInfo;
 import com.android.internal.telephony.cdma.TtyIntent;
@@ -79,11 +77,10 @@ public class PhoneStatusBarPolicy {
 
     // Assume it's all good unless we hear otherwise.  We don't always seem
     // to get broadcasts that it *is* there.
-    IccCard.State mSimState = IccCard.State.READY;
+    IccCardConstants.State mSimState = IccCardConstants.State.READY;
 
     // ringer volume
     private boolean mVolumeVisible;
-    private boolean mShouldShowAlarm = false;
 
     // bluetooth device status
     private boolean mBluetoothEnabled = false;
@@ -107,35 +104,10 @@ public class PhoneStatusBarPolicy {
 
     // state of inet connection - 0 not connected, 100 connected
     private int mInetCondition = 0;
-    SettingsObserver mSettingsObserver = new SettingsObserver(mHandler);
 
     // sync state
     // If sync is active the SyncActive icon is displayed. If sync is not active but
     // sync is failing the SyncFailing icon is displayed. Otherwise neither are displayed.
-    class SettingsObserver extends ContentObserver {
-    	
-    	ContentResolver resolver;
-    	
-        SettingsObserver(Handler handler) {
-            super(handler);
-        }
-        
-        void observe() {
-        	resolver = mContext.getContentResolver();
-            resolver.registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.SHOW_STATUSBAR_ALARM), false, this);           
-            
-        }
-        
-        @Override
-        public void onChange(boolean selfChange) {
-            update();
-        }
-        
-        public void update(){
-            updateAlarm(null);
-        }
-    }
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -217,20 +189,11 @@ public class PhoneStatusBarPolicy {
         mService.setIcon("volume", R.drawable.stat_sys_ringer_silent, 0, null);
         mService.setIconVisibility("volume", false);
         updateVolume();
-        mSettingsObserver.observe();
     }
 
     private final void updateAlarm(Intent intent) {
-    	//boolean showAlarm = mShouldShowAlarm;
-    	boolean alarmSet = mShouldShowAlarm;
-    	if(intent != null){
-    		alarmSet = mShouldShowAlarm = intent.getBooleanExtra("alarmSet", false);
-    		
-        		
-        	
-    	}
-		boolean showAlarm = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_STATUSBAR_ALARM,1) == 1;
-        mService.setIconVisibility("alarm_clock", alarmSet && showAlarm);
+        boolean alarmSet = intent.getBooleanExtra("alarmSet", false);
+        mService.setIconVisibility("alarm_clock", alarmSet);
     }
 
     private final void updateSyncState(Intent intent) {
@@ -243,26 +206,27 @@ public class PhoneStatusBarPolicy {
     }
 
     private final void updateSimState(Intent intent) {
-        String stateExtra = intent.getStringExtra(IccCard.INTENT_KEY_ICC_STATE);
-        if (IccCard.INTENT_VALUE_ICC_ABSENT.equals(stateExtra)) {
-            mSimState = IccCard.State.ABSENT;
+        String stateExtra = intent.getStringExtra(IccCardConstants.INTENT_KEY_ICC_STATE);
+        if (IccCardConstants.INTENT_VALUE_ICC_ABSENT.equals(stateExtra)) {
+            mSimState = IccCardConstants.State.ABSENT;
         }
-        else if (IccCard.INTENT_VALUE_ICC_READY.equals(stateExtra)) {
-            mSimState = IccCard.State.READY;
+        else if (IccCardConstants.INTENT_VALUE_ICC_READY.equals(stateExtra)) {
+            mSimState = IccCardConstants.State.READY;
         }
-        else if (IccCard.INTENT_VALUE_ICC_LOCKED.equals(stateExtra)) {
-            final String lockedReason = intent.getStringExtra(IccCard.INTENT_KEY_LOCKED_REASON);
-            if (IccCard.INTENT_VALUE_LOCKED_ON_PIN.equals(lockedReason)) {
-                mSimState = IccCard.State.PIN_REQUIRED;
+        else if (IccCardConstants.INTENT_VALUE_ICC_LOCKED.equals(stateExtra)) {
+            final String lockedReason =
+                    intent.getStringExtra(IccCardConstants.INTENT_KEY_LOCKED_REASON);
+            if (IccCardConstants.INTENT_VALUE_LOCKED_ON_PIN.equals(lockedReason)) {
+                mSimState = IccCardConstants.State.PIN_REQUIRED;
             }
-            else if (IccCard.INTENT_VALUE_LOCKED_ON_PUK.equals(lockedReason)) {
-                mSimState = IccCard.State.PUK_REQUIRED;
+            else if (IccCardConstants.INTENT_VALUE_LOCKED_ON_PUK.equals(lockedReason)) {
+                mSimState = IccCardConstants.State.PUK_REQUIRED;
             }
             else {
-                mSimState = IccCard.State.NETWORK_LOCKED;
+                mSimState = IccCardConstants.State.NETWORK_LOCKED;
             }
         } else {
-            mSimState = IccCard.State.UNKNOWN;
+            mSimState = IccCardConstants.State.UNKNOWN;
         }
     }
 

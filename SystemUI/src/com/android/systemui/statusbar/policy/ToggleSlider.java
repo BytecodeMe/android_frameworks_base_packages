@@ -36,6 +36,7 @@ public class ToggleSlider extends RelativeLayout
     private static final String TAG = "StatusBar.ToggleSlider";
 
     public interface Listener {
+        public void onInit(ToggleSlider v);
         public void onChanged(ToggleSlider v, boolean tracking, boolean checked, int value);
     }
 
@@ -73,6 +74,14 @@ public class ToggleSlider extends RelativeLayout
         mLabel.setText(a.getString(R.styleable.ToggleSlider_text));
 
         a.recycle();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (mListener != null) {
+            mListener.onInit(this);
+        }
     }
 
     public void onCheckedChanged(CompoundButton toggle, boolean checked) {
@@ -137,14 +146,6 @@ public class ToggleSlider extends RelativeLayout
 
     public void setValue(int value) {
         mSlider.setProgress(value);
-    }
-    
-    public void setLabel(int id){
-        mLabel.setText(id);
-    }
-    
-    public void setLabel(CharSequence text){
-        mLabel.setText(text);
     }
 }
 

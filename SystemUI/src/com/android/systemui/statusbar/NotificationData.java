@@ -147,9 +147,6 @@ public class NotificationData {
         return e;
     }
 
-    public void clear() {
-        mEntries.clear();
-    }
     /**
      * Return whether there are any visible items (i.e. items without an error).
      */
@@ -212,6 +209,7 @@ public class NotificationData {
     public static boolean setUserExpanded(View row, boolean userExpanded) {
         return writeBooleanTag(row, R.id.user_expanded_tag, userExpanded);
     }
+
     /**
      * Return whether the entry is being touched by the user.
      */

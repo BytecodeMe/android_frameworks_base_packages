@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-/*
+/* //device/apps/common/assets/res/any/colors.xml
 **
-** Copyright 2007 The Android Open Source Project
+** Copyright 2012, The Android Open Source Project
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -18,15 +18,26 @@
 */
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-
-	<!-- Wi-Fi AP settings.  The type of security a Wi-Fi AP supports. -->
-   <!-- Note that adding/removing/moving the items will need wifi settings code change. -->
-    <string-array name="wifi_ap_security" translatable="false">
-        <item>Open</item>
-        <!-- Do not translate. -->
-        <item>WPA PSK</item>
-        <!-- Do not translate. -->
-        <item>WPA2 PSK</item>
-    </string-array>
     
+    <array name="navbar_search_targets">
+        <item>@null</item>
+        <item>@*android:drawable/ic_action_assist_generic</item>
+        <item>@null</item>
+        <item>@null</item>
+    </array>
+
+    <array name="navbar_search_target_descriptions">
+        <item>@null</item>
+        <item>@*android:string/description_target_search</item>
+        <item>@null</item>
+        <item>@null</item>
+    </array>
+
+    <array name="navbar_search_direction_descriptions">
+        <item>@null</item>
+        <item>@*android:string/description_direction_up</item>
+        <item>@null</item>
+        <item>@null</item>
+    </array>
+
 </resources>
