@@ -36,12 +36,13 @@
         android:enabled="false"
         >
         <com.android.systemui.statusbar.policy.Clock
-            android:id="@+id/clock"
+            android:id="@+id/big_clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="8dp"
             android:singleLine="true"
             android:textAppearance="@style/TextAppearance.StatusBar.Expanded.Clock"
+	    android:background="?android:attr/selectableItemBackground"
             android:layout_centerVertical="true"
             />
 
@@ -50,8 +51,9 @@
             android:layout_height="wrap_content"
             android:singleLine="true"
             android:textAppearance="@style/TextAppearance.StatusBar.Expanded.Date"
-            android:layout_toRightOf="@id/clock"
-            android:layout_alignBaseline="@id/clock"
+            android:layout_toRightOf="@id/big_clock"
+            android:layout_alignBaseline="@id/big_clock"
+	    android:background="?android:attr/selectableItemBackground"
             />
     </RelativeLayout>
 

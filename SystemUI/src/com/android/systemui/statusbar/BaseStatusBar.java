@@ -30,11 +30,13 @@ import com.android.systemui.recent.RecentsActivity;
 import com.android.systemui.recent.TaskDescription;
 import com.android.systemui.statusbar.policy.NotificationRowLayout;
 import com.android.systemui.statusbar.tablet.StatusBarPanel;
-
+import android.app.AlarmManager;
 import android.app.ActivityManager;
 import android.app.ActivityManagerNative;
 import android.app.ActivityOptions;
 import android.app.KeyguardManager;
+import android.app.Notification;
+import android.app.Notification.Notifications;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
 import android.content.ActivityNotFoundException;
@@ -51,10 +53,13 @@ import android.graphics.Bitmap;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.os.Binder;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Process;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.os.UserHandle;
@@ -76,8 +81,10 @@ import android.view.WindowManagerGlobal;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import com.android.internal.app.ThemeUtils;
 import android.widget.RemoteViews;
 import android.widget.TextView;
+import com.android.systemui.SystemUIService;
 
 import java.util.ArrayList;
 
@@ -121,7 +128,7 @@ public abstract class BaseStatusBar extends SystemUI implements
     protected SearchPanelView mSearchPanelView;
 
     protected PopupMenu mNotificationBlamePopup;
-
+    private DoNotDisturb mDoNotDisturb;
     protected int mCurrentUserId = 0;
 
     // UI-specific methods
@@ -202,6 +209,13 @@ public abstract class BaseStatusBar extends SystemUI implements
 
         mBarService = IStatusBarService.Stub.asInterface(
                 ServiceManager.getService(Context.STATUS_BAR_SERVICE));
+        ThemeUtils.registerThemeChangeReceiver(mContext, mThemeChangeReceiver);
+        
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.android.settings.RESTART_SYSTEMUI");
+
+        // protect this receiver so nobody but the system can use it
+        mContext.registerReceiver(mDevRestartReceiver, filter, "com.bamf.ics.permission.RESTART_SYSTEMUI", null);
 
         // Connect in to the status bar manager service
         StatusBarIconList iconList = new StatusBarIconList();
@@ -260,10 +274,11 @@ public abstract class BaseStatusBar extends SystemUI implements
                    ));
         }
 
+        mDoNotDisturb = new DoNotDisturb(mContext);
         mCurrentUserId = ActivityManager.getCurrentUser();
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_USER_SWITCHED);
+        IntentFilter filter2 = new IntentFilter();
+        filter2.addAction(Intent.ACTION_USER_SWITCHED);
         mContext.registerReceiver(new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -273,7 +288,7 @@ public abstract class BaseStatusBar extends SystemUI implements
                     if (true) Slog.v(TAG, "userId " + mCurrentUserId + " is in the house");
                     userSwitched(mCurrentUserId);
                 }
-            }}, filter);
+            }}, filter2);
     }
 
     public void userSwitched(int newUserId) {
@@ -929,7 +944,25 @@ public abstract class BaseStatusBar extends SystemUI implements
             return null;
         }
 
-        // Add the expanded view and icon.
+     // Add the expanded view and icon.
+        boolean show = true;
+        
+        // apply user custom background or hide this notification
+        if(Settings.System.getInt(mContext.getContentResolver(), Settings.System.NOTIFICATION_MANAGER, 0)==1){
+	        Bundle values = Notifications.getValues(mContext.getContentResolver(), entry.notification.pkg);
+	        
+	        if(values!=null){
+	        	show = values.getBoolean(Notifications.NOTIFICATION_ENABLED) &&
+	        			!values.getBoolean(Notifications.NOTIFICATION_HIDE) && 
+	        			!isFiltered(values.getString(Notifications.FILTERS, ""), entry.content);
+	        	
+	        	if(values.getInt(Notifications.BACKGROUND_COLOR)<0){
+	        		entry.content.setBackgroundColor(values.getInt(Notifications.BACKGROUND_COLOR));
+	        	}
+	        }
+        }
+        
+        if(show){
         int pos = mNotificationData.add(entry);
         if (DEBUG) {
             Slog.d(TAG, "addNotificationViews: added at " + pos);
@@ -938,6 +971,36 @@ public abstract class BaseStatusBar extends SystemUI implements
         updateNotificationIcons();
 
         return iconView;
+        }else{
+        	Log.d(TAG, "User decided to hide this notification");
+        	removeNotification(key);
+            return null;
+        }
+        // Add the expanded view and icon.
+        //int pos = mNotificationData.add(entry);
+        //if (DEBUG) {
+        //    Slog.d(TAG, "addNotificationViews: added at " + pos);
+        //}
+        //updateExpansionStates();
+        //updateNotificationIcons();
+
+        //return iconView;
+    }
+    
+    private boolean isFiltered(String value, View v){
+        
+    	boolean match = false;
+		String[] filters = value.split("\\|");
+		for(String filter: filters){
+			final ArrayList<View> outViews = new ArrayList<View>();
+			v.findViewsWithText(outViews, filter, View.FIND_VIEWS_WITH_TEXT);
+			if(!outViews.isEmpty()){
+				match = true;
+				break;
+			}
+		}
+        
+    	return match;
     }
 
     protected boolean expandView(NotificationData.Entry entry, boolean expand) {
@@ -1147,4 +1210,38 @@ public abstract class BaseStatusBar extends SystemUI implements
         KeyguardManager km = (KeyguardManager) mContext.getSystemService(Context.KEYGUARD_SERVICE);
         return km.inKeyguardRestrictedInputMode();
     }
+	private BroadcastReceiver mThemeChangeReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Normally it will restart on its own, but sometimes it doesn't.
+			// Other times it's slow.
+
+			// This will help it restart reliably and faster.
+			//Log.w("SKIN", "SKIN_CHANGED received by systemui.apk ... let's restart");
+			restartMe(context);
+		}
+	};
+	
+	private BroadcastReceiver mDevRestartReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// Normally it will restart on its own, but sometimes it doesn't.
+			// Other times it's slow.
+
+			// This will help it restart reliably and faster.
+			restartMe(context);
+		}
+	};
+	
+	void restartMe(Context context){
+		PendingIntent restartIntent = PendingIntent.getService(context, 0,
+				new Intent(context, SystemUIService.class), 0);
+
+		AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+		alarmMgr.set(AlarmManager.RTC_WAKEUP,
+				System.currentTimeMillis() + 3000, restartIntent);
+		
+		Process.killProcessQuiet(Process.myPid());
+	}
 }

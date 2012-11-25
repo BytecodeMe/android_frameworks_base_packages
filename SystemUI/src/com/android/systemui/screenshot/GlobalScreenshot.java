@@ -25,6 +25,7 @@ import android.app.Notification;
 import android.app.Notification.BigPictureStyle;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.StatusBarManager;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -38,12 +39,14 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.PointF;
+import android.graphics.RectF;
 import android.media.MediaActionSound;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Process;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.LayoutInflater;
@@ -90,6 +93,9 @@ class SaveImageInBackgroundTask extends AsyncTask<SaveImageInBackgroundData, Voi
     private String mImageFilePath;
     private long mImageTime;
     private BigPictureStyle mNotificationStyle;
+    private static final int SCREENSHOT_DEFAULT = 0;
+    private static final int SCREENSHOT_SHARE = 1;
+    private static final int SCREENSHOT_GALLERY = 2;
 
     // WORKAROUND: We want the same notification across screenshots that we update so that we don't
     // spam a user's notification drawer.  However, we only show the ticker for the saving state
@@ -226,24 +232,66 @@ class SaveImageInBackgroundTask extends AsyncTask<SaveImageInBackgroundData, Voi
         } else {
             // Show the final notification to indicate screenshot saved
             Resources r = params.context.getResources();
-
-            // Create the intent to show the screenshot in gallery
-            Intent launchIntent = new Intent(Intent.ACTION_VIEW);
-            launchIntent.setDataAndType(params.imageUri, "image/png");
-            launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-
-            mNotificationBuilder
-                .setContentTitle(r.getString(R.string.screenshot_saved_title))
-                .setContentText(r.getString(R.string.screenshot_saved_text))
-                .setContentIntent(PendingIntent.getActivity(params.context, 0, launchIntent, 0))
-                .setWhen(System.currentTimeMillis())
-                .setAutoCancel(true);
-
+            String message;
+            Intent launchIntent;
+            
+            int action = Settings.System.getInt(params.context.getContentResolver(), 
+            		Settings.System.POST_SCREENSHOT_ACTION, SCREENSHOT_SHARE);
+            
+            switch(action){
+            case SCREENSHOT_SHARE:
+                // Create the intent to show a sharing menu
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("image/png");
+                intent.putExtra(Intent.EXTRA_STREAM, params.imageUri);
+                launchIntent = Intent.createChooser(intent, r.getString(R.string.share_message));
+                launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                params.context.startActivity(launchIntent);
+                
+                // remove the notification
+                mNotificationManager.cancel(mNotificationId);
+                
+                // rollup the statusbar so we can see the share menu
+                getStatusBarManager(params.context).collapsePanels();
+                break;
+            case SCREENSHOT_GALLERY:
+            	// Create the intent to show the screenshot in gallery
+                launchIntent = new Intent(Intent.ACTION_VIEW);
+                launchIntent.setDataAndType(params.imageUri, "image/png");
+                launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                
+                params.context.startActivity(launchIntent);
+                
+                // remove the notification
+                mNotificationManager.cancel(mNotificationId);
+                
+                // rollup the statusbar
+                getStatusBarManager(params.context).collapsePanels();
+                break;
+            default:
+                // Create the intent to show the screenshot in gallery
+                launchIntent = new Intent(Intent.ACTION_VIEW);
+                launchIntent.setDataAndType(params.imageUri, "image/png");
+                launchIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                message = r.getString(R.string.screenshot_saved_text);
+            
+                mNotificationBuilder
+                    .setContentTitle(r.getString(R.string.screenshot_saved_title))
+                    .setContentText(message)
+                    .setContentIntent(PendingIntent.getActivity(params.context, 0, launchIntent, 0))
+                    .setWhen(System.currentTimeMillis())
+                    .setAutoCancel(true);
+    
             Notification n = mNotificationBuilder.build();
-            n.flags &= ~Notification.FLAG_NO_CLEAR;
-            mNotificationManager.notify(mNotificationId, n);
+                n.flags &= ~Notification.FLAG_NO_CLEAR;
+                mNotificationManager.notify(mNotificationId, n);
+            }
         }
         params.finisher.run();
+    }
+    
+    public StatusBarManager getStatusBarManager(Context context) {
+        return (StatusBarManager)context.getSystemService(Context.STATUS_BAR_SERVICE);
     }
 }
 
@@ -394,11 +442,6 @@ class GlobalScreenshot {
 
         // Take the screenshot
         mScreenBitmap = Surface.screenshot((int) dims[0], (int) dims[1]);
-        if (mScreenBitmap == null) {
-            notifyScreenshotError(mContext, mNotificationManager);
-            finisher.run();
-            return;
-        }
 
         if (requiresRotation) {
             // Rotate the screenshot to the current orientation
@@ -411,6 +454,13 @@ class GlobalScreenshot {
             c.drawBitmap(mScreenBitmap, 0, 0, null);
             c.setBitmap(null);
             mScreenBitmap = ss;
+        }
+
+        // If we couldn't take the screenshot, notify the user
+        if (mScreenBitmap == null) {
+            notifyScreenshotError(mContext, mNotificationManager);
+            finisher.run();
+            return;
         }
 
         // Optimizations

@@ -183,5 +183,52 @@
         <item name="android:shadowRadius">2.0</item>
         <item name="android:lineSpacingMultiplier">1.1</item>
     </style>
+        <style name="StatusBarNotificationText">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">#ff999999</item>
+    </style>
+
+    <style name="StatusBarPanelSettingsRow">
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:layout_height">64dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:orientation">horizontal</item>        
+    </style>
+
+    <style name="StatusBarPanelSettingsIcon">
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_width">64dp</item>
+        <item name="android:scaleType">center</item>
+        <item name="android:background">@*android:drawable/notification_template_icon_bg</item>
+    </style>
+    
+    <style name="QuickSettingsIcon">
+    	<item name="android:layout_alignParentTop">true</item>
+        <item name="android:layout_alignParentLeft">true</item>
+        <item name="android:layout_height">@android:dimen/notification_large_icon_height</item>
+        <item name="android:layout_width">@android:dimen/notification_large_icon_width</item>
+        <item name="android:scaleType">center</item>
+		<item name="android:background">@*android:drawable/notification_template_icon_bg</item>
+    </style>
+
+    <style name="StatusBarPanelSettingsContents">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_gravity">left|center_vertical</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+    
+    <style name="StatusBarPanelSettingsContents.QuickSettings">
+        <item name="android:paddingLeft">10dp</item>
+    </style>
+
+    <style name="StatusBarPanelSettingsPanelSeparator">
+        <item name="android:layout_marginRight">0dp</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">@dimen/notification_divider_height</item>
+        <item name="android:background">@drawable/status_bar_notification_row_background_color</item>
+    </style>
 
 </resources>

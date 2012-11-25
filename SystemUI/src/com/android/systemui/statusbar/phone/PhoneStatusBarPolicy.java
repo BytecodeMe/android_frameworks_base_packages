@@ -19,9 +19,11 @@ package com.android.systemui.statusbar.phone;
 import android.app.StatusBarManager;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
@@ -36,6 +38,7 @@ import android.telephony.PhoneStateListener;
 import android.telephony.ServiceState;
 import android.telephony.SignalStrength;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.util.Slog;
 
 import com.android.internal.telephony.IccCard;
@@ -81,6 +84,7 @@ public class PhoneStatusBarPolicy {
 
     // ringer volume
     private boolean mVolumeVisible;
+    private boolean mShouldShowAlarm = false;
 
     // bluetooth device status
     private boolean mBluetoothEnabled = false;
@@ -104,10 +108,35 @@ public class PhoneStatusBarPolicy {
 
     // state of inet connection - 0 not connected, 100 connected
     private int mInetCondition = 0;
+    SettingsObserver mSettingsObserver = new SettingsObserver(mHandler);
 
     // sync state
     // If sync is active the SyncActive icon is displayed. If sync is not active but
     // sync is failing the SyncFailing icon is displayed. Otherwise neither are displayed.
+    class SettingsObserver extends ContentObserver {
+    	
+    	ContentResolver resolver;
+    	
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+        
+        void observe() {
+        	resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.SHOW_STATUSBAR_ALARM), false, this);           
+            
+        }
+        
+        @Override
+        public void onChange(boolean selfChange) {
+            update();
+        }
+        
+        public void update(){
+            updateAlarm(null);
+        }
+    }
 
     private BroadcastReceiver mIntentReceiver = new BroadcastReceiver() {
         @Override
@@ -189,11 +218,20 @@ public class PhoneStatusBarPolicy {
         mService.setIcon("volume", R.drawable.stat_sys_ringer_silent, 0, null);
         mService.setIconVisibility("volume", false);
         updateVolume();
+        mSettingsObserver.observe();
     }
 
     private final void updateAlarm(Intent intent) {
-        boolean alarmSet = intent.getBooleanExtra("alarmSet", false);
-        mService.setIconVisibility("alarm_clock", alarmSet);
+    	//boolean showAlarm = mShouldShowAlarm;
+    	boolean alarmSet = mShouldShowAlarm;
+    	if(intent != null){
+    		alarmSet = mShouldShowAlarm = intent.getBooleanExtra("alarmSet", false);
+    		
+        		
+        	
+    	}
+		boolean showAlarm = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_STATUSBAR_ALARM,1) == 1;
+        mService.setIconVisibility("alarm_clock", alarmSet && showAlarm);
     }
 
     private final void updateSyncState(Intent intent) {

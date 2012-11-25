@@ -147,5 +147,11 @@ public class ToggleSlider extends RelativeLayout
     public void setValue(int value) {
         mSlider.setProgress(value);
     }
+    public void setLabel(int id){
+        mLabel.setText(id);
+    }
+    public void setLabel(CharSequence text){
+        mLabel.setText(text);
+    }
 }
 

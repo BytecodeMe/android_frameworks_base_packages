@@ -17,9 +17,14 @@
 package com.android.systemui.statusbar.phone;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
+import android.os.Handler;
+import android.provider.Settings;
+import android.provider.Telephony;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Slog;
@@ -39,7 +44,12 @@ import com.android.internal.R;
  * minutes.
  */
 public class CarrierLabel extends TextView {
+	private static final String DEFAULT_CUSTOM_LABEL = "BAMF Paradigm";
     private boolean mAttached;
+    private boolean mUseCustomString;
+    private String mLastUpdatedString = "";
+    
+    private SettingsObserver mSettingsObserver;
 
     public CarrierLabel(Context context) {
         this(context, null);
@@ -63,6 +73,10 @@ public class CarrierLabel extends TextView {
             IntentFilter filter = new IntentFilter();
             filter.addAction(TelephonyIntents.SPN_STRINGS_UPDATED_ACTION);
             getContext().registerReceiver(mIntentReceiver, filter, null, getHandler());
+            if (mSettingsObserver == null) {
+                mSettingsObserver = new SettingsObserver(getHandler());
+                mSettingsObserver.observe();
+            }
         }
     }
 
@@ -71,6 +85,10 @@ public class CarrierLabel extends TextView {
         super.onDetachedFromWindow();
         if (mAttached) {
             getContext().unregisterReceiver(mIntentReceiver);
+            if (mSettingsObserver != null) {
+                mSettingsObserver.stop();
+                mSettingsObserver = null;
+            }
             mAttached = false;
         }
     }
@@ -93,23 +111,71 @@ public class CarrierLabel extends TextView {
             Slog.d("CarrierLabel", "updateNetworkName showSpn=" + showSpn + " spn=" + spn
                     + " showPlmn=" + showPlmn + " plmn=" + plmn);
         }
-        final String str;
-        // match logic in KeyguardStatusViewManager
-        final boolean plmnValid = showPlmn && !TextUtils.isEmpty(plmn);
-        final boolean spnValid = showSpn && !TextUtils.isEmpty(spn);
-        if (plmnValid && spnValid) {
-            str = plmn + "|" + spn;
-        } else if (plmnValid) {
-            str = plmn;
-        } else if (spnValid) {
-            str = spn;
-        } else {
-            str = "";
+        StringBuilder str = new StringBuilder();
+        boolean something = false;
+        if (showPlmn && plmn != null) {
+            str.append(plmn);
+            something = true;
         }
-        setText(str);
+        if (showSpn && spn != null) {
+            if (something) {
+                str.append('\n');
+            }
+            str.append(spn);
+            something = true;
+        }
+        if (something) {
+        	mLastUpdatedString = str.toString();
+        	if(!mUseCustomString)
+        		setText(str.toString());
+        } else {
+        	mLastUpdatedString = getContext().getString(com.android.internal.R.string.lockscreen_carrier_default);
+        	if(!mUseCustomString)
+        		setText(com.android.internal.R.string.lockscreen_carrier_default);
+        }
     }
 
+    class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
 
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+            		Settings.System.CUSTOM_CARRIER_LABEL), false, this);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+            		Settings.System.USE_CUSTOM_CARRIER_LABEL), false, this);
+            update();
+        }
+
+        public void stop() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.unregisterContentObserver(this);
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            update();
+        }
+
+        public void update() {
+            mUseCustomString = Settings.System.getInt(mContext.getContentResolver(),
+            		Settings.System.USE_CUSTOM_CARRIER_LABEL,0)==1;
+            if(mUseCustomString){
+            	 String temp = Settings.System.getString(mContext.getContentResolver(), 
+            			Settings.System.CUSTOM_CARRIER_LABEL);
+            	 if(temp!=null){
+            		 setText(temp);
+            	 }else{
+            		 setText(DEFAULT_CUSTOM_LABEL);
+            	 }
+            }else{
+            	setText(mLastUpdatedString);
+            }
+            
+        }
+    }
 }
 
 

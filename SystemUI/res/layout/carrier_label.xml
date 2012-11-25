@@ -17,7 +17,7 @@
 */
 -->
 
-<TextView
+<com.android.systemui.statusbar.phone.CarrierLabel
     xmlns:android="http://schemas.android.com/apk/res/android"    
     android:id="@+id/carrier_label"
     android:textAppearance="@style/TextAppearance.StatusBar.Expanded.Network"

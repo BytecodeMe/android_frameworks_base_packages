@@ -16,6 +16,8 @@
 
 package com.android.systemui.statusbar.phone;
 
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.LayoutTransition;
@@ -28,6 +30,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ServiceManager;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Slog;
 import android.view.animation.AccelerateInterpolator;
@@ -37,6 +40,7 @@ import android.view.View;
 import android.view.Surface;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.animation.AccelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -45,8 +49,11 @@ import java.io.PrintWriter;
 
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.systemui.R;
+import com.android.systemui.recent.RecentsPanelView;
 import com.android.systemui.statusbar.BaseStatusBar;
 import com.android.systemui.statusbar.DelegateViewHelper;
+import com.android.systemui.statusbar.policy.CustomKeyButtonView;
+import com.android.systemui.statusbar.policy.KeyButtonView;
 import com.android.systemui.statusbar.policy.DeadZone;
 
 public class NavigationBarView extends LinearLayout {
@@ -72,11 +79,13 @@ public class NavigationBarView extends LinearLayout {
     boolean mHidden, mLowProfile, mShowMenu;
     int mDisabledFlags = 0;
     int mNavigationIconHints = 0;
+    private String mOldBackFunction = null;
 
     private Drawable mBackIcon, mBackLandIcon, mBackAltIcon, mBackAltLandIcon;
     
     private DelegateViewHelper mDelegateHelper;
     private DeadZone mDeadZone;
+	public boolean mHasReflections = false;
 
     // workaround for LayoutTransitions leaving the nav buttons in a weird state (bug 5549288)
     final static boolean WORKAROUND_INVALID_LAYOUT = true;
@@ -132,25 +141,29 @@ public class NavigationBarView extends LinearLayout {
 
     private H mHandler = new H();
 
-    public View getRecentsButton() {
-        return mCurrentView.findViewById(R.id.recent_apps);
+    public ImageView getRecentsButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.recent_apps);
     }
 
-    public View getMenuButton() {
-        return mCurrentView.findViewById(R.id.menu);
+    public ImageView getRightMenuButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.menu);
     }
 
-    public View getBackButton() {
-        return mCurrentView.findViewById(R.id.back);
+    public ImageView getBackButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.back);
     }
 
-    public View getHomeButton() {
-        return mCurrentView.findViewById(R.id.home);
+    public ImageView getHomeButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.home);
+    }
+	
+	public ImageView getSearchButton() {
+        return (ImageView)mCurrentView.findViewById(R.id.search);
     }
 
     // for when home is disabled, but search isn't
-    public View getSearchLight() {
-        return mCurrentView.findViewById(R.id.search_light);
+    public ImageView getSearchLight() {
+        return (ImageView)mCurrentView.findViewById(R.id.search_light);
     }
 
     public NavigationBarView(Context context, AttributeSet attrs) {
@@ -213,19 +226,88 @@ public class NavigationBarView extends LinearLayout {
 
         mNavigationIconHints = hints;
 
-        getBackButton().setAlpha(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_NOP)) ? 0.5f : 1.0f);
-        getHomeButton().setAlpha(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_HOME_NOP)) ? 0.5f : 1.0f);
-        getRecentsButton().setAlpha(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP)) ? 0.5f : 1.0f);
-
-        ((ImageView)getBackButton()).setImageDrawable(
-            (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT))
-                ? (mVertical ? mBackAltLandIcon : mBackAltIcon)
-                : (mVertical ? mBackLandIcon : mBackIcon));
-
-        setDisabledFlags(mDisabledFlags, true);
+        // since the user can remove these, check to see if they are null first
+        if(getBackButton() != null){
+        	final boolean IME = (0 != (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT));
+        	//getBackButton().setAlpha(IME ? 0.5f : 1.0f);
+        	getBackButton().setImageDrawable(IME
+                        ? (mVertical ? mBackAltLandIcon : mBackAltIcon)
+                        : (mVertical ? mBackLandIcon : mBackIcon));
+        	if(IME){
+        		if(mOldBackFunction ==null)
+        			mOldBackFunction = Settings.System.getString(
+        				mContext.getContentResolver(), Settings.System.LONG_ACTION_BACK,CustomKeyButtonView.ACTION_DEFAULT_NONE);        		
+        		Settings.System.putString(mContext.getContentResolver(), Settings.System.LONG_ACTION_BACK, CustomKeyButtonView.ACTION_PICKER);
+        		((CustomKeyButtonView) getBackButton()).setLongPress();
+        	}else if(mOldBackFunction != null){        		
+        		Settings.System.putString(mContext.getContentResolver(), Settings.System.LONG_ACTION_BACK, mOldBackFunction);
+        		((CustomKeyButtonView) getBackButton()).setLongPress();
+        		mOldBackFunction = null;
+        	}
+        }
+        if(getHomeButton() != null){
+        	getHomeButton().setAlpha(
+        			(0 != (hints & StatusBarManager.NAVIGATION_HINT_HOME_NOP)) ? 0.5f : 1.0f);
+        }
+        if(getRecentsButton() != null){
+        	getRecentsButton().setAlpha(
+        			(0 != (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP)) ? 0.5f : 1.0f);
+        }
+        if(getSearchButton() != null){
+        	getSearchButton().setAlpha(
+                    (0 != (hints & StatusBarManager.NAVIGATION_HINT_RECENT_NOP)) ? 0.5f : 1.0f);
+        }
+    }
+    public void setButtonImages (boolean withReflect){
+    	
+    	mHasReflections = withReflect;   	
+    	final Resources res = mContext.getResources();
+    	mBackIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_back_reflect : R.drawable.ic_sysbar_back);
+    	mBackLandIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_back_land_reflect : R.drawable.ic_sysbar_back_land);
+    	
+    	if(getRightMenuButton() != null){
+	    	getRightMenuButton().setImageDrawable(res.getDrawable(mVertical 
+	    			? (withReflect ? R.drawable.ic_sysbar_menu_land_reflect : R.drawable.ic_sysbar_menu_land) 
+	    			: (withReflect ? R.drawable.ic_sysbar_menu_reflect : R.drawable.ic_sysbar_menu)));
+    	}
+    	if(getBackButton() != null){
+	    	getBackButton().setImageDrawable(mVertical ? mBackLandIcon : mBackIcon);
+    	}
+    	if(getHomeButton() != null){
+	    	getHomeButton().setImageDrawable(res.getDrawable(mVertical 
+	    			? (withReflect ? R.drawable.ic_sysbar_home_land_reflect : R.drawable.ic_sysbar_home_land) 
+	    			: (withReflect ? R.drawable.ic_sysbar_home_reflect : R.drawable.ic_sysbar_home)));
+    	}
+    	if(getRecentsButton() != null){
+	    	getRecentsButton().setImageDrawable(res.getDrawable(mVertical 
+	    			? (withReflect ? R.drawable.ic_sysbar_recent_land_reflect : R.drawable.ic_sysbar_recent_land) 
+	    			: (withReflect ? R.drawable.ic_sysbar_recent_reflect : R.drawable.ic_sysbar_recent)));
+    	}
+    	if(getSearchButton() != null){
+    		getSearchButton().setImageDrawable(res.getDrawable(mVertical 
+        			? (withReflect ? R.drawable.ic_sysbar_search_land_reflect : R.drawable.ic_sysbar_search_land) 
+        	    	: (withReflect ? R.drawable.ic_sysbar_search_reflect : R.drawable.ic_sysbar_search)));
+    	}
+    	// this needs to be here to fix the buttons appearing white after the first
+    	// orientation change
+    	setButtonColor();
+    }
+	    /**
+     * change the color overlay for the buttons
+     * @return
+     */
+    public void setButtonColor(){
+    	setButtonColor(getBackButton());
+    	setButtonColor(getHomeButton());
+    	setButtonColor(getRecentsButton());
+    	setButtonColor(getSearchButton());
+    	setButtonColor(getRightMenuButton());
+    }
+    
+    protected void setButtonColor(View view){
+    	if(view!=null){
+    		((KeyButtonView) view).setButtonColor();
+    	}
     }
 
     public void setDisabledFlags(int disabledFlags) {
@@ -257,11 +339,22 @@ public class NavigationBarView extends LinearLayout {
             }
         }
 
-        getBackButton()   .setVisibility(disableBack       ? View.INVISIBLE : View.VISIBLE);
-        getHomeButton()   .setVisibility(disableHome       ? View.INVISIBLE : View.VISIBLE);
-        getRecentsButton().setVisibility(disableRecent     ? View.INVISIBLE : View.VISIBLE);
+        setButtonVisibility(getBackButton(), disableBack);
+		setButtonVisibility(getHomeButton(), disableHome);
+		setButtonVisibility(getRecentsButton(), disableRecent);
+		setButtonVisibility(getSearchButton(), disableRecent);
+		
+		View blackout = mCurrentView.findViewById(R.id.blackout);		
+		blackout.setVisibility(disableHome ? View.VISIBLE : View.GONE);
+
 
         getSearchLight().setVisibility((disableHome && !disableSearch) ? View.VISIBLE : View.GONE);
+    }
+	
+	protected void setButtonVisibility(View view, boolean disable){
+    	if(view != null){
+    		view.setVisibility(disable ? View.INVISIBLE:View.VISIBLE);
+    	}
     }
 
     public void setSlippery(boolean newSlippery) {
@@ -289,7 +382,8 @@ public class NavigationBarView extends LinearLayout {
 
         mShowMenu = show;
 
-        getMenuButton().setVisibility(mShowMenu ? View.VISIBLE : View.INVISIBLE);
+        if(getRightMenuButton()==null) return;
+        getRightMenuButton().setVisibility(mShowMenu ? View.VISIBLE : View.INVISIBLE);
     }
 
     public void setLowProfile(final boolean lightsOut) {
@@ -374,6 +468,8 @@ public class NavigationBarView extends LinearLayout {
         mCurrentView.setVisibility(View.VISIBLE);
 
         mDeadZone = (DeadZone) mCurrentView.findViewById(R.id.deadzone);
+		setButtonImages(mHasReflections);
+        setNavigationIconHints(mNavigationIconHints, true);
 
         // force the low profile & disabled states into compliance
         setLowProfile(mLowProfile, false, true /* force */);
@@ -384,14 +480,13 @@ public class NavigationBarView extends LinearLayout {
             Slog.d(TAG, "reorient(): rot=" + mDisplay.getRotation());
         }
 
-        setNavigationIconHints(mNavigationIconHints, true);
     }
 
-    @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        super.onLayout(changed, l, t, r, b);
-        mDelegateHelper.setInitialTouchRegion(getHomeButton(), getBackButton(), getRecentsButton());
-    }
+//    @Override
+//    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+//        super.onLayout(changed, l, t, r, b);
+//        mDelegateHelper.setInitialTouchRegion(getHomeButton(), getBackButton(), getRecentsButton());
+//    }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -490,8 +585,9 @@ public class NavigationBarView extends LinearLayout {
         final View back = getBackButton();
         final View home = getHomeButton();
         final View recent = getRecentsButton();
-        final View menu = getMenuButton();
+        final View menu = getRightMenuButton();
 
+        try{
         pw.println("      back: "
                 + PhoneStatusBar.viewInfo(back)
                 + " " + visibilityToString(back.getVisibility())
@@ -509,6 +605,22 @@ public class NavigationBarView extends LinearLayout {
                 + " " + visibilityToString(menu.getVisibility())
                 );
         pw.println("    }");
+        }catch(NullPointerException e){}
     }
 
+	public DelegateViewHelper getDelegateHelper() {
+		return mDelegateHelper;
+	}
+
+//	public void setRecentButtonOnTouchListener(RecentsPanelView mRecentsPanel) {
+//		if(getRecentsButton()!=null){
+//			getRecentsButton().setOnTouchListener(mRecentsPreloadOnTouchListener);
+//		}
+//	}
+
+	public void setRecentButtonOnClickListener(OnClickListener mRecentsClickListener) {
+		if(getRecentsButton()!=null){
+			getRecentsButton().setOnClickListener(mRecentsClickListener);
+		}
+	}
 }

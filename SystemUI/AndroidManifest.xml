@@ -1,7 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:androidprv="http://schemas.android.com/apk/prv/res/android"
         package="com.android.systemui"
-        coreApp="true">
+        coreApp="true"
+        android:sharedUserId="android.uid.system"
+        android:process="system"
+        >
 
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -61,6 +64,8 @@
     <!-- DreamManager -->
     <uses-permission android:name="android.permission.READ_DREAM_STATE" />
     <uses-permission android:name="android.permission.WRITE_DREAM_STATE" />
+    <uses-permission android:name="com.bamf.ics.permission.TORCH" />
+
 
     <application
         android:persistent="true"
@@ -179,6 +184,16 @@
             android:finishOnCloseSystemDialogs="true"
             android:launchMode="singleTop"
             android:taskAffinity="com.android.systemui.net"
+            android:excludeFromRecents="true" />
+        <!-- started from ... somewhere -->
+        <activity
+            android:name=".PowToast"
+            android:exported="false"
+            android:label="Pow"
+            android:icon="@drawable/redbeandroid"
+            android:theme="@*android:style/Theme.Holo.Dialog.Alert"
+            android:hardwareAccelerated="true"
+            android:launchMode="singleInstance"
             android:excludeFromRecents="true" />
 
         <!-- started from ... somewhere -->
