@@ -99,6 +99,9 @@ public class RecentsPanelView extends FrameLayout implements
 	private boolean mFitThumbnailToXY;
 	private int mRecentItemLayoutId;
 	private boolean mHighEndGfx;
+	
+    ImageView mClearRecents;
+
 
 	public static interface RecentsScrollView {
 		public int numItemsInOneScreenful();
@@ -365,6 +368,11 @@ public class RecentsPanelView extends FrameLayout implements
 			mRecentsNoApps
 					.setVisibility(noApps ? View.VISIBLE : View.INVISIBLE);
 
+			//if no apps found, we just hide the "Clear" button as it's not needed
+				if(mClearRecents != null){
+					mClearRecents.setVisibility(noApps ? View.GONE : View.VISIBLE);
+            }
+			
 			onAnimationEnd(null);
 			setFocusable(true);
 			setFocusableInTouchMode(true);
@@ -469,6 +477,16 @@ public class RecentsPanelView extends FrameLayout implements
 
 		mRecentsScrim = findViewById(R.id.recents_bg_protect);
 		mRecentsNoApps = findViewById(R.id.recents_no_apps);
+		
+		  mClearRecents = (ImageView) findViewById(R.id.recents_clear);
+	        if (mClearRecents != null){
+	            mClearRecents.setOnClickListener(new OnClickListener() {
+	                @Override
+	                public void onClick(View v) {
+	                    mRecentsContainer.removeAllViewsInLayout();
+	                }
+	            });
+	        }
 
 		if (mRecentsScrim != null) {
 			mHighEndGfx = ActivityManager.isHighEndGfx();
