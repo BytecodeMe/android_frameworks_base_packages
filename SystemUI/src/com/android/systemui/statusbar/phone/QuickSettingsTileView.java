@@ -16,7 +16,10 @@
 
 package com.android.systemui.statusbar.phone;
 
+import java.util.Random;
+
 import android.content.Context;
+import android.graphics.Color;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.widget.FrameLayout;
@@ -29,12 +32,24 @@ class QuickSettingsTileView extends FrameLayout {
     private int mColSpan;
     private int mRowSpan;
     private int mCellWidth;
+    
+    private static int[] Colors = new int[]{
+    	android.R.color.holo_blue_dark,
+    	android.R.color.holo_green_dark,
+    	android.R.color.holo_orange_dark,
+    	android.R.color.holo_purple,
+    	android.R.color.holo_red_dark
+    };
 
     public QuickSettingsTileView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         mColSpan = 1;
         mRowSpan = 1;
+        
+        Random generator = new Random();
+        int color = context.getResources().getColor(Colors[generator.nextInt(Colors.length)]);
+        this.setBackgroundColor(color);
     }
 
     void setColumnSpan(int span) {
@@ -43,6 +58,14 @@ class QuickSettingsTileView extends FrameLayout {
 
     int getColumnSpan() {
         return mColSpan;
+    }
+    
+    void setRowSpan(int span) {
+    	mRowSpan = span;
+    }
+    
+    int getRowSpan() {
+    	return mRowSpan;
     }
 
     void setContent(int layoutId, LayoutInflater inflater) {

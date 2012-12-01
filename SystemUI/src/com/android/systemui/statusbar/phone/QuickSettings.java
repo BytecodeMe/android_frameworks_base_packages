@@ -721,10 +721,10 @@ class QuickSettings {
         mModel.updateResources();
 
         // Update the User, Time, and Settings tiles spans, and reset everything else
-        int span = r.getInteger(R.integer.quick_settings_user_time_settings_tile_span);
-        for (QuickSettingsTileView v : mDynamicSpannedTiles) {
-            v.setColumnSpan(span);
-        }
+        //int span = r.getInteger(R.integer.quick_settings_user_time_settings_tile_span);
+        //for (QuickSettingsTileView v : mDynamicSpannedTiles) {
+        //    v.setColumnSpan(span);
+        //}
         ((QuickSettingsContainerView)mContainerView).updateResources();
         mContainerView.requestLayout();
 
