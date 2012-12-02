@@ -19,24 +19,18 @@ package com.android.systemui.statusbar.phone;
 import android.app.ActivityManagerNative;
 import android.app.StatusBarManager;
 import android.content.ActivityNotFoundException;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.os.RemoteException;
 import android.os.UserHandle;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.android.systemui.R;
-import com.android.systemui.statusbar.phone.PhoneStatusBar;
-import com.android.systemui.statusbar.policy.MediaPlayerWidget;
-import com.android.systemui.statusbar.policy.ToggleSlider;
 
 /**
  * This class holds the preference views
