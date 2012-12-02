@@ -25,6 +25,8 @@ import com.android.systemui.statusbar.phone.QuickSettingsModel.RSSIState;
 import com.android.systemui.statusbar.phone.QuickSettingsModel.State;
 import com.android.systemui.statusbar.phone.QuickSettingsModel.UserState;
 import com.android.systemui.statusbar.phone.QuickSettingsModel.WifiState;
+import com.android.systemui.statusbar.phone.quicktiles.AlbumArtTile;
+import com.android.systemui.statusbar.phone.quicktiles.LTETile;
 import com.android.systemui.statusbar.policy.BatteryController;
 import com.android.systemui.statusbar.policy.BluetoothController;
 import com.android.systemui.statusbar.policy.BrightnessController;
@@ -72,9 +74,12 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManagerGlobal;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 
 
@@ -257,6 +262,31 @@ class QuickSettings {
         LayoutInflater inflater = LayoutInflater.from(mContext);
 
         addUserTiles(mContainerView, inflater);
+        
+        //TODO: make this loop through a setting to add all of the chosen user tiles
+        try {
+            // inflate the tile
+        	QuickSettingsTileView tileView = (QuickSettingsTileView)inflater.inflate(R.layout.quick_settings_tile, mContainerView, false);
+        	tileView.setContent(R.layout.quick_settings_tile_general, inflater);
+        	// this is hard coded for testing but this information will come from the setting
+        	tileView.setRowSpan(2);
+        	tileView.setColumnSpan(2);
+            Class<?> cls = AlbumArtTile.class;
+            // end of hard code
+            
+            Constructor<?> con = cls.getConstructor(new Class[]{Context.class, View.class});
+            QuickSettingsTileContent pref = 
+                    (QuickSettingsTileContent)con.newInstance(new Object[]{mContext, tileView.getChildAt(0)});
+            //mSettingItems[count] = pref;
+            
+            // add it to the view here
+            mContainerView.addView(tileView);
+            //count++;
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
         addSystemTiles(mContainerView, inflater);
         addTemporaryTiles(mContainerView, inflater);
 
@@ -455,7 +485,7 @@ class QuickSettings {
         }
 
         // Rotation Lock
-        if (mContext.getResources().getBoolean(R.bool.quick_settings_show_rotation_lock)) {
+        //if (mContext.getResources().getBoolean(R.bool.quick_settings_show_rotation_lock)) {
             QuickSettingsTileView rotationLockTile = (QuickSettingsTileView)
                     inflater.inflate(R.layout.quick_settings_tile, parent, false);
             rotationLockTile.setContent(R.layout.quick_settings_tile_rotation_lock, inflater);
@@ -475,7 +505,7 @@ class QuickSettings {
                 }
             });
             parent.addView(rotationLockTile);
-        }
+        //}
 
         // Battery
         QuickSettingsTileView batteryTile = (QuickSettingsTileView)

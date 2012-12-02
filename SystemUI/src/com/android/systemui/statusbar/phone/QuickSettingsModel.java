@@ -277,6 +277,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     // User
     void addUserTile(QuickSettingsTileView view, RefreshCallback cb) {
         mUserTile = view;
+        mUserTile.setColumnSpan(3);
         mUserCallback = cb;
         mUserCallback.refreshView(mUserTile, mUserState);
     }
