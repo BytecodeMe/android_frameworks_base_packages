@@ -222,6 +222,10 @@ public class AlbumArtTile extends QuickSettingsTileContent {
 					handler.postDelayed(openMusic, 2000);
 					return true;
 				}
+				if(action == MotionEvent.ACTION_CANCEL){
+					handler.removeCallbacks(openMusic);
+					return true;
+				}
 				if ((action == MotionEvent.ACTION_POINTER_UP) && (fingers==2) && !longPress) {
 					handler.removeCallbacks(openMusic);
 					sendMediaButtonEvent("com.android.music.musicservicecommand.next");
