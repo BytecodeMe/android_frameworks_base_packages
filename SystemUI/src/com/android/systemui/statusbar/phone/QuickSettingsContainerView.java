@@ -104,7 +104,7 @@ class QuickSettingsContainerView extends FrameLayout {
                 if (cellHeight <= 0) {
                     cellHeight = v.getMeasuredHeight();
                 }
-                cursor += colSpan;
+                cursor += (colSpan * rowSpan);
             }
         }
 
