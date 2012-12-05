@@ -36,11 +36,11 @@ public class AutoRotateTile extends QuickSettingsTileContent
 		boolean locked = RotationPolicy.isRotationLocked(mContext);
 		
 		if(locked) {
-			mTextView.setText(R.string.quick_settings_rotation_unlocked_label);
-			mTextView.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_notify_rotation_on_normal, 0, 0);
-		} else {
 			mTextView.setText(R.string.quick_settings_rotation_locked_label);
 			mTextView.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_notify_rotation_on_pressed, 0, 0);
+		} else {
+			mTextView.setText(R.string.quick_settings_rotation_unlocked_label);
+			mTextView.setCompoundDrawablesWithIntrinsicBounds(0, R.drawable.ic_notify_rotation_on_normal, 0, 0);
 		}
 	}
 

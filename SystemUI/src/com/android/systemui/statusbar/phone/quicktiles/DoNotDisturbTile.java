@@ -53,7 +53,7 @@ public class DoNotDisturbTile extends QuickSettingsTileContent implements
 	
 	public void updateGUI(){
 		mTextView.setCompoundDrawablesWithIntrinsicBounds(0,
-				mDoNotDisturb?R.drawable.ic_notification_open_on:R.drawable.ic_notification_open, 0, 0);
+				mDoNotDisturb?R.drawable.ic_notification_open:R.drawable.ic_notification_open_on, 0, 0);
 	}
 
 	@Override
