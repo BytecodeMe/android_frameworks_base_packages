@@ -31,6 +31,8 @@ import android.os.ParcelFileDescriptor;
 import android.os.UserHandle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -49,6 +51,10 @@ public class AlbumArtTile extends QuickSettingsTileContent {
     private static final int REFRESH = 1;
     private static final int GET_ALBUM_ART = 3;
     private static final int ALBUM_ART_DECODED = 4;
+    
+    private static final int SWIPE_MIN_DISTANCE = 120;
+    private static final int SWIPE_MAX_OFF_PATH = 250;
+    private static final int SWIPE_THRESHOLD_VELOCITY = 200;
     
     private static final Uri MUSIC_CONTENT_URI = Uri.parse("content://com.google.android.music.MusicContent");
     
@@ -72,6 +78,7 @@ public class AlbumArtTile extends QuickSettingsTileContent {
     private PackageManager pm;
     String mMusicPackage = null;
     String mMusicService = null;
+	private GestureDetector mGestureScanner;
     
     public AlbumArtTile(Context context, View view) {
         super(context, view);
@@ -193,7 +200,6 @@ public class AlbumArtTile extends QuickSettingsTileContent {
 
     @Override
     protected void init() {
-    	//mContentView.setOnLongClickListener(this);
         mTag = TAG;
         
         mImageView.setVisibility(View.VISIBLE);
@@ -209,45 +215,16 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         mTextView.setText(R.string.status_bar_settings_mediaplayer);
         mTextView.setBackgroundColor(0xCC000000);
         
-        mContentView.setOnTouchListener(new View.OnTouchListener() {
-        	Handler handler = new Handler();
-        	boolean longPress = false;
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				Log.d(TAG, "onTouch: "+event.getAction()+" "+event.getPointerCount());
-				int action = event.getAction();
-				int fingers = event.getPointerCount();
-				if(action == MotionEvent.ACTION_DOWN){
-					longPress = false;
-					handler.postDelayed(openMusic, 2000);
-					return true;
-				}
-				if(action == MotionEvent.ACTION_CANCEL){
-					handler.removeCallbacks(openMusic);
-					return true;
-				}
-				if ((action == MotionEvent.ACTION_POINTER_UP) && (fingers==2) && !longPress) {
-					handler.removeCallbacks(openMusic);
-					sendMediaButtonEvent("com.android.music.musicservicecommand.next");
-			    } 
-				if ((action == MotionEvent.ACTION_UP) && (fingers==1) && !longPress){
-					handler.removeCallbacks(openMusic);
-					sendMediaButtonEvent("com.android.music.musicservicecommand.togglepause");
-				}
-				return false;
-			}
-			
-			Runnable openMusic = new Runnable(){
-				@Override
-				public void run() {
-					openMusic();
-					longPress = true;
-				}
-			};
-		});
-        
         // dont even bother going any further
         if(!findMusicService())return;
+        
+        mGestureScanner = new GestureDetector(mContext, new GestureScanner());
+        mContentView.setOnTouchListener(new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				return mGestureScanner.onTouchEvent(event);
+			}
+		});
         
         IntentFilter filter = new IntentFilter();
         filter.addAction(MusicUtils.PLAYSTATE_CHANGED);
@@ -372,6 +349,54 @@ public class AlbumArtTile extends QuickSettingsTileContent {
             mPlayer.setPlayImage();
         }
     }*/
+    
+    public class GestureScanner implements OnGestureListener {
+	    @Override
+	    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+	        try {
+	            if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+	                return false;
+	            // right to left swipe
+	            if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+	            	sendMediaButtonEvent("com.android.music.musicservicecommand.previous");
+	            }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+	            	sendMediaButtonEvent("com.android.music.musicservicecommand.next");
+	            }
+	        } catch (Exception e) {
+	            // nothing
+	        }
+	        return false;
+	    }
+
+		@Override
+		public boolean onDown(MotionEvent e) {
+			// TODO Auto-generated method stub
+			return true;
+		}
+
+		@Override
+		public void onShowPress(MotionEvent e) {
+			// TODO Auto-generated method stub
+		}
+
+		@Override
+		public boolean onSingleTapUp(MotionEvent e) {
+			sendMediaButtonEvent("com.android.music.musicservicecommand.togglepause");
+			return false;
+		}
+
+		@Override
+		public boolean onScroll(MotionEvent e1, MotionEvent e2,
+				float distanceX, float distanceY) {
+			// TODO Auto-generated method stub
+			return false;
+		}
+
+		@Override
+		public void onLongPress(MotionEvent e) {
+			openMusic();
+		}
+    }
     
     private BroadcastReceiver mReceiver = new BroadcastReceiver(){
 

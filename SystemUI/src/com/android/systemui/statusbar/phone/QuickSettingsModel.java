@@ -16,9 +16,8 @@
 
 package com.android.systemui.statusbar.phone;
 
-import android.app.ActivityManager;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothAdapter.BluetoothStateChangeCallback;
+import java.util.List;
+
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -30,30 +29,24 @@ import android.database.ContentObserver;
 import android.graphics.drawable.Drawable;
 import android.hardware.display.WifiDisplayStatus;
 import android.os.Handler;
-import android.os.UserHandle;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
 import android.text.TextUtils;
-import android.view.View;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputMethodSubtype;
 
-import com.android.internal.view.RotationPolicy;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.policy.BatteryController.BatteryStateChangeCallback;
 import com.android.systemui.statusbar.policy.BrightnessController.BrightnessStateChangeCallback;
 import com.android.systemui.statusbar.policy.CurrentUserTracker;
-import com.android.systemui.statusbar.policy.LocationController.LocationGpsStateChangeCallback;
 import com.android.systemui.statusbar.policy.NetworkController.NetworkSignalChangedCallback;
 
-import java.util.List;
 
-
-class QuickSettingsModel implements BluetoothStateChangeCallback,
+class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
         NetworkSignalChangedCallback,
         BatteryStateChangeCallback,
-        LocationGpsStateChangeCallback,
+        /*LocationGpsStateChangeCallback,*/
         BrightnessStateChangeCallback {
 
     // Sett InputMethoManagerService
@@ -183,9 +176,9 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     private RefreshCallback mAlarmCallback;
     private State mAlarmState = new State();
 
-    private QuickSettingsTileView mAirplaneModeTile;
-    private RefreshCallback mAirplaneModeCallback;
-    private State mAirplaneModeState = new State();
+    //private QuickSettingsTileView mAirplaneModeTile;
+    //private RefreshCallback mAirplaneModeCallback;
+    //private State mAirplaneModeState = new State();
 
     private QuickSettingsTileView mWifiTile;
     private RefreshCallback mWifiCallback;
@@ -199,25 +192,25 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     private RefreshCallback mRSSICallback;
     private RSSIState mRSSIState = new RSSIState();
 
-    private QuickSettingsTileView mBluetoothTile;
-    private RefreshCallback mBluetoothCallback;
-    private BluetoothState mBluetoothState = new BluetoothState();
+    //private QuickSettingsTileView mBluetoothTile;
+    //private RefreshCallback mBluetoothCallback;
+    //private BluetoothState mBluetoothState = new BluetoothState();
 
     private QuickSettingsTileView mBatteryTile;
     private RefreshCallback mBatteryCallback;
     private BatteryState mBatteryState = new BatteryState();
 
-    private QuickSettingsTileView mLocationTile;
-    private RefreshCallback mLocationCallback;
-    private State mLocationState = new State();
+    //private QuickSettingsTileView mLocationTile;
+    //private RefreshCallback mLocationCallback;
+    //private State mLocationState = new State();
 
     private QuickSettingsTileView mImeTile;
     private RefreshCallback mImeCallback = null;
     private State mImeState = new State();
 
-    private QuickSettingsTileView mRotationLockTile;
-    private RefreshCallback mRotationLockCallback;
-    private State mRotationLockState = new State();
+    //private QuickSettingsTileView mRotationLockTile;
+    //private RefreshCallback mRotationLockCallback;
+    //private State mRotationLockState = new State();
 
     private QuickSettingsTileView mBrightnessTile;
     private RefreshCallback mBrightnessCallback;
@@ -257,9 +250,9 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     void updateResources() {
         refreshSettingsTile();
         refreshBatteryTile();
-        refreshBluetoothTile();
+        //refreshBluetoothTile();
         refreshBrightnessTile();
-        refreshRotationLockTile();
+        //refreshRotationLockTile();
     }
 
     // Settings
@@ -310,7 +303,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         mAlarmCallback.refreshView(mAlarmTile, mAlarmState);
     }
 
-    // Airplane Mode
+    /*/ Airplane Mode
     void addAirplaneModeTile(QuickSettingsTileView view, RefreshCallback cb) {
         mAirplaneModeTile = view;
         mAirplaneModeTile.setOnClickListener(new View.OnClickListener() {
@@ -339,20 +332,20 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         Intent intent = new Intent(Intent.ACTION_AIRPLANE_MODE_CHANGED);
         intent.putExtra("state", enabled);
         mContext.sendBroadcast(intent);
-    }
+    }*/
     // NetworkSignalChanged callback
     @Override
     public void onAirplaneModeChanged(boolean enabled) {
         // TODO: If view is in awaiting state, disable
-        Resources r = mContext.getResources();
+        /*Resources r = mContext.getResources();
         mAirplaneModeState.enabled = enabled;
         mAirplaneModeState.iconId = (enabled ?
                 R.drawable.ic_qs_airplane_on :
                 R.drawable.ic_qs_airplane_off);
         mAirplaneModeState.label = r.getString(R.string.quick_settings_airplane_mode_label);
-        mAirplaneModeCallback.refreshView(mAirplaneModeTile, mAirplaneModeState);
+        mAirplaneModeCallback.refreshView(mAirplaneModeTile, mAirplaneModeState);*/
     }
-
+	
     // Wifi
     void addWifiTile(QuickSettingsTileView view, RefreshCallback cb) {
         mWifiTile = view;
@@ -441,7 +434,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         }
     }
 
-    // Bluetooth
+    /*/ Bluetooth
     void addBluetoothTile(QuickSettingsTileView view, RefreshCallback cb) {
         mBluetoothTile = view;
         mBluetoothCallback = cb;
@@ -487,7 +480,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
             onBluetoothStateChange(mBluetoothState.enabled);
         }
     }
-
+	*/
     // Battery
     void addBatteryTile(QuickSettingsTileView view, RefreshCallback cb) {
         mBatteryTile = view;
@@ -505,7 +498,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         mBatteryCallback.refreshView(mBatteryTile, mBatteryState);
     }
 
-    // Location
+    /*/ Location
     void addLocationTile(QuickSettingsTileView view, RefreshCallback cb) {
         mLocationTile = view;
         mLocationCallback = cb;
@@ -518,7 +511,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         mLocationState.label = description;
         mLocationCallback.refreshView(mLocationTile, mLocationState);
     }
-
+	*/
     // Bug report
     void addBugreportTile(QuickSettingsTileView view, RefreshCallback cb) {
         mBugreportTile = view;
@@ -640,7 +633,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
         return null;
     }
 
-    // Rotation lock
+    /*/ Rotation lock
     void addRotationLockTile(QuickSettingsTileView view, RefreshCallback cb) {
         mRotationLockTile = view;
         mRotationLockCallback = cb;
@@ -666,7 +659,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
             onRotationLockChanged();
         }
     }
-
+	*/
     // Brightness
     void addBrightnessTile(QuickSettingsTileView view, RefreshCallback cb) {
         mBrightnessTile = view;
@@ -695,7 +688,7 @@ class QuickSettingsModel implements BluetoothStateChangeCallback,
     // User switch: need to update visuals of all tiles known to have per-user state
     void onUserSwitched() {
         mBrightnessObserver.startObserving();
-        onRotationLockChanged();
+        //onRotationLockChanged();
         onBrightnessLevelChanged();
         onNextAlarmChanged();
         onBugreportChanged();
