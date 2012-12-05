@@ -25,8 +25,16 @@ import com.android.systemui.statusbar.phone.QuickSettingsModel.RSSIState;
 import com.android.systemui.statusbar.phone.QuickSettingsModel.State;
 import com.android.systemui.statusbar.phone.QuickSettingsModel.UserState;
 import com.android.systemui.statusbar.phone.QuickSettingsModel.WifiState;
+import com.android.systemui.statusbar.phone.quicktiles.AirplaneModeTile;
 import com.android.systemui.statusbar.phone.quicktiles.AlbumArtTile;
+import com.android.systemui.statusbar.phone.quicktiles.AutoRotateTile;
+import com.android.systemui.statusbar.phone.quicktiles.BluetoothTile;
+import com.android.systemui.statusbar.phone.quicktiles.CustomTile;
+import com.android.systemui.statusbar.phone.quicktiles.DoNotDisturbTile;
+import com.android.systemui.statusbar.phone.quicktiles.GPSModeTile;
 import com.android.systemui.statusbar.phone.quicktiles.LTETile;
+import com.android.systemui.statusbar.phone.quicktiles.TorchTile;
+import com.android.systemui.statusbar.phone.quicktiles.WirelessADBTile;
 import com.android.systemui.statusbar.policy.BatteryController;
 import com.android.systemui.statusbar.policy.BluetoothController;
 import com.android.systemui.statusbar.policy.BrightnessController;
@@ -81,6 +89,7 @@ import android.widget.TextView;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 /**
@@ -89,6 +98,85 @@ import java.util.ArrayList;
 class QuickSettings {
     private static final String TAG = "QuickSettings";
     public static final boolean SHOW_IME_TILE = false;
+    
+    private ArrayList<QuickSettingsTileContent> mAllCustomTiles;
+    private String mLoadedSettings;
+    
+    private final HashMap<String, Boolean> mConfigs = new HashMap<String, Boolean>();
+    
+    /**
+     *  These must be in sync with QuickSettingsUtil in BAMF settings and vice versa
+     */
+    //TODO: move these to Settings.System in an array instead of maintaining two copies
+    private static final String QUICK_AIRPLANE = "QuickAirplane";
+    private static final String QUICK_ROTATE = "QuickRotate";
+    private static final String QUICK_BRIGHTNESS = "QuickBrightness";
+    private static final String QUICK_BLUETOOTH = "QuickBluetooth";
+    private static final String QUICK_NODISTURB = "QuickNoDisturb";
+    private static final String QUICK_TORCH = "QuickTorch";
+    private static final String QUICK_SETTING = "QuickSetting";
+    private static final String QUICK_WIFI = "QuickWifi";
+    private static final String QUICK_VOLUME = "QuickVolume";
+    private static final String QUICK_LTE = "QuickLTE";
+    private static final String QUICK_CUSTOM = "QuickCustom";
+    private static final String QUICK_ADB = "QuickAdb";
+    private static final String QUICK_GPS = "QuickGPS";
+    private static final String QUICK_MOBILE_DATA = "QuickMobileData";
+    private static final String QUICK_SYNC = "QuickSync";
+    private static final String QUICK_MEDIA = "QuickMedia";
+    private static final String QUICK_HOTSPOT = "QuickHotspot";
+    private static final String QUICK_TETHER = "QuickTether";
+    
+    
+    private static final HashMap<String, Class<? extends QuickSettingsTileContent>> SETTINGS = 
+            new HashMap<String, Class<? extends QuickSettingsTileContent>>();
+    
+    // TODO: ones that are not converted yet are commented out here
+    static{
+        SETTINGS.put(QUICK_AIRPLANE, AirplaneModeTile.class);
+        SETTINGS.put(QUICK_ROTATE, AutoRotateTile.class);
+        //SETTINGS.put(QUICK_BRIGHTNESS, Brightness.class);
+        SETTINGS.put(QUICK_NODISTURB, DoNotDisturbTile.class); 
+        SETTINGS.put(QUICK_TORCH, TorchTile.class);
+        //SETTINGS.put(QUICK_SETTING, SettingsShortcut.class);
+        //SETTINGS.put(QUICK_WIFI, Wifi.class); 
+        //SETTINGS.put(QUICK_VOLUME, Volume.class);
+        SETTINGS.put(QUICK_LTE, LTETile.class);
+        SETTINGS.put(QUICK_CUSTOM, CustomTile.class);
+        SETTINGS.put(QUICK_BLUETOOTH, BluetoothTile.class);
+        SETTINGS.put(QUICK_ADB, WirelessADBTile.class);
+        SETTINGS.put(QUICK_GPS, GPSModeTile.class);
+        //SETTINGS.put(QUICK_MOBILE_DATA, MobileData.class);
+        //SETTINGS.put(QUICK_SYNC, SyncData.class);
+        SETTINGS.put(QUICK_MEDIA, AlbumArtTile.class);
+        //SETTINGS.put(QUICK_HOTSPOT, Hotspot.class);
+        //SETTINGS.put(QUICK_TETHER, USBTether.class);
+    }
+    
+    private static final String SETTING_DELIMITER = "|";
+    private static final String SUB_DELIMITER = ",";
+    
+    // do not use anything here that may not work on ALL devices
+    private static final String SETTINGS_DEFAULT = QUICK_AIRPLANE
+            + SETTING_DELIMITER + QUICK_MEDIA
+            + SETTING_DELIMITER + QUICK_VOLUME
+            + SETTING_DELIMITER + QUICK_ROTATE
+            + SETTING_DELIMITER + QUICK_BRIGHTNESS
+            + SETTING_DELIMITER + QUICK_SETTING;
+    
+    // this is only for testing, do not use
+    private static final String SETTINGS_ALL = QUICK_LTE + SUB_DELIMITER + "1,1"
+            				 + SETTING_DELIMITER + QUICK_GPS + SUB_DELIMITER + "1,1"
+            				 + SETTING_DELIMITER + QUICK_NODISTURB + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_MEDIA + SUB_DELIMITER + "2,2"
+                             + SETTING_DELIMITER + QUICK_TORCH + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_CUSTOM + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_ADB + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_AIRPLANE + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_ROTATE + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_BLUETOOTH + SUB_DELIMITER + "1,1";
+    
+    private static final String EMPTY_STRING = "";
 
     private Context mContext;
     private PanelBar mBar;
@@ -101,7 +189,7 @@ class QuickSettings {
     private BluetoothState mBluetoothState;
 
     private BrightnessController mBrightnessController;
-    private BluetoothController mBluetoothController;
+    //private BluetoothController mBluetoothController;
 
     private Dialog mBrightnessDialog;
     private int mBrightnessDialogShortTimeout;
@@ -120,14 +208,14 @@ class QuickSettings {
     // configuration change)
     private final ArrayList<QuickSettingsTileView> mDynamicSpannedTiles =
             new ArrayList<QuickSettingsTileView>();
-
+    /*
     private final RotationPolicy.RotationPolicyListener mRotationPolicyListener =
             new RotationPolicy.RotationPolicyListener() {
         @Override
         public void onChange() {
             mModel.onRotationLockChanged();
         }
-    };
+    };*/
 
     public QuickSettings(Context context, QuickSettingsContainerView container) {
         mDisplayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
@@ -137,6 +225,8 @@ class QuickSettings {
         mWifiDisplayStatus = new WifiDisplayStatus();
         mBluetoothState = new QuickSettingsModel.BluetoothState();
         mHandler = new Handler();
+        
+        mLoadedSettings = EMPTY_STRING;
 
         Resources r = mContext.getResources();
         mBatteryLevels = (LevelListDrawable) r.getDrawable(R.drawable.qs_sys_battery);
@@ -146,7 +236,21 @@ class QuickSettings {
                 r.getInteger(R.integer.quick_settings_brightness_dialog_long_timeout);
         mBrightnessDialogShortTimeout =
                 r.getInteger(R.integer.quick_settings_brightness_dialog_short_timeout);
-
+        
+        // setup config values - only need to load these once
+        /* TODO: these configs were left out of the merge so ignore them for now
+        *
+        mConfigs.put(QUICK_TORCH, mContext.getResources()
+        		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingTorch));
+        mConfigs.put(QUICK_LTE, mContext.getResources()
+        		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingLTE));
+        mConfigs.put(QUICK_MOBILE_DATA, mContext.getResources()
+        		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingMobileData));
+        mConfigs.put(QUICK_HOTSPOT, context.getResources()
+        		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingMobileData));
+        mConfigs.put(QUICK_TETHER, context.getResources()
+        		.getBoolean(com.android.internal.R.bool.config_allowQuickSettingMobileData));
+		*/
         IntentFilter filter = new IntentFilter();
         filter.addAction(DisplayManager.ACTION_WIFI_DISPLAY_STATUS_CHANGED);
         filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
@@ -179,20 +283,20 @@ class QuickSettings {
 
     void setup(NetworkController networkController, BluetoothController bluetoothController,
             BatteryController batteryController, LocationController locationController) {
-        mBluetoothController = bluetoothController;
+        //mBluetoothController = bluetoothController;
 
         setupQuickSettings();
         updateWifiDisplayStatus();
         updateResources();
 
         networkController.addNetworkSignalChangedCallback(mModel);
-        bluetoothController.addStateChangedCallback(mModel);
+        //bluetoothController.addStateChangedCallback(mModel);
         batteryController.addStateChangedCallback(mModel);
-        locationController.addStateChangedCallback(mModel);
-        RotationPolicy.registerRotationPolicyListener(mContext, mRotationPolicyListener,
-                UserHandle.USER_ALL);
+        //locationController.addStateChangedCallback(mModel);
+        //RotationPolicy.registerRotationPolicyListener(mContext, mRotationPolicyListener,
+        //        UserHandle.USER_ALL);
     }
-
+    
     private void queryForUserInformation() {
         Context currentUserContext = null;
         UserInfo userInfo = null;
@@ -263,29 +367,8 @@ class QuickSettings {
 
         addUserTiles(mContainerView, inflater);
         
-        //TODO: make this loop through a setting to add all of the chosen user tiles
-        try {
-            // inflate the tile
-        	QuickSettingsTileView tileView = (QuickSettingsTileView)inflater.inflate(R.layout.quick_settings_tile, mContainerView, false);
-        	tileView.setContent(R.layout.quick_settings_tile_general, inflater);
-        	// this is hard coded for testing but this information will come from the setting
-        	tileView.setRowSpan(2);
-        	tileView.setColumnSpan(2);
-            Class<?> cls = AlbumArtTile.class;
-            // end of hard code
-            
-            Constructor<?> con = cls.getConstructor(new Class[]{Context.class, View.class});
-            QuickSettingsTileContent pref = 
-                    (QuickSettingsTileContent)con.newInstance(new Object[]{mContext, tileView.getChildAt(0)});
-            //mSettingItems[count] = pref;
-            
-            // add it to the view here
-            mContainerView.addView(tileView);
-            //count++;
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // add custom tiles here for now
+        addCustomTiles(mContainerView, inflater);
         
         addSystemTiles(mContainerView, inflater);
         addTemporaryTiles(mContainerView, inflater);
@@ -313,6 +396,64 @@ class QuickSettings {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         mContext.startActivityAsUser(intent, new UserHandle(UserHandle.USER_CURRENT));
         getService().animateCollapsePanels();
+    }
+    
+    public void addCustomTiles(ViewGroup parent, LayoutInflater inflater){
+        
+        String settings = Settings.System.getString(mContext.getContentResolver(), 
+                Settings.System.QUICK_SETTINGS_TILES);
+        if(settings == null) {
+            Log.i(TAG, "Default settings being loaded");
+            settings = SETTINGS_DEFAULT;
+        }
+        
+        // TODO: remove this after testing
+        settings = SETTINGS_ALL;
+        
+        if(mLoadedSettings.equals(settings)){
+            Log.i(TAG, "no changes; not reloading");
+            return;
+        }
+        
+        // just in case one sneaks in, get rid of it
+    	for(String config: mConfigs.keySet()){
+    		if(settings.contains(config) && !mConfigs.get(config))
+    			settings = settings.replace(config, EMPTY_STRING).replace("||", "|");
+    	}
+        
+        mLoadedSettings = settings;
+        
+        //removeAllViews();
+        
+        mAllCustomTiles = new ArrayList<QuickSettingsTileContent>();
+
+        for(String setting : settings.split("\\|")) {
+            Log.i(TAG, "Inflating setting: " + setting);
+            String[] settingParts = setting.split(",");
+            if(SETTINGS.containsKey(settingParts[0])){
+                try {
+                    // inflate the setting
+                	QuickSettingsTileView tileView = (QuickSettingsTileView)inflater.inflate(R.layout.quick_settings_tile, mContainerView, false);
+                	tileView.setContent(R.layout.quick_settings_tile_general, inflater);
+                	// get the tile size from the setting
+                	tileView.setRowSpan(Integer.parseInt(settingParts[1]));
+                	tileView.setColumnSpan(Integer.parseInt(settingParts[2]));
+                	
+                    Class<?> cls = SETTINGS.get(settingParts[0]);
+                    
+                    Constructor<?> con = cls.getConstructor(new Class[]{Context.class, View.class});
+                    QuickSettingsTileContent pref = 
+                            (QuickSettingsTileContent)con.newInstance(new Object[]{mContext, tileView.getChildAt(0)});
+                    
+                    // add it to the view here
+                    parent.addView(tileView);
+                    mAllCustomTiles.add(pref);
+                    
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }         
+            }
+        }
     }
 
     private void addUserTiles(ViewGroup parent, LayoutInflater inflater) {
@@ -485,7 +626,7 @@ class QuickSettings {
         }
 
         // Rotation Lock
-        //if (mContext.getResources().getBoolean(R.bool.quick_settings_show_rotation_lock)) {
+        /*if (mContext.getResources().getBoolean(R.bool.quick_settings_show_rotation_lock)) {
             QuickSettingsTileView rotationLockTile = (QuickSettingsTileView)
                     inflater.inflate(R.layout.quick_settings_tile, parent, false);
             rotationLockTile.setContent(R.layout.quick_settings_tile_rotation_lock, inflater);
@@ -506,7 +647,7 @@ class QuickSettings {
             });
             parent.addView(rotationLockTile);
         //}
-
+        */
         // Battery
         QuickSettingsTileView batteryTile = (QuickSettingsTileView)
                 inflater.inflate(R.layout.quick_settings_tile, parent, false);
@@ -546,7 +687,7 @@ class QuickSettings {
         });
         parent.addView(batteryTile);
 
-        // Airplane Mode
+        /* Airplane Mode
         QuickSettingsTileView airplaneTile = (QuickSettingsTileView)
                 inflater.inflate(R.layout.quick_settings_tile, parent, false);
         airplaneTile.setContent(R.layout.quick_settings_tile_airplane, inflater);
@@ -598,7 +739,7 @@ class QuickSettings {
                         label = r.getString(R.string.quick_settings_bluetooth_multiple_devices_label,
                                 btDevices.size());
                     }
-                    */
+                    *//*
                     view.setContentDescription(mContext.getString(
                             R.string.accessibility_quick_settings_bluetooth,
                             bluetoothState.stateContentDescription));
@@ -606,7 +747,7 @@ class QuickSettings {
                 }
             });
             parent.addView(bluetoothTile);
-        }
+        }*/
 
     }
 
@@ -638,7 +779,7 @@ class QuickSettings {
         });
         parent.addView(alarmTile);
 
-        // Location
+        /*/ Location
         QuickSettingsTileView locationTile = (QuickSettingsTileView)
                 inflater.inflate(R.layout.quick_settings_tile, parent, false);
         locationTile.setContent(R.layout.quick_settings_tile_location, inflater);
@@ -657,7 +798,7 @@ class QuickSettings {
             }
         });
         parent.addView(locationTile);
-
+		*/
         // Wifi Display
         QuickSettingsTileView wifiDisplayTile = (QuickSettingsTileView)
                 inflater.inflate(R.layout.quick_settings_tile, parent, false);
@@ -749,6 +890,15 @@ class QuickSettings {
 
         // Update the model
         mModel.updateResources();
+        
+        // update custom tiles
+        for(QuickSettingsTileContent qs : mAllCustomTiles){
+        	 try{
+                 qs.refreshResources();
+             }catch(Exception e){
+                 Log.e(TAG, "Error on refresh ("+((qs==null)?"None selected":qs.getTag())+")");
+             }
+        }
 
         // Update the User, Time, and Settings tiles spans, and reset everything else
         //int span = r.getInteger(R.integer.quick_settings_user_time_settings_tile_span);
@@ -868,7 +1018,7 @@ class QuickSettings {
     }
 
     private void applyBluetoothStatus() {
-        mModel.onBluetoothStateChange(mBluetoothState);
+        //mModel.onBluetoothStateChange(mBluetoothState);
     }
 
     void reloadUserInfo() {
