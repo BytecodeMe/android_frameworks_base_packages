@@ -27,7 +27,6 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.drawable.Drawable;
-import android.hardware.display.WifiDisplayStatus;
 import android.os.Handler;
 import android.provider.Settings;
 import android.provider.Settings.SettingNotFoundException;
@@ -40,11 +39,10 @@ import com.android.systemui.R;
 import com.android.systemui.statusbar.policy.BatteryController.BatteryStateChangeCallback;
 import com.android.systemui.statusbar.policy.BrightnessController.BrightnessStateChangeCallback;
 import com.android.systemui.statusbar.policy.CurrentUserTracker;
-import com.android.systemui.statusbar.policy.NetworkController.NetworkSignalChangedCallback;
 
 
 class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
-        NetworkSignalChangedCallback,
+        /*NetworkSignalChangedCallback,*/
         BatteryStateChangeCallback,
         /*LocationGpsStateChangeCallback,*/
         BrightnessStateChangeCallback {
@@ -182,15 +180,15 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
 
     //private QuickSettingsTileView mWifiTile;
     //private RefreshCallback mWifiCallback;
-    private WifiState mWifiState = new WifiState();
+    //private WifiState mWifiState = new WifiState();
 
     //private QuickSettingsTileView mWifiDisplayTile;
     //private RefreshCallback mWifiDisplayCallback;
     //private State mWifiDisplayState = new State();
 
-    private QuickSettingsTileView mRSSITile;
-    private RefreshCallback mRSSICallback;
-    private RSSIState mRSSIState = new RSSIState();
+    //private QuickSettingsTileView mRSSITile;
+    //private RefreshCallback mRSSICallback;
+    //private RSSIState mRSSIState = new RSSIState();
 
     //private QuickSettingsTileView mBluetoothTile;
     //private RefreshCallback mBluetoothCallback;
@@ -220,9 +218,9 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
     private RefreshCallback mBugreportCallback;
     private State mBugreportState = new State();
 
-    private QuickSettingsTileView mSettingsTile;
-    private RefreshCallback mSettingsCallback;
-    private State mSettingsState = new State();
+    //private QuickSettingsTileView mSettingsTile;
+    //private RefreshCallback mSettingsCallback;
+    //private State mSettingsState = new State();
 
     public QuickSettingsModel(Context context) {
         mContext = context;
@@ -248,14 +246,14 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
     }
 
     void updateResources() {
-        refreshSettingsTile();
+        //refreshSettingsTile();
         refreshBatteryTile();
         //refreshBluetoothTile();
         refreshBrightnessTile();
         //refreshRotationLockTile();
     }
 
-    // Settings
+    /*/ Settings
     void addSettingsTile(QuickSettingsTileView view, RefreshCallback cb) {
         mSettingsTile = view;
         mSettingsCallback = cb;
@@ -265,7 +263,7 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
         Resources r = mContext.getResources();
         mSettingsState.label = r.getString(R.string.quick_settings_settings_label);
         mSettingsCallback.refreshView(mSettingsTile, mSettingsState);
-    }
+    }*/
 
     // User
     void addUserTile(QuickSettingsTileView view, RefreshCallback cb) {
@@ -334,8 +332,8 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
         mContext.sendBroadcast(intent);
     }*/
     // NetworkSignalChanged callback
-    @Override
-    public void onAirplaneModeChanged(boolean enabled) {
+    //@Override
+    //public void onAirplaneModeChanged(boolean enabled) {
         // TODO: If view is in awaiting state, disable
         /*Resources r = mContext.getResources();
         mAirplaneModeState.enabled = enabled;
@@ -344,7 +342,7 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
                 R.drawable.ic_qs_airplane_off);
         mAirplaneModeState.label = r.getString(R.string.quick_settings_airplane_mode_label);
         mAirplaneModeCallback.refreshView(mAirplaneModeTile, mAirplaneModeState);*/
-    }
+    //}
 	
     /*/ Wifi
     void addWifiTile(QuickSettingsTileView view, RefreshCallback cb) {
@@ -353,7 +351,7 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
         mWifiCallback.refreshView(mWifiTile, mWifiState);
     }*/
     // Remove the double quotes that the SSID may contain
-    public static String removeDoubleQuotes(String string) {
+    /*public static String removeDoubleQuotes(String string) {
         if (string == null) return null;
         final int length = string.length();
         if ((length > 1) && (string.charAt(0) == '"') && (string.charAt(length - 1) == '"')) {
@@ -433,7 +431,7 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
                     : r.getString(R.string.quick_settings_rssi_emergency_only);
             mRSSICallback.refreshView(mRSSITile, mRSSIState);
         }
-    }
+    }*/
 
     /*/ Bluetooth
     void addBluetoothTile(QuickSettingsTileView view, RefreshCallback cb) {

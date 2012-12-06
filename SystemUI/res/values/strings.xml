@@ -619,7 +619,7 @@
     <string name="usb_title">USB</string>
     <string name="usb_tethering_button_text">USB Tethering</string>
     <!-- USB available subtext - shown when USB is connected but not currently being tethered -->
-    <string name="usb_tethering_available_subtext">Check to tether</string>
+    <string name="usb_tethering_available_subtext">Tap to tether</string>
     <!-- USB tethered subtext - shown when USB is connected and being tethered -->
     <string name="usb_tethering_active_subtext">Tethered</string>
     <!-- USB storage subtext - shown when tethering is disabled because USB storage is active -->
