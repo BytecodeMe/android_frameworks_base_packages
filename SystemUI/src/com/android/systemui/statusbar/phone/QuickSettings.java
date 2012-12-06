@@ -16,42 +16,17 @@
 
 package com.android.systemui.statusbar.phone;
 
-import com.android.internal.view.RotationPolicy;
-import com.android.internal.widget.LockPatternUtils;
-import com.android.systemui.R;
-
-import com.android.systemui.statusbar.phone.QuickSettingsModel.BluetoothState;
-import com.android.systemui.statusbar.phone.QuickSettingsModel.RSSIState;
-import com.android.systemui.statusbar.phone.QuickSettingsModel.State;
-import com.android.systemui.statusbar.phone.QuickSettingsModel.UserState;
-import com.android.systemui.statusbar.phone.QuickSettingsModel.WifiState;
-import com.android.systemui.statusbar.phone.quicktiles.AirplaneModeTile;
-import com.android.systemui.statusbar.phone.quicktiles.AlbumArtTile;
-import com.android.systemui.statusbar.phone.quicktiles.AutoRotateTile;
-import com.android.systemui.statusbar.phone.quicktiles.BluetoothTile;
-import com.android.systemui.statusbar.phone.quicktiles.CustomTile;
-import com.android.systemui.statusbar.phone.quicktiles.DoNotDisturbTile;
-import com.android.systemui.statusbar.phone.quicktiles.GPSModeTile;
-import com.android.systemui.statusbar.phone.quicktiles.LTETile;
-import com.android.systemui.statusbar.phone.quicktiles.TorchTile;
-import com.android.systemui.statusbar.phone.quicktiles.WifiTile;
-import com.android.systemui.statusbar.phone.quicktiles.WirelessADBTile;
-import com.android.systemui.statusbar.policy.BatteryController;
-import com.android.systemui.statusbar.policy.BluetoothController;
-import com.android.systemui.statusbar.policy.BrightnessController;
-import com.android.systemui.statusbar.policy.LocationController;
-import com.android.systemui.statusbar.policy.NetworkController;
-import com.android.systemui.statusbar.policy.ToggleSlider;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import android.app.ActivityManagerNative;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.PendingIntent;
-import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.CursorLoader;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
@@ -64,8 +39,6 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LevelListDrawable;
-import android.hardware.display.DisplayManager;
-import android.hardware.display.WifiDisplayStatus;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.RemoteException;
@@ -83,14 +56,20 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.WindowManagerGlobal;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.HashMap;
+import com.android.internal.widget.LockPatternUtils;
+import com.android.systemui.R;
+import com.android.systemui.statusbar.phone.QuickSettingsModel.State;
+import com.android.systemui.statusbar.phone.QuickSettingsModel.UserState;
+import com.android.systemui.statusbar.phone.quicktiles.*;
+import com.android.systemui.statusbar.policy.BatteryController;
+import com.android.systemui.statusbar.policy.BluetoothController;
+import com.android.systemui.statusbar.policy.BrightnessController;
+import com.android.systemui.statusbar.policy.LocationController;
+import com.android.systemui.statusbar.policy.NetworkController;
+import com.android.systemui.statusbar.policy.ToggleSlider;
 
 
 /**
@@ -127,6 +106,7 @@ class QuickSettings {
     private static final String QUICK_MEDIA = "QuickMedia";
     private static final String QUICK_HOTSPOT = "QuickHotspot";
     private static final String QUICK_TETHER = "QuickTether";
+    private static final String QUICK_SIGNAL = "QuickSignal";
     
     
     private static final HashMap<String, Class<? extends QuickSettingsTileContent>> SETTINGS = 
@@ -139,7 +119,7 @@ class QuickSettings {
         //SETTINGS.put(QUICK_BRIGHTNESS, Brightness.class);
         SETTINGS.put(QUICK_NODISTURB, DoNotDisturbTile.class); 
         SETTINGS.put(QUICK_TORCH, TorchTile.class);
-        //SETTINGS.put(QUICK_SETTING, SettingsShortcut.class);
+        SETTINGS.put(QUICK_SETTING, SettingsShortcutTile.class);
         SETTINGS.put(QUICK_WIFI, WifiTile.class); 
         //SETTINGS.put(QUICK_VOLUME, Volume.class);
         SETTINGS.put(QUICK_LTE, LTETile.class);
@@ -147,11 +127,12 @@ class QuickSettings {
         SETTINGS.put(QUICK_BLUETOOTH, BluetoothTile.class);
         SETTINGS.put(QUICK_ADB, WirelessADBTile.class);
         SETTINGS.put(QUICK_GPS, GPSModeTile.class);
-        //SETTINGS.put(QUICK_MOBILE_DATA, MobileData.class);
+        SETTINGS.put(QUICK_MOBILE_DATA, MobileDataTile.class);
         //SETTINGS.put(QUICK_SYNC, SyncData.class);
         SETTINGS.put(QUICK_MEDIA, AlbumArtTile.class);
         //SETTINGS.put(QUICK_HOTSPOT, Hotspot.class);
-        //SETTINGS.put(QUICK_TETHER, USBTether.class);
+        SETTINGS.put(QUICK_TETHER, USBTetherTile.class);
+        SETTINGS.put(QUICK_SIGNAL, SignalTile.class);
     }
     
     private static final String SETTING_DELIMITER = "|";
@@ -167,6 +148,7 @@ class QuickSettings {
     
     // this is only for testing, do not use
     private static final String SETTINGS_ALL = QUICK_LTE + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_SIGNAL + SUB_DELIMITER + "1,1"
             				 + SETTING_DELIMITER + QUICK_GPS + SUB_DELIMITER + "1,1"
             				 + SETTING_DELIMITER + QUICK_WIFI + SUB_DELIMITER + "1,1"
             				 + SETTING_DELIMITER + QUICK_NODISTURB + SUB_DELIMITER + "1,1"
@@ -176,6 +158,9 @@ class QuickSettings {
                              + SETTING_DELIMITER + QUICK_ADB + SUB_DELIMITER + "1,1"
                              + SETTING_DELIMITER + QUICK_AIRPLANE + SUB_DELIMITER + "1,1"
                              + SETTING_DELIMITER + QUICK_ROTATE + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_SETTING + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_MOBILE_DATA + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_TETHER + SUB_DELIMITER + "1,1"
                              + SETTING_DELIMITER + QUICK_BLUETOOTH + SUB_DELIMITER + "1,1";
     
     private static final String EMPTY_STRING = "";
@@ -188,7 +173,7 @@ class QuickSettings {
     //private DisplayManager mDisplayManager;
     //private WifiDisplayStatus mWifiDisplayStatus;
     private PhoneStatusBar mStatusBarService;
-    private BluetoothState mBluetoothState;
+    //private BluetoothState mBluetoothState;
 
     private BrightnessController mBrightnessController;
     //private BluetoothController mBluetoothController;
@@ -225,7 +210,7 @@ class QuickSettings {
         mContainerView = container;
         mModel = new QuickSettingsModel(context);
         //mWifiDisplayStatus = new WifiDisplayStatus();
-        mBluetoothState = new QuickSettingsModel.BluetoothState();
+        //mBluetoothState = new QuickSettingsModel.BluetoothState();
         mHandler = new Handler();
         
         mLoadedSettings = EMPTY_STRING;
@@ -255,8 +240,8 @@ class QuickSettings {
 		*/
         IntentFilter filter = new IntentFilter();
         //filter.addAction(DisplayManager.ACTION_WIFI_DISPLAY_STATUS_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
-        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        //filter.addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED);
+        //filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         filter.addAction(Intent.ACTION_USER_SWITCHED);
         mContext.registerReceiver(mReceiver, filter);
 
@@ -295,8 +280,11 @@ class QuickSettings {
         	if(qs instanceof WifiTile){
         		networkController.addNetworkSignalChangedCallback((WifiTile)qs);
         	}
+        	if(qs instanceof SignalTile){
+        		networkController.addNetworkSignalChangedCallback((SignalTile)qs);
+        	}
         }
-        networkController.addNetworkSignalChangedCallback(mModel);
+        //networkController.addNetworkSignalChangedCallback(mModel);
         //bluetoothController.addStateChangedCallback(mModel);
         batteryController.addStateChangedCallback(mModel);
         //locationController.addStateChangedCallback(mModel);
@@ -546,7 +534,7 @@ class QuickSettings {
         mDynamicSpannedTiles.add(timeTile);
         */
 
-        // Settings tile
+        /*/ Settings tile
         QuickSettingsTileView settingsTile = (QuickSettingsTileView)
                 inflater.inflate(R.layout.quick_settings_tile, parent, false);
         settingsTile.setContent(R.layout.quick_settings_tile_settings, inflater);
@@ -565,6 +553,7 @@ class QuickSettings {
         });
         parent.addView(settingsTile);
         mDynamicSpannedTiles.add(settingsTile);
+        */
     }
 
     private void addSystemTiles(ViewGroup parent, LayoutInflater inflater) {
@@ -592,7 +581,7 @@ class QuickSettings {
             }
         });
         parent.addView(wifiTile);
-		*/
+		
         if (mModel.deviceSupportsTelephony()) {
             // RSSI
             QuickSettingsTileView rssiTile = (QuickSettingsTileView)
@@ -630,7 +619,7 @@ class QuickSettings {
                 }
             });
             parent.addView(rssiTile);
-        }
+        }*/
 
         // Rotation Lock
         /*if (mContext.getResources().getBoolean(R.bool.quick_settings_show_rotation_lock)) {
@@ -893,7 +882,7 @@ class QuickSettings {
     }
 
     void updateResources() {
-        Resources r = mContext.getResources();
+        //Resources r = mContext.getResources();
 
         // Update the model
         mModel.updateResources();
@@ -1015,18 +1004,18 @@ class QuickSettings {
         dialog.show();
     }
     
-    private void updateWifiDisplayStatus() {
+    //private void updateWifiDisplayStatus() {
         //mWifiDisplayStatus = mDisplayManager.getWifiDisplayStatus();
         //applyWifiDisplayStatus();
-    }
+    //}
 
-    private void applyWifiDisplayStatus() {
+    //private void applyWifiDisplayStatus() {
         //mModel.onWifiDisplayStateChanged(mWifiDisplayStatus);
-    }
+    //}
 
-    private void applyBluetoothStatus() {
+    //private void applyBluetoothStatus() {
         //mModel.onBluetoothStateChange(mBluetoothState);
-    }
+    //}
 
     void reloadUserInfo() {
         if (mUserInfoTask != null) {
@@ -1042,22 +1031,22 @@ class QuickSettings {
         @Override
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
-            if (DisplayManager.ACTION_WIFI_DISPLAY_STATUS_CHANGED.equals(action)) {
-                /*WifiDisplayStatus status = (WifiDisplayStatus)intent.getParcelableExtra(
+            /*if (DisplayManager.ACTION_WIFI_DISPLAY_STATUS_CHANGED.equals(action)) {
+                WifiDisplayStatus status = (WifiDisplayStatus)intent.getParcelableExtra(
                         DisplayManager.EXTRA_WIFI_DISPLAY_STATUS);
                 mWifiDisplayStatus = status;
-                applyWifiDisplayStatus();*/
+                applyWifiDisplayStatus();
             } else if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-                int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
-                        BluetoothAdapter.ERROR);
-                mBluetoothState.enabled = (state == BluetoothAdapter.STATE_ON);
-                applyBluetoothStatus();
+                //int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE,
+                //        BluetoothAdapter.ERROR);
+                //mBluetoothState.enabled = (state == BluetoothAdapter.STATE_ON);
+                //applyBluetoothStatus();
             } else if (BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED.equals(action)) {
-                int status = intent.getIntExtra(BluetoothAdapter.EXTRA_CONNECTION_STATE,
-                        BluetoothAdapter.STATE_DISCONNECTED);
-                mBluetoothState.connected = (status == BluetoothAdapter.STATE_CONNECTED);
-                applyBluetoothStatus();
-            } else if (Intent.ACTION_USER_SWITCHED.equals(action)) {
+                //int status = intent.getIntExtra(BluetoothAdapter.EXTRA_CONNECTION_STATE,
+                //        BluetoothAdapter.STATE_DISCONNECTED);
+                //mBluetoothState.connected = (status == BluetoothAdapter.STATE_CONNECTED);
+                //applyBluetoothStatus();
+            } else */ if (Intent.ACTION_USER_SWITCHED.equals(action)) {
                 reloadUserInfo();
             }
         }
