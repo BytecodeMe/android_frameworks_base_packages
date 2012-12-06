@@ -91,7 +91,7 @@ public abstract class QuickSettingsTileContent {
 		} catch (RemoteException e) {
 		}
 
-		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		mContext.startActivityAsUser(intent, new UserHandle(UserHandle.USER_CURRENT));
 		
 		getStatusBarManager().collapsePanels();
@@ -101,6 +101,12 @@ public abstract class QuickSettingsTileContent {
     	final boolean provisioned = 0 != Settings.Global.getInt(
                 mContext.getContentResolver(), Settings.Global.DEVICE_PROVISIONED, 0);
     	return provisioned;
+    }
+    
+    public static class State {
+    	public int iconId;
+    	public String label;
+    	public boolean enabled = false;
     }
     
 }
