@@ -180,13 +180,13 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
     //private RefreshCallback mAirplaneModeCallback;
     //private State mAirplaneModeState = new State();
 
-    private QuickSettingsTileView mWifiTile;
-    private RefreshCallback mWifiCallback;
+    //private QuickSettingsTileView mWifiTile;
+    //private RefreshCallback mWifiCallback;
     private WifiState mWifiState = new WifiState();
 
-    private QuickSettingsTileView mWifiDisplayTile;
-    private RefreshCallback mWifiDisplayCallback;
-    private State mWifiDisplayState = new State();
+    //private QuickSettingsTileView mWifiDisplayTile;
+    //private RefreshCallback mWifiDisplayCallback;
+    //private State mWifiDisplayState = new State();
 
     private QuickSettingsTileView mRSSITile;
     private RefreshCallback mRSSICallback;
@@ -346,12 +346,12 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
         mAirplaneModeCallback.refreshView(mAirplaneModeTile, mAirplaneModeState);*/
     }
 	
-    // Wifi
+    /*/ Wifi
     void addWifiTile(QuickSettingsTileView view, RefreshCallback cb) {
         mWifiTile = view;
         mWifiCallback = cb;
         mWifiCallback.refreshView(mWifiTile, mWifiState);
-    }
+    }*/
     // Remove the double quotes that the SSID may contain
     public static String removeDoubleQuotes(String string) {
         if (string == null) return null;
@@ -394,7 +394,8 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
             mWifiState.label = r.getString(R.string.quick_settings_wifi_off_label);
             mWifiState.signalContentDescription = r.getString(R.string.accessibility_wifi_off);
         }
-        mWifiCallback.refreshView(mWifiTile, mWifiState);
+        //mWifiCallback.refreshView(mWifiTile, mWifiState);
+        
     }
 
     // RSSI
@@ -531,7 +532,7 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
         mBugreportCallback.refreshView(mBugreportTile, mBugreportState);
     }
 
-    // Wifi Display
+    /*/ Wifi Display
     void addWifiDisplayTile(QuickSettingsTileView view, RefreshCallback cb) {
         mWifiDisplayTile = view;
         mWifiDisplayCallback = cb;
@@ -549,7 +550,7 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
         }
         mWifiDisplayCallback.refreshView(mWifiDisplayTile, mWifiDisplayState);
 
-    }
+    }*/
 
     // IME
     void addImeTile(QuickSettingsTileView view, RefreshCallback cb) {
