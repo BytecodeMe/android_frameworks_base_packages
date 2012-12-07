@@ -107,6 +107,7 @@ class QuickSettings {
     private static final String QUICK_HOTSPOT = "QuickHotspot";
     private static final String QUICK_TETHER = "QuickTether";
     private static final String QUICK_SIGNAL = "QuickSignal";
+    private static final String QUICK_BATTERY = "QuickBattery";
     
     
     private static final HashMap<String, Class<? extends QuickSettingsTileContent>> SETTINGS = 
@@ -133,6 +134,7 @@ class QuickSettings {
         //SETTINGS.put(QUICK_HOTSPOT, Hotspot.class);
         SETTINGS.put(QUICK_TETHER, USBTetherTile.class);
         SETTINGS.put(QUICK_SIGNAL, SignalTile.class);
+        SETTINGS.put(QUICK_BATTERY, BatteryTile.class);
     }
     
     private static final String SETTING_DELIMITER = "|";
@@ -149,6 +151,7 @@ class QuickSettings {
     // this is only for testing, do not use
     private static final String SETTINGS_ALL = QUICK_LTE + SUB_DELIMITER + "1,1"
                              + SETTING_DELIMITER + QUICK_SIGNAL + SUB_DELIMITER + "1,1"
+                             + SETTING_DELIMITER + QUICK_BATTERY + SUB_DELIMITER + "1,1"
             				 + SETTING_DELIMITER + QUICK_GPS + SUB_DELIMITER + "1,1"
             				 + SETTING_DELIMITER + QUICK_WIFI + SUB_DELIMITER + "1,1"
             				 + SETTING_DELIMITER + QUICK_NODISTURB + SUB_DELIMITER + "1,1"
@@ -184,8 +187,8 @@ class QuickSettings {
 
     private AsyncTask<Void, Void, Pair<String, Drawable>> mUserInfoTask;
 
-    private LevelListDrawable mBatteryLevels;
-    private LevelListDrawable mChargingBatteryLevels;
+    //private LevelListDrawable mBatteryLevels;
+    //private LevelListDrawable mChargingBatteryLevels;
 
     boolean mTilesSetUp = false;
 
@@ -216,9 +219,9 @@ class QuickSettings {
         mLoadedSettings = EMPTY_STRING;
 
         Resources r = mContext.getResources();
-        mBatteryLevels = (LevelListDrawable) r.getDrawable(R.drawable.qs_sys_battery);
-        mChargingBatteryLevels =
-                (LevelListDrawable) r.getDrawable(R.drawable.qs_sys_battery_charging);
+        //mBatteryLevels = (LevelListDrawable) r.getDrawable(R.drawable.qs_sys_battery);
+        //mChargingBatteryLevels =
+        //        (LevelListDrawable) r.getDrawable(R.drawable.qs_sys_battery_charging);
         mBrightnessDialogLongTimeout =
                 r.getInteger(R.integer.quick_settings_brightness_dialog_long_timeout);
         mBrightnessDialogShortTimeout =
@@ -283,10 +286,13 @@ class QuickSettings {
         	if(qs instanceof SignalTile){
         		networkController.addNetworkSignalChangedCallback((SignalTile)qs);
         	}
+        	if(qs instanceof BatteryTile){
+        		batteryController.addStateChangedCallback((BatteryTile)qs);
+        	}
         }
         //networkController.addNetworkSignalChangedCallback(mModel);
         //bluetoothController.addStateChangedCallback(mModel);
-        batteryController.addStateChangedCallback(mModel);
+        //batteryController.addStateChangedCallback(mModel);
         //locationController.addStateChangedCallback(mModel);
         //RotationPolicy.registerRotationPolicyListener(mContext, mRotationPolicyListener,
         //        UserHandle.USER_ALL);
@@ -644,7 +650,7 @@ class QuickSettings {
             parent.addView(rotationLockTile);
         //}
         */
-        // Battery
+        /*/ Battery
         QuickSettingsTileView batteryTile = (QuickSettingsTileView)
                 inflater.inflate(R.layout.quick_settings_tile, parent, false);
         batteryTile.setContent(R.layout.quick_settings_tile_battery, inflater);
@@ -682,7 +688,7 @@ class QuickSettings {
             }
         });
         parent.addView(batteryTile);
-
+		*/
         /* Airplane Mode
         QuickSettingsTileView airplaneTile = (QuickSettingsTileView)
                 inflater.inflate(R.layout.quick_settings_tile, parent, false);

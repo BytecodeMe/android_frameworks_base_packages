@@ -36,7 +36,8 @@ import android.view.GestureDetector.OnGestureListener;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.FrameLayout.LayoutParams;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ImageView.ScaleType;
 import android.widget.Toast;
 
@@ -206,14 +207,10 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         Bitmap defaultImage = MusicUtils.getDefaultArtwork(mContext);
         mImageView.setImageBitmap(defaultImage);
         
-        LayoutParams lp = (LayoutParams) mTextView.getLayoutParams();
-        lp.width = LayoutParams.MATCH_PARENT;
-        lp.height = LayoutParams.WRAP_CONTENT;
-        lp.gravity = Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM;
-        
-        mTextView.setLayoutParams(lp);
         mTextView.setText(R.string.status_bar_settings_mediaplayer);
         mTextView.setBackgroundColor(0xCC000000);
+        
+        adjustLayouts();
         
         // dont even bother going any further
         if(!findMusicService())return;
@@ -265,6 +262,22 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         if(mMusicLoader!=null){
             mMusicLoader.forceLoad();
         }
+    }
+    
+    void adjustLayouts(){
+    	FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) ((LinearLayout)mTextView.getParent()).getLayoutParams();
+        lp.width = FrameLayout.LayoutParams.MATCH_PARENT;
+        lp.height = FrameLayout.LayoutParams.WRAP_CONTENT;
+        lp.gravity = Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM;
+        
+        ((LinearLayout)mTextView.getParent()).setLayoutParams(lp);
+        
+        LinearLayout.LayoutParams lp2 = (LinearLayout.LayoutParams) mTextView.getLayoutParams();
+        lp2.width = LinearLayout.LayoutParams.MATCH_PARENT;
+        lp2.height = LinearLayout.LayoutParams.WRAP_CONTENT;
+        lp2.gravity = Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM;
+        
+        mTextView.setLayoutParams(lp2);
     }
     
     private void updateTrackInfo() {
