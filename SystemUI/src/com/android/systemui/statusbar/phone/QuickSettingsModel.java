@@ -36,14 +36,13 @@ import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputMethodSubtype;
 
 import com.android.systemui.R;
-import com.android.systemui.statusbar.policy.BatteryController.BatteryStateChangeCallback;
 import com.android.systemui.statusbar.policy.BrightnessController.BrightnessStateChangeCallback;
 import com.android.systemui.statusbar.policy.CurrentUserTracker;
 
 
 class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
         /*NetworkSignalChangedCallback,*/
-        BatteryStateChangeCallback,
+        /*BatteryStateChangeCallback,*/
         /*LocationGpsStateChangeCallback,*/
         BrightnessStateChangeCallback {
 
@@ -56,30 +55,30 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
         String label;
         boolean enabled = false;
     }
-    static class BatteryState extends State {
-        int batteryLevel;
-        boolean pluggedIn;
-    }
-    static class RSSIState extends State {
-        int signalIconId;
-        String signalContentDescription;
-        int dataTypeIconId;
-        String dataContentDescription;
-    }
-    static class WifiState extends State {
-        String signalContentDescription;
-        boolean connected;
-    }
+    //static class BatteryState extends State {
+    //    int batteryLevel;
+    //    boolean pluggedIn;
+    //}
+    //static class RSSIState extends State {
+    //    int signalIconId;
+    //    String signalContentDescription;
+    //    int dataTypeIconId;
+    //    String dataContentDescription;
+    //}
+    //static class WifiState extends State {
+    //    String signalContentDescription;
+    //    boolean connected;
+    //}
     static class UserState extends State {
         Drawable avatar;
     }
     static class BrightnessState extends State {
         boolean autoBrightness;
     }
-    public static class BluetoothState extends State {
-        boolean connected = false;
-        String stateContentDescription;
-    }
+    //public static class BluetoothState extends State {
+    //    boolean connected = false;
+    //    String stateContentDescription;
+    //}
 
     /** The callback to update a given tile. */
     interface RefreshCallback {
@@ -194,9 +193,9 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
     //private RefreshCallback mBluetoothCallback;
     //private BluetoothState mBluetoothState = new BluetoothState();
 
-    private QuickSettingsTileView mBatteryTile;
-    private RefreshCallback mBatteryCallback;
-    private BatteryState mBatteryState = new BatteryState();
+    //private QuickSettingsTileView mBatteryTile;
+    //private RefreshCallback mBatteryCallback;
+    //private BatteryState mBatteryState = new BatteryState();
 
     //private QuickSettingsTileView mLocationTile;
     //private RefreshCallback mLocationCallback;
@@ -247,7 +246,7 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
 
     void updateResources() {
         //refreshSettingsTile();
-        refreshBatteryTile();
+        //refreshBatteryTile();
         //refreshBluetoothTile();
         refreshBrightnessTile();
         //refreshRotationLockTile();
@@ -480,7 +479,7 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
         }
     }
 	*/
-    // Battery
+    /*/ Battery
     void addBatteryTile(QuickSettingsTileView view, RefreshCallback cb) {
         mBatteryTile = view;
         mBatteryCallback = cb;
@@ -496,7 +495,7 @@ class QuickSettingsModel implements /*BluetoothStateChangeCallback,*/
     void refreshBatteryTile() {
         mBatteryCallback.refreshView(mBatteryTile, mBatteryState);
     }
-
+	*/
     /*/ Location
     void addLocationTile(QuickSettingsTileView view, RefreshCallback cb) {
         mLocationTile = view;

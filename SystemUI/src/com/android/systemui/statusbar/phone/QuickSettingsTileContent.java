@@ -42,6 +42,7 @@ public abstract class QuickSettingsTileContent {
     protected ImageView mRSSIImage;
     protected ImageView mRSSIImageOverlay;
     protected TextView mRSSITextView;
+    protected ImageView mBatteryImageView;
     protected ImageView mImageView;
     protected TextView mTextView;
     protected String mTag;
@@ -58,6 +59,7 @@ public abstract class QuickSettingsTileContent {
     	mRSSITextView = (TextView)mContentView.findViewById(R.id.rssi_tv);
     	mRSSIImage = (ImageView)mContentView.findViewById(R.id.rssi_image);
     	mRSSIImageOverlay = (ImageView)mContentView.findViewById(R.id.rssi_overlay_image);
+    	mBatteryImageView = (ImageView)mContentView.findViewById(R.id.quick_settings_battery_image);
         mImageView = (ImageView)mContentView.findViewById(R.id.quick_settings_iv);
         mTextView = (TextView)mContentView.findViewById(R.id.quick_settings_tv);
     }
