@@ -1,20 +1,15 @@
 package com.android.systemui.statusbar.phone.quicktiles;
 
-import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
-import com.android.systemui.statusbar.policy.BatteryController.BatteryStateChangeCallback;
-
-import com.android.systemui.R;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LevelListDrawable;
-
-import android.view.Gravity;
 import android.view.View;
-import android.widget.FrameLayout.LayoutParams;
-import android.widget.ImageView.ScaleType;
+
+import com.android.systemui.R;
+import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
+import com.android.systemui.statusbar.policy.BatteryController.BatteryStateChangeCallback;
 
 public class BatteryTile extends QuickSettingsTileContent implements
 		View.OnClickListener, BatteryStateChangeCallback {

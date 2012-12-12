@@ -62,7 +62,7 @@ public class SignalTile extends QuickSettingsTileContent implements
 	public void onClick(View v) {
 		launchActivity(new Intent(Intent.ACTION_MAIN).setClassName(
 				"com.android.settings",
-				"com.android.settings.Settings$DataUsageSummaryActivity"));
+				"com.android.settings.deviceinfo.Status"));
 	}
 
 	// NetworkSignalChanged callback
