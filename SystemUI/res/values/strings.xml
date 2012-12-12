@@ -528,7 +528,21 @@
     <string name="quick_settings_gps_off">GPS Off</string>
     <!-- QuickSettings: GPS button on [CHAR LIMIT=NONE] -->
     <string name="quick_settings_gps_on">GPS On</string>
-
+    <!-- QuickSettings: Sync button on [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_sync_on">Auto-Sync On</string>
+    <!-- QuickSettings: Sync button off [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_sync_off">Auto-Sync Off</string>
+    <!-- QuickSettings: Mobile Data button off [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_mobile_data_off">Mobile Data Off</string>
+    <!-- QuickSettings: Mobile Data button on [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_mobile_data_on">Mobile Data On</string>
+    <!-- QuickSettings: Wi-Fi Hotspot button on [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_hotspot_on">Hotspot On</string>
+    <!-- QuickSettings: Wi-Fi Hotspot button off [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_hotspot_off">Hotspot Off</string>
+	 <!-- QuickSettings: Alarm button off [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_alarm_off">Alarm Off</string>
+    
     <!-- Title of help text shown when the notification panel is pulled down for the very first time. [CHAR LIMIT=NONE] -->
     <string name="status_bar_help_title">Notifications appear here</string>
     <!-- Body of help text shown when the notification panel is pulled down for the very first time. [CHAR LIMIT=NONE] -->

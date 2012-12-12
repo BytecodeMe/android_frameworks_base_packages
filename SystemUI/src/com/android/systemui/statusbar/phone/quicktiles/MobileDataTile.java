@@ -7,7 +7,6 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.view.View;
 
-
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
 
@@ -25,7 +24,7 @@ public class MobileDataTile extends QuickSettingsTileContent implements
 		mDataMode = mConnManager.getMobileDataEnabled();
 		init();
 	}
-	
+
 	@Override
 	protected void init() {
 		mContentView.setOnClickListener(this);
@@ -35,27 +34,29 @@ public class MobileDataTile extends QuickSettingsTileContent implements
 		IntentFilter filter = new IntentFilter();
 		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
 		mContext.registerReceiver(mReceiver, filter);
-		
+
 		updateGUI();
 	}
 
 	@Override
 	public void onClick(View v) {
 		mContentView.setEnabled(false);
-		mTextView.setText(mDataMode?"Disabling...":"Enabling...");
+		mTextView.setText(mDataMode ? "Disabling..." : "Enabling...");
 		mConnManager.setMobileDataEnabled(!mDataMode);
 	}
 
 	@Override
 	public boolean onLongClick(View v) {
 		launchActivity(new Intent(Intent.ACTION_MAIN).setClassName(
-				"com.android.phone", "com.android.phone.Settings"));
+				"com.android.settings",
+				"com.android.settings.Settings$DataUsageSummaryActivity"));
 		return true;
 	}
-	
+
 	private void updateGUI() {
 		mContentView.setEnabled(true);
-		mTextView.setText(R.string.status_bar_settings_mobiledata);
+		mTextView.setText(mDataMode ? R.string.quick_settings_mobile_data_on
+				: R.string.quick_settings_mobile_data_off);
 		mTextView.setCompoundDrawablesWithIntrinsicBounds(0,
 				mDataMode ? R.drawable.ic_qs_mobile_data_on
 						: R.drawable.ic_qs_mobile_data_off, 0, 0);

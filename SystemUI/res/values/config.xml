@@ -94,7 +94,7 @@
 
     <!-- Timeouts for brightness dialog to disappear -->
     <integer name="quick_settings_brightness_dialog_short_timeout">2000</integer>
-    <integer name="quick_settings_brightness_dialog_long_timeout">4000</integer>
+    <integer name="quick_settings_brightness_dialog_long_timeout">10000</integer>
 
     <integer name="blinds_pop_duration_ms">10</integer>
 
