@@ -163,7 +163,7 @@ public class KeyButtonView extends ImageView {
         // set the color overlay
         final int color = Settings.System.getInt(mContext.getContentResolver(), 
                 Settings.System.NAVBAR_BUTTON_COLOR, Color.WHITE);
-        Log.d(TAG, "setting color overlay to "+Integer.toHexString(color));
+        if(DEBUG) Log.d(TAG, "setting color overlay to "+Integer.toHexString(color));
 
         this.clearColorFilter();
         this.setColorFilter(getFilter(color));
