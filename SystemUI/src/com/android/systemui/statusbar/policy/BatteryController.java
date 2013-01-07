@@ -130,7 +130,7 @@ public class BatteryController extends BroadcastReceiver {
             		if(showCharge == CHARGING_TEXT_SHOW){
             			mBatteryText.setText(mContext.getString(R.string.status_bar_settings_battery_meter_format_phone,
                     			mOldLevel)); 
-                		mBatteryText.setBackgroundDrawable(null);
+                		mBatteryText.setBackground(null);
             		}else if (showCharge == CHARGING_TEXT_ALTERNATE){
             			if(!mAnimating){
             				animateCharging();
@@ -138,17 +138,17 @@ public class BatteryController extends BroadcastReceiver {
             		}
             	}else if (mOldPlugged && (showCharge == CHARGING_TEXT_DISABLE) && showText){
             		mBatteryText.setText("");  
-            		mBatteryText.setBackgroundDrawable(getChargingIndicator());
+            		mBatteryText.setBackground(getChargingIndicator());
             	}else if(showText){
             		mBatteryText.setText(mContext.getString(R.string.status_bar_settings_battery_meter_format_phone,
                 			mOldLevel)); 
-            		mBatteryText.setBackgroundDrawable(null);
+            		mBatteryText.setBackground(null);
             	}else if(mOldPlugged){
             		mBatteryText.setText("");  
-            		mBatteryText.setBackgroundDrawable(getChargingIndicator());
+            		mBatteryText.setBackground(getChargingIndicator());
             	}else{
             		mBatteryText.setText("");  
-            		mBatteryText.setBackgroundDrawable(null);
+            		mBatteryText.setBackground(null);
             	}
             	setTextPadding();              	
             }else{
@@ -262,13 +262,13 @@ public class BatteryController extends BroadcastReceiver {
 			public void run() {				
 				mBatteryText.setText(mContext.getString(R.string.status_bar_settings_battery_meter_format_phone,
             			mOldLevel)); 
-        		mBatteryText.setBackgroundDrawable(null);
+        		mBatteryText.setBackground(null);
 			}			
 		};
 		final Runnable showCharge = new Runnable(){
 			public void run() {				
 				mBatteryText.setText("");  
-        		mBatteryText.setBackgroundDrawable(getChargingIndicator());
+        		mBatteryText.setBackground(getChargingIndicator());
 			}			
 		};
 		final Runnable refresh = new Runnable(){
