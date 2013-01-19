@@ -55,6 +55,7 @@ import com.android.systemui.statusbar.DelegateViewHelper;
 import com.android.systemui.statusbar.policy.CustomKeyButtonView;
 import com.android.systemui.statusbar.policy.KeyButtonView;
 import com.android.systemui.statusbar.policy.DeadZone;
+import com.android.systemui.statusbar.policy.SkinHelper;
 
 public class NavigationBarView extends LinearLayout {
     final static boolean DEBUG = false;
@@ -182,10 +183,10 @@ public class NavigationBarView extends LinearLayout {
         mShowMenu = false;
         mDelegateHelper = new DelegateViewHelper(this);
 
-        mBackIcon = res.getDrawable(R.drawable.ic_sysbar_back);
-        mBackLandIcon = res.getDrawable(R.drawable.ic_sysbar_back_land);
-        mBackAltIcon = res.getDrawable(R.drawable.ic_sysbar_back_ime);
-        mBackAltLandIcon = res.getDrawable(R.drawable.ic_sysbar_back_ime);
+        mBackIcon = SkinHelper.getIconDrawable(context, R.drawable.ic_sysbar_back,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mBackLandIcon = SkinHelper.getIconDrawable(context, R.drawable.ic_sysbar_back_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mBackAltIcon = SkinHelper.getIconDrawable(context, R.drawable.ic_sysbar_back_ime,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mBackAltLandIcon = SkinHelper.getIconDrawable(context, R.drawable.ic_sysbar_back_ime,Settings.System.CUSTOM_NAVBAR_PACKAGE);
     }
 
     public void notifyScreenOn(boolean screenOn) {
@@ -262,31 +263,31 @@ public class NavigationBarView extends LinearLayout {
     	
     	mHasReflections = withReflect;   	
     	final Resources res = mContext.getResources();
-    	mBackIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_back_reflect : R.drawable.ic_sysbar_back);
-    	mBackLandIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_back_land_reflect : R.drawable.ic_sysbar_back_land);
+    	mBackIcon = SkinHelper.getIconDrawable(mContext,withReflect ? R.drawable.ic_sysbar_back_reflect : R.drawable.ic_sysbar_back,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+    	mBackLandIcon = SkinHelper.getIconDrawable(mContext,withReflect ? R.drawable.ic_sysbar_back_land_reflect : R.drawable.ic_sysbar_back_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
     	
     	if(getRightMenuButton() != null){
-	    	getRightMenuButton().setImageDrawable(res.getDrawable(mVertical 
+	    	getRightMenuButton().setImageDrawable(SkinHelper.getIconDrawable(mContext,(mVertical 
 	    			? (withReflect ? R.drawable.ic_sysbar_menu_land_reflect : R.drawable.ic_sysbar_menu_land) 
-	    			: (withReflect ? R.drawable.ic_sysbar_menu_reflect : R.drawable.ic_sysbar_menu)));
+	    			: (withReflect ? R.drawable.ic_sysbar_menu_reflect : R.drawable.ic_sysbar_menu)),Settings.System.CUSTOM_NAVBAR_PACKAGE));
     	}
     	if(getBackButton() != null){
 	    	getBackButton().setImageDrawable(mVertical ? mBackLandIcon : mBackIcon);
     	}
     	if(getHomeButton() != null){
-	    	getHomeButton().setImageDrawable(res.getDrawable(mVertical 
+	    	getHomeButton().setImageDrawable(SkinHelper.getIconDrawable(mContext,(mVertical 
 	    			? (withReflect ? R.drawable.ic_sysbar_home_land_reflect : R.drawable.ic_sysbar_home_land) 
-	    			: (withReflect ? R.drawable.ic_sysbar_home_reflect : R.drawable.ic_sysbar_home)));
+	    			: (withReflect ? R.drawable.ic_sysbar_home_reflect : R.drawable.ic_sysbar_home)),Settings.System.CUSTOM_NAVBAR_PACKAGE));
     	}
     	if(getRecentsButton() != null){
-	    	getRecentsButton().setImageDrawable(res.getDrawable(mVertical 
+	    	getRecentsButton().setImageDrawable(SkinHelper.getIconDrawable(mContext,(mVertical 
 	    			? (withReflect ? R.drawable.ic_sysbar_recent_land_reflect : R.drawable.ic_sysbar_recent_land) 
-	    			: (withReflect ? R.drawable.ic_sysbar_recent_reflect : R.drawable.ic_sysbar_recent)));
+	    			: (withReflect ? R.drawable.ic_sysbar_recent_reflect : R.drawable.ic_sysbar_recent)),Settings.System.CUSTOM_NAVBAR_PACKAGE));
     	}
     	if(getSearchButton() != null){
-    		getSearchButton().setImageDrawable(res.getDrawable(mVertical 
+    		getSearchButton().setImageDrawable(SkinHelper.getIconDrawable(mContext,(mVertical 
         			? (withReflect ? R.drawable.ic_sysbar_search_land_reflect : R.drawable.ic_sysbar_search_land) 
-        	    	: (withReflect ? R.drawable.ic_sysbar_search_reflect : R.drawable.ic_sysbar_search)));
+        	    	: (withReflect ? R.drawable.ic_sysbar_search_reflect : R.drawable.ic_sysbar_search)),Settings.System.CUSTOM_NAVBAR_PACKAGE));
     	}
     	// this needs to be here to fix the buttons appearing white after the first
     	// orientation change

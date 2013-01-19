@@ -244,6 +244,7 @@ public class NetworkController extends BroadcastReceiver {
             filter.addAction(WimaxManagerConstants.SIGNAL_LEVEL_CHANGED_ACTION);
             filter.addAction(WimaxManagerConstants.NET_4G_STATE_CHANGED_ACTION);
         }
+        filter.addAction(Intent.ACTION_SIGNAL_ICON_CHANGED);
         context.registerReceiver(this, filter);
 
         // AIRPLANE_MODE_CHANGED is sent at boot; we've probably already missed it
@@ -406,6 +407,8 @@ public class NetworkController extends BroadcastReceiver {
                 action.equals(WimaxManagerConstants.SIGNAL_LEVEL_CHANGED_ACTION) ||
                 action.equals(WimaxManagerConstants.WIMAX_NETWORK_STATE_CHANGED_ACTION)) {
             updateWimaxState(intent);
+            refreshViews();
+        }else if (action.equals(Intent.ACTION_BATTERY_ICON_CHANGED)){            
             refreshViews();
         }
     }

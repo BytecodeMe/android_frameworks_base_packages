@@ -23,6 +23,10 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 
@@ -130,7 +134,7 @@ public class BluetoothController extends BroadcastReceiver {
         int N = mIconViews.size();
         for (int i=0; i<N; i++) {
             ImageView v = mIconViews.get(i);
-            v.setImageResource(mIconId);
+            v.setImageDrawable(SkinHelper.getIconDrawable(mContext,mIconId,Settings.System.CUSTOM_SIGNAL_PACKAGE));
             v.setVisibility(mEnabled ? View.VISIBLE : View.GONE);
             v.setContentDescription((mContentDescriptionId == 0)
                     ? null
@@ -139,5 +143,5 @@ public class BluetoothController extends BroadcastReceiver {
         for (BluetoothStateChangeCallback cb : mChangeCallbacks) {
             cb.onBluetoothStateChange(mEnabled);
         }
-    }
+    }    
 }
