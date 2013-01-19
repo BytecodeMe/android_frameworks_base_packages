@@ -42,6 +42,7 @@ import android.widget.LinearLayout;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.policy.CustomKeyButtonView;
+import com.android.systemui.statusbar.policy.SkinHelper;
 
 public class CustomNavigationBarView extends NavigationBarView {
     final static boolean DEBUG = false;
@@ -99,15 +100,15 @@ public class CustomNavigationBarView extends NavigationBarView {
         mMenuWidth = res.getDimensionPixelSize(R.dimen.navigation_menu_key_width);        
         mContext = context;
         mMenuMode = Settings.System.getInt(context.getContentResolver(), Settings.System.NAVBAR_MENU_MODE,MENU_DEFAULT);        
-        mMenuLeftIcon = res.getDrawable(R.drawable.ic_sysbar_menu);
-        mMenuLeftLandIcon = res.getDrawable(R.drawable.ic_sysbar_menu_land);
-        mMenuLeftAltIcon = res.getDrawable(R.drawable.ic_sysbar_left_arrow);
-        mMenuLeftAltLandIcon = res.getDrawable(R.drawable.ic_sysbar_left_arrow_land);
+        mMenuLeftIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_menu,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuLeftLandIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_menu_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuLeftAltIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_left_arrow,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuLeftAltLandIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_left_arrow_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
         
-        mMenuRightIcon = res.getDrawable(R.drawable.ic_sysbar_menu);
-        mMenuRightLandIcon = res.getDrawable(R.drawable.ic_sysbar_menu_land);
-        mMenuRightAltIcon = res.getDrawable(R.drawable.ic_sysbar_right_arrow);
-        mMenuRightAltLandIcon = res.getDrawable(R.drawable.ic_sysbar_right_arrow_land);
+        mMenuRightIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_menu,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuRightLandIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_menu_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuRightAltIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_right_arrow,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuRightAltLandIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_right_arrow_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
         
         mSettingsObserver.observe();
     }
@@ -395,13 +396,13 @@ public class CustomNavigationBarView extends NavigationBarView {
 		
 		super.setButtonImages(withReflect);    	
     	final Resources res = mContext.getResources();    	
-    	mMenuLeftIcon = mMenuRightIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_menu_reflect : R.drawable.ic_sysbar_menu);
-    	mMenuLeftLandIcon = mMenuRightIcon = res.getDrawable(withReflect ? R.drawable.ic_sysbar_menu_land_reflect : R.drawable.ic_sysbar_menu_land);    	
+    	mMenuLeftIcon = mMenuRightIcon = SkinHelper.getIconDrawable(mContext,(withReflect ? R.drawable.ic_sysbar_menu_reflect : R.drawable.ic_sysbar_menu),Settings.System.CUSTOM_NAVBAR_PACKAGE);
+    	mMenuLeftLandIcon = mMenuRightIcon = SkinHelper.getIconDrawable(mContext,(withReflect ? R.drawable.ic_sysbar_menu_land_reflect : R.drawable.ic_sysbar_menu_land),Settings.System.CUSTOM_NAVBAR_PACKAGE);
     	
     	if(getLargeMenuButton() != null){
-    		getLargeMenuButton().setImageDrawable(res.getDrawable(mVertical 
+    		getLargeMenuButton().setImageDrawable(SkinHelper.getIconDrawable(mContext,(mVertical 
         			? (withReflect ? R.drawable.ic_sysbar_menu_large_land_reflect : R.drawable.ic_sysbar_menu_large_land) 
-        			: (withReflect ? R.drawable.ic_sysbar_menu_large_reflect : R.drawable.ic_sysbar_menu_large)));
+        			: (withReflect ? R.drawable.ic_sysbar_menu_large_reflect : R.drawable.ic_sysbar_menu_large)),Settings.System.CUSTOM_NAVBAR_PACKAGE));
     	}
     	getRightMenuButton().setImageDrawable(mHideRight ? null :
     				mVertical ? mMenuRightLandIcon : mMenuRightIcon);

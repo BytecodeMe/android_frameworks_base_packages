@@ -171,7 +171,7 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
 	}    
     
     public void setGlowBG(boolean land){
-    	mGlowBG = getResources().getDrawable(land ? R.drawable.ic_sysbar_highlight_land : R.drawable.ic_sysbar_highlight);
+    	mGlowBG = SkinHelper.getIconDrawable(mContext,(land ? R.drawable.ic_sysbar_highlight_land : R.drawable.ic_sysbar_highlight),Settings.System.CUSTOM_NAVBAR_PACKAGE);
         if (mGlowBG != null) {
             setDrawingAlpha(BUTTON_QUIESCENT_ALPHA);
             mGlowWidth = mGlowBG.getIntrinsicWidth();

@@ -17,6 +17,7 @@
 package com.android.systemui.statusbar;
 
 import android.content.Context;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Slog;
 import android.view.View;
@@ -26,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.android.systemui.statusbar.policy.NetworkController;
+import com.android.systemui.statusbar.policy.SkinHelper;
 
 import com.android.systemui.R;
 
@@ -46,6 +48,7 @@ public class SignalClusterView
     private boolean mIsAirplaneMode = false;
     private int mAirplaneIconId = 0;
     private String mWifiDescription, mMobileDescription, mMobileTypeDescription;
+    private Context mContext;
 
     ViewGroup mWifiGroup, mMobileGroup;
     ImageView mWifi, mMobile, mWifiActivity, mMobileActivity, mMobileType, mAirplane;
@@ -61,6 +64,7 @@ public class SignalClusterView
 
     public SignalClusterView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        mContext = context;
     }
 
     public void setNetworkController(NetworkController nc) {
@@ -149,8 +153,8 @@ public class SignalClusterView
 
         if (mWifiVisible) {
             mWifiGroup.setVisibility(View.VISIBLE);
-            mWifi.setImageResource(mWifiStrengthId);
-            mWifiActivity.setImageResource(mWifiActivityId);
+            mWifi.setImageDrawable(SkinHelper.getIconDrawable(mContext, mWifiStrengthId,Settings.System.CUSTOM_SIGNAL_PACKAGE));
+            mWifiActivity.setImageDrawable(SkinHelper.getIconDrawable(mContext,mWifiActivityId,Settings.System.CUSTOM_SIGNAL_PACKAGE));
             mWifiGroup.setContentDescription(mWifiDescription);
         } else {
             mWifiGroup.setVisibility(View.GONE);
@@ -163,9 +167,9 @@ public class SignalClusterView
 
         if (mMobileVisible && !mIsAirplaneMode) {
             mMobileGroup.setVisibility(View.VISIBLE);
-            mMobile.setImageResource(mMobileStrengthId);
-            mMobileActivity.setImageResource(mMobileActivityId);
-            mMobileType.setImageResource(mMobileTypeId);
+            mMobile.setImageDrawable(SkinHelper.getIconDrawable(mContext,mMobileStrengthId,Settings.System.CUSTOM_SIGNAL_PACKAGE));
+            mMobileActivity.setImageDrawable(SkinHelper.getIconDrawable(mContext,mMobileActivityId,Settings.System.CUSTOM_SIGNAL_PACKAGE));
+            mMobileType.setImageDrawable(SkinHelper.getIconDrawable(mContext,mMobileTypeId,Settings.System.CUSTOM_SIGNAL_PACKAGE));
             mMobileGroup.setContentDescription(mMobileTypeDescription + " " + mMobileDescription);
         } else {
             mMobileGroup.setVisibility(View.GONE);
@@ -173,7 +177,7 @@ public class SignalClusterView
 
         if (mIsAirplaneMode) {
             mAirplane.setVisibility(View.VISIBLE);
-            mAirplane.setImageResource(mAirplaneIconId);
+            mAirplane.setImageDrawable(SkinHelper.getIconDrawable(mContext,mAirplaneIconId,Settings.System.CUSTOM_SIGNAL_PACKAGE));
         } else {
             mAirplane.setVisibility(View.GONE);
         }
