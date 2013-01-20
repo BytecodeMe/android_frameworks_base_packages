@@ -757,6 +757,9 @@ public class PhoneStatusBar extends BaseStatusBar {
 					.getUriFor(Settings.System.CENTER_STATUSBAR_CLOCK), false,
 					this);
 			resolver.registerContentObserver(Settings.System
+					.getUriFor(Settings.System.STATUS_CLOCK_COLOR), false,
+					this);
+			resolver.registerContentObserver(Settings.System
 					.getUriFor(Settings.System.NAVBAR_EASTER_EGG), false, this);
 			resolver.registerContentObserver(
 					Settings.System.getUriFor(Settings.System.NAVBAR_KEY_ORDER),
@@ -1487,8 +1490,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 
 	public void updateClock() {
 
-		View clock = mStatusBarView.findViewById(R.id.clock);
-		View clock2 = mStatusBarView.findViewById(R.id.clock2);
+		TextView clock = (TextView) mStatusBarView.findViewById(R.id.clock);
+		TextView clock2 = (TextView) mStatusBarView.findViewById(R.id.clock2);
 
 		boolean centerClock = Settings.System.getInt(
 				mContext.getContentResolver(),
@@ -1499,7 +1502,14 @@ public class PhoneStatusBar extends BaseStatusBar {
 		boolean disabled = ((mDisabled & StatusBarManager.DISABLE_CLOCK) != 0);
 
 		if ((clock != null) && (clock2 != null)) {
-
+			
+			int color = Settings.System.getInt(mContext.getContentResolver(),
+					Settings.System.STATUS_CLOCK_COLOR, mContext.getResources().getColor(
+							android.R.color.holo_blue_light));
+			
+			clock.setTextColor(color);
+			clock2.setTextColor(color);
+			
 			if (visible && !disabled) {
 				if (centerClock) {
 					clock.setVisibility(View.GONE);
