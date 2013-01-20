@@ -261,8 +261,7 @@ public class NavigationBarView extends LinearLayout {
     }
     public void setButtonImages (boolean withReflect){
     	
-    	mHasReflections = withReflect;   	
-    	final Resources res = mContext.getResources();
+    	mHasReflections = withReflect;    	
     	mBackIcon = SkinHelper.getIconDrawable(mContext,withReflect ? R.drawable.ic_sysbar_back_reflect : R.drawable.ic_sysbar_back,Settings.System.CUSTOM_NAVBAR_PACKAGE);
     	mBackLandIcon = SkinHelper.getIconDrawable(mContext,withReflect ? R.drawable.ic_sysbar_back_land_reflect : R.drawable.ic_sysbar_back_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
     	
