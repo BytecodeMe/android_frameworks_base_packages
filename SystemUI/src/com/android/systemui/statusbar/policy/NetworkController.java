@@ -132,6 +132,8 @@ public class NetworkController extends BroadcastReceiver {
 
     private boolean mAirplaneMode = false;
     private boolean mLastAirplaneMode = true;
+    
+    private boolean mForce = false;
 
     // our ui
     Context mContext;
@@ -408,7 +410,8 @@ public class NetworkController extends BroadcastReceiver {
                 action.equals(WimaxManagerConstants.WIMAX_NETWORK_STATE_CHANGED_ACTION)) {
             updateWimaxState(intent);
             refreshViews();
-        }else if (action.equals(Intent.ACTION_BATTERY_ICON_CHANGED)){            
+        }else if (action.equals(Intent.ACTION_SIGNAL_ICON_CHANGED)){  
+        	mForce = true;
             refreshViews();
         }
     }
@@ -1194,7 +1197,8 @@ public class NetworkController extends BroadcastReceiver {
          || mLastWifiIconId                 != mWifiIconId
          || mLastWimaxIconId                != mWimaxIconId
          || mLastDataTypeIconId             != mDataTypeIconId
-         || mLastAirplaneMode               != mAirplaneMode)
+         || mLastAirplaneMode               != mAirplaneMode
+         || mForce)
         {
             // NB: the mLast*s will be updated later
             for (SignalCluster cluster : mSignalClusters) {
@@ -1203,6 +1207,7 @@ public class NetworkController extends BroadcastReceiver {
             for (NetworkSignalChangedCallback cb : mSignalsChangedCallbacks) {
                 notifySignalsChangedCallbacks(cb);
             }
+            mForce = false;
         }
 
         if (mLastAirplaneMode != mAirplaneMode) {
