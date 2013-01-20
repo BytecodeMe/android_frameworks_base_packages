@@ -206,7 +206,8 @@ public class PhoneStatusBarPolicy {
 
         // Alarm clock
         mService.setIcon("alarm_clock", R.drawable.stat_sys_alarm, 0, null);
-        mService.setIconVisibility("alarm_clock", false);
+        updateAlarm(null);
+        //mService.setIconVisibility("alarm_clock", false);
 
         // Sync state
         mService.setIcon("sync_active", R.drawable.stat_sys_sync, 0, null);
@@ -222,15 +223,17 @@ public class PhoneStatusBarPolicy {
     }
 
     private final void updateAlarm(Intent intent) {
-    	//boolean showAlarm = mShouldShowAlarm;
+    	
+    	final ContentResolver cr = mContext.getContentResolver();
+    	
     	boolean alarmSet = mShouldShowAlarm;
     	if(intent != null){
-    		alarmSet = mShouldShowAlarm = intent.getBooleanExtra("alarmSet", false);
-    		
-        		
-        	
+    		alarmSet = mShouldShowAlarm = intent.getBooleanExtra("alarmSet", false);  
+    		Settings.System.putInt(cr, Settings.System.LAST_ALARM_STATE, alarmSet ? 1 : 0);
+    	}else{
+    		alarmSet = mShouldShowAlarm = (Settings.System.getInt(cr, Settings.System.LAST_ALARM_STATE,0) == 1);
     	}
-		boolean showAlarm = Settings.System.getInt(mContext.getContentResolver(), Settings.System.SHOW_STATUSBAR_ALARM,1) == 1;
+		boolean showAlarm = Settings.System.getInt(cr, Settings.System.SHOW_STATUSBAR_ALARM,1) == 1;
         mService.setIconVisibility("alarm_clock", alarmSet && showAlarm);
     }
 
