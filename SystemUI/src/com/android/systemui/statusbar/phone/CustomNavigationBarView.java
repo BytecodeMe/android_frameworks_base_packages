@@ -126,6 +126,8 @@ public class CustomNavigationBarView extends NavigationBarView {
 		    
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.NAVBAR_MENU_MODE), false, this);
+            resolver.registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.CUSTOM_NAVBAR_PACKAGE), false, this);
              
         }
         
@@ -138,9 +140,11 @@ public class CustomNavigationBarView extends NavigationBarView {
         	mMenuMode = Settings.System.getInt(mContext.getContentResolver(), Settings.System.NAVBAR_MENU_MODE,MENU_DEFAULT);        	
         	for(int i = 0;i<mRotatedViews.length;i++){
 				configureMenuKeys(mRotatedViews[i].findViewById(R.id.nav_buttons));        		
-			}  
+			} 
+        	setButtonImages(mHasReflections);
         	updateMenuImages();
 			setMenuVisibility(mShowMenu, true /* force */,mArrows);
+			
         }
     }
 
@@ -394,8 +398,7 @@ public class CustomNavigationBarView extends NavigationBarView {
 	@Override
 	public void setButtonImages (boolean withReflect){
 		
-		super.setButtonImages(withReflect);    	
-    	final Resources res = mContext.getResources();    	
+		super.setButtonImages(withReflect);     	   	
     	mMenuLeftIcon = mMenuRightIcon = SkinHelper.getIconDrawable(mContext,(withReflect ? R.drawable.ic_sysbar_menu_reflect : R.drawable.ic_sysbar_menu),Settings.System.CUSTOM_NAVBAR_PACKAGE);
     	mMenuLeftLandIcon = mMenuRightIcon = SkinHelper.getIconDrawable(mContext,(withReflect ? R.drawable.ic_sysbar_menu_land_reflect : R.drawable.ic_sysbar_menu_land),Settings.System.CUSTOM_NAVBAR_PACKAGE);
     	
