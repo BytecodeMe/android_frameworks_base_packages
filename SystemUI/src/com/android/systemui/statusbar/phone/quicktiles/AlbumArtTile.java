@@ -7,6 +7,10 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 
+import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorSet;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentUris;
@@ -37,8 +41,8 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.ImageView.ScaleType;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.android.systemui.R;
@@ -47,7 +51,7 @@ import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
 public class AlbumArtTile extends QuickSettingsTileContent {
 
 	private static final String TAG = AlbumArtTile.class.getSimpleName();
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     
     private static final int REFRESH = 1;
     private static final int GET_ALBUM_ART = 3;
@@ -63,6 +67,7 @@ public class AlbumArtTile extends QuickSettingsTileContent {
 
     private Worker mAlbumArtWorker;
     private AlbumArtHandler mAlbumArtHandler;
+    private boolean mAutoFlip;
     
     private CursorLoader mLoader;
     private CursorLoader mMusicLoader;
@@ -207,6 +212,11 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         Bitmap defaultImage = MusicUtils.getDefaultArtwork(mContext);
         mImageView.setImageBitmap(defaultImage);
         
+        mBatteryImageView.setVisibility(View.VISIBLE);
+        mBatteryImageView.setImageResource(R.drawable.btn_playback_play_normal_holo_dark);
+        mBatteryImageView.setAlpha(0.0f);
+        mBatteryImageView.setScaleType(ScaleType.CENTER_CROP);
+        
         mTextView.setText(R.string.status_bar_settings_mediaplayer);
         mTextView.setBackgroundColor(0xCC000000);
         
@@ -227,6 +237,8 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         filter.addAction(MusicUtils.PLAYSTATE_CHANGED);
         filter.addAction(MusicUtils.META_CHANGED);
         mContext.registerReceiver(mReceiver, filter);
+        
+        mAutoFlip = true;
            
         loadAlbumsData();
         loadOnlineAlbumsData();
@@ -265,19 +277,34 @@ public class AlbumArtTile extends QuickSettingsTileContent {
     }
     
     void adjustLayouts(){
-    	FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) ((LinearLayout)mTextView.getParent()).getLayoutParams();
+    	final FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) ((LinearLayout)mTextView.getParent()).getLayoutParams();
         lp.width = FrameLayout.LayoutParams.MATCH_PARENT;
         lp.height = FrameLayout.LayoutParams.WRAP_CONTENT;
         lp.gravity = Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM;
         
-        ((LinearLayout)mTextView.getParent()).setLayoutParams(lp);
+        //((LinearLayout)mTextView.getParent()).setLayoutParams(lp);
         
-        LinearLayout.LayoutParams lp2 = (LinearLayout.LayoutParams) mTextView.getLayoutParams();
+        final LinearLayout.LayoutParams lp2 = (LinearLayout.LayoutParams) mTextView.getLayoutParams();
         lp2.width = LinearLayout.LayoutParams.MATCH_PARENT;
         lp2.height = LinearLayout.LayoutParams.WRAP_CONTENT;
         lp2.gravity = Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM;
         
-        mTextView.setLayoutParams(lp2);
+        //mTextView.setLayoutParams(lp2);
+        
+        final FrameLayout.LayoutParams lp3 = (FrameLayout.LayoutParams) ((LinearLayout)mBatteryImageView.getParent()).getLayoutParams();
+        lp3.width = FrameLayout.LayoutParams.MATCH_PARENT;
+        lp3.height = FrameLayout.LayoutParams.MATCH_PARENT;
+        lp3.gravity = Gravity.CENTER_HORIZONTAL;
+        
+        //((LinearLayout)mBatteryImageView.getParent()).setLayoutParams(lp3);
+        
+        final LinearLayout.LayoutParams lp4 = (LinearLayout.LayoutParams) mBatteryImageView.getLayoutParams();
+        lp4.width = LinearLayout.LayoutParams.MATCH_PARENT;
+        lp4.height = 0;
+        lp4.gravity = Gravity.CENTER_HORIZONTAL;
+        lp4.weight = 1;
+        
+        //mBatteryImageView.setLayoutParams(lp4);
     }
     
     private void updateTrackInfo() {
@@ -354,14 +381,18 @@ public class AlbumArtTile extends QuickSettingsTileContent {
             ex.printStackTrace();
         }
     }
-    /*
-    private void setPauseButtonImage() {
+    
+    private void animatePlayPauseImage() {
         if(mPlaying){
-            mPlayer.setPauseImage();
+        	mBatteryImageView.setImageResource(R.drawable.btn_playback_play_normal_holo_dark);
         }else{
-            mPlayer.setPlayImage();
+        	mBatteryImageView.setImageResource(R.drawable.btn_playback_pause_normal_holo_dark);
         }
-    }*/
+        final AnimatorSet anim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.grow_and_fade);
+		anim.setTarget(mBatteryImageView);
+		anim.setDuration(500);
+		anim.start();
+    }
     
     public class GestureScanner implements OnGestureListener {
 	    @Override
@@ -371,9 +402,11 @@ public class AlbumArtTile extends QuickSettingsTileContent {
 	                return false;
 	            // right to left swipe
 	            if(e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-	            	sendMediaButtonEvent("com.android.music.musicservicecommand.previous");
+	            	mAutoFlip = false;
+	            	flipTile(R.anim.flip_left, "com.android.music.musicservicecommand.previous");
 	            }  else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-	            	sendMediaButtonEvent("com.android.music.musicservicecommand.next");
+	            	mAutoFlip = false;
+	            	flipTile(R.anim.flip_right, "com.android.music.musicservicecommand.next");
 	            }
 	        } catch (Exception e) {
 	            // nothing
@@ -411,22 +444,80 @@ public class AlbumArtTile extends QuickSettingsTileContent {
 		}
     }
     
+    private void flipTile(int animId, final String mediaCommand){
+    	final AnimatorSet anim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, animId);
+		anim.setTarget(mContentView.getParent());
+		anim.setDuration(400);		
+		anim.addListener(new AnimatorListener(){
+
+			@Override
+			public void onAnimationEnd(Animator animation) {}
+
+			@Override
+			public void onAnimationStart(Animator animation) {
+				if(mediaCommand!=null){
+					sendMediaButtonEvent(mediaCommand);
+				}
+			}
+			@Override
+			public void onAnimationCancel(Animator animation) {}
+			@Override
+			public void onAnimationRepeat(Animator animation) {
+			}
+			
+		});
+		anim.start();
+    }
+    
     private BroadcastReceiver mReceiver = new BroadcastReceiver(){
 
         @Override
         public void onReceive(Context context, Intent intent) {
             
-            String action = intent.getAction();
+        	boolean changedPlayState = false;
+        	
+        	StringBuilder sb = new StringBuilder();
+        	sb.append("mPlaying is the same: ");
+        	sb.append(mPlaying==intent.getBooleanExtra("playstate", mPlaying));
+        	sb.append("\n");
+        	sb.append("mSongId: ");
+        	sb.append(mSongId);
+        	sb.append("\n");
+        	sb.append("New songId: ");
+        	sb.append(intent.getLongExtra("id", -1));
+        	sb.append("\n");
+        	
             mArtist = intent.getStringExtra("artist");
             mAlbum = intent.getStringExtra("album");
             mTrack = intent.getStringExtra("track");
-            mPlaying = intent.getBooleanExtra("playstate", mPlaying);
+            // do we need to show the play/pause image?
+            if(mPlaying!=intent.getBooleanExtra("playstate", mPlaying)){
+            	mPlaying = intent.getBooleanExtra("playstate", mPlaying);
+            	changedPlayState = true;
+            	mAutoFlip = false;
+            }
+            if(mSongId==intent.getLongExtra("id", -1)){
+            	mAutoFlip = false;
+            }
             mSongId = intent.getLongExtra("id", -1);
             mAlbumId = -1;
             
+            sb.append("changedPlayState: ");
+            sb.append(changedPlayState);
+        	sb.append("\n");
+        	sb.append("mAutoFlip: ");
+        	sb.append(mAutoFlip);
+        	
+        	if(DEBUG)Log.d(TAG, sb.toString());
+            
             updateTrackInfo();
-            //setPauseButtonImage();
-            //mPlayer.invalidate();
+            if(changedPlayState){
+            	animatePlayPauseImage();
+            }
+        	if(mAutoFlip){
+        		flipTile(R.anim.flip_right,null);
+        	}
+        	mAutoFlip = true;
         }
         
     };
@@ -449,9 +540,6 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case ALBUM_ART_DECODED:
-                    //mIcon.setScaleType(ScaleType.CENTER_INSIDE);
-                    //mIcon.setImageBitmap((Bitmap)msg.obj);
-                    //mIcon.getDrawable().setDither(true);
                 	mImageView.setScaleType(ScaleType.FIT_CENTER);
                 	mImageView.setImageBitmap((Bitmap)msg.obj);
                 	mImageView.getDrawable().setDither(true);
