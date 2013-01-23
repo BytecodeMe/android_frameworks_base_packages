@@ -25,18 +25,22 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.view.View;
+import android.view.ViewParent;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.android.systemui.R;
+import com.android.systemui.statusbar.policy.ToggleSlider;
 
 /**
  * This class holds the preference views
  */
 public abstract class QuickSettingsTileContent {
     protected FrameLayout mContentView;
+    protected TileCallback mCallBack;
     protected Context mContext;
     protected LinearLayout mRSSILayout;
     protected ImageView mRSSIImage;
@@ -45,7 +49,14 @@ public abstract class QuickSettingsTileContent {
     protected ImageView mBatteryImageView;
     protected ImageView mImageView;
     protected TextView mTextView;
+    protected SeekBar mSlider;
     protected String mTag;
+    
+    public interface TileCallback {
+        public void changeSize(int height, int width);
+        public void refreshTiles();
+        public void show(boolean visible);
+    }
 
     public QuickSettingsTileContent(Context context, View view) {
         mContext = context;
@@ -62,6 +73,7 @@ public abstract class QuickSettingsTileContent {
     	mBatteryImageView = (ImageView)mContentView.findViewById(R.id.quick_settings_battery_image);
         mImageView = (ImageView)mContentView.findViewById(R.id.quick_settings_iv);
         mTextView = (TextView)mContentView.findViewById(R.id.quick_settings_tv);
+        mSlider = (SeekBar)mContentView.findViewById(R.id.slider);
     }
     
     protected abstract void init();

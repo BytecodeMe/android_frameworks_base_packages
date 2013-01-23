@@ -18,13 +18,19 @@ package com.android.systemui.statusbar.phone;
 
 import java.util.Arrays;
 
+import android.animation.Animator;
 import android.animation.LayoutTransition;
+import android.animation.TimeInterpolator;
 import android.content.Context;
 import android.content.res.Resources;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 
 import com.android.systemui.R;

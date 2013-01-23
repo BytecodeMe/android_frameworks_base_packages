@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LevelListDrawable;
+import android.os.Handler;
+import android.view.MotionEvent;
 import android.view.View;
 
 import com.android.systemui.R;
@@ -17,6 +19,7 @@ public class BatteryTile extends QuickSettingsTileContent implements
 	private BatteryState mBatteryState = new BatteryState();
 	private LevelListDrawable mBatteryLevels;
 	private LevelListDrawable mChargingBatteryLevels;
+	private Handler mHandler = new Handler();
 
 	public BatteryTile(Context context, View view) {
 		super(context, view);
@@ -33,6 +36,24 @@ public class BatteryTile extends QuickSettingsTileContent implements
 				.getDrawable(R.drawable.qs_sys_battery);
 		mChargingBatteryLevels = (LevelListDrawable) r
 				.getDrawable(R.drawable.qs_sys_battery_charging);
+		mSlider.setOnTouchListener(new View.OnTouchListener(){
+
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				switch(event.getAction()){
+					case MotionEvent.ACTION_DOWN:
+					case MotionEvent.ACTION_MOVE:
+						mHandler.removeCallbacks(mResetRunnable);
+						return false;
+					case MotionEvent.ACTION_UP:
+					case MotionEvent.ACTION_CANCEL:
+						mHandler.postDelayed(mResetRunnable, 3000);
+						return false;
+				}
+				return false;
+			}
+			
+		});
 
 	}
 
@@ -74,7 +95,13 @@ public class BatteryTile extends QuickSettingsTileContent implements
 
 	@Override
 	public void onClick(View v) {
-		launchActivity(new Intent(Intent.ACTION_POWER_USAGE_SUMMARY));
+		//launchActivity(new Intent(Intent.ACTION_POWER_USAGE_SUMMARY));
+		mHandler.removeCallbacks(mResetRunnable);
+		if(mCallBack!=null){
+			mSlider.setVisibility(View.VISIBLE);
+			mCallBack.changeSize(1,3);
+			mHandler.postDelayed(mResetRunnable, 3000);
+		}
 	}
 
 	@Override
@@ -87,5 +114,15 @@ public class BatteryTile extends QuickSettingsTileContent implements
 	public void refreshResources() {
 		updateGUI(mBatteryState);
 	}
+	
+	Runnable mResetRunnable = new Runnable(){
+
+		@Override
+		public void run() {
+			mSlider.setVisibility(View.GONE);
+			mCallBack.changeSize(1,1);
+		}
+		
+	};
 
 }
