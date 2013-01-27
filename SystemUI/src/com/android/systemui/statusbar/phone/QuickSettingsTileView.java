@@ -46,12 +46,19 @@ class QuickSettingsTileView extends FrameLayout {
         mColSpan = 1;
         mRowSpan = 1;
         
-        Random generator = new Random();
-        int color = context.getResources().getColor(Colors[generator.nextInt(Colors.length)]);
-        this.setBackgroundColor(color);
+        if(enableColors()){
+	        Random generator = new Random();
+	        int color = context.getResources().getColor(Colors[generator.nextInt(Colors.length)]);
+	        this.setBackgroundColor(color);
+        }
     }
 
-    void setColumnSpan(int span) {
+    private boolean enableColors() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	void setColumnSpan(int span) {
         mColSpan = span;
     }
 
