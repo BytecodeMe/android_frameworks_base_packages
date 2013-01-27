@@ -8,6 +8,7 @@ import android.util.Log;
 
 public class SkinHelper {
 
+	static final boolean DBG = false;
 	static final String TAG = "StatusBar.SkinHelper";
 
 	public static Drawable getIconDrawable(Context c, int resId, String type) {
@@ -22,14 +23,14 @@ public class SkinHelper {
 		String packageName = Settings.System.getString(c.getContentResolver(),
 				type);
 
-		Log.w(TAG, "looking for drawable: " + image + "From: " + packageName);
+		if(DBG)Log.w(TAG, "looking for drawable: " + image + "From: " + packageName);
 
 		if (packageName != null && !packageName.isEmpty()) {
 			try {
 				res = c.getPackageManager().getResourcesForApplication(
 						packageName);
 			} catch (Exception e) {
-				Log.w(TAG, "Error Resolving custom signal package: "
+				if(DBG)Log.w(TAG, "Error Resolving custom signal package: "
 						+ packageName);
 				Settings.System.putString(c.getContentResolver(), type, "");
 			}
@@ -39,7 +40,7 @@ public class SkinHelper {
 				d = res.getDrawable(res.getIdentifier(image, "drawable",
 						packageName));
 			} catch (Exception e) {
-				Log.w(TAG, "couldn't get drawable from " + packageName);
+				if(DBG)Log.w(TAG, "couldn't get drawable from " + packageName);
 			}
 
 		}
