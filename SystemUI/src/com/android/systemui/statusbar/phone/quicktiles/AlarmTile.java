@@ -110,7 +110,7 @@ public class AlarmTile extends QuickSettingsTileContent implements
 			// this is not really needed but here for completeness
 			mTextView.setText(R.string.quick_settings_alarm_off);
 			mTextView.setCompoundDrawablesWithIntrinsicBounds(0,
-					R.drawable.ic_qs_alarm_on, 0, 0);
+					R.drawable.ic_qs_alarm_off, 0, 0);
 		}
 		mContentView
 				.setContentDescription(mContext.getString(
