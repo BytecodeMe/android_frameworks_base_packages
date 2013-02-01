@@ -545,6 +545,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 			if (mNotificationButton != null) {
 				mNotificationButton
 						.setOnClickListener(mNotificationButtonListener);
+				mNotificationButton
+						.setOnLongClickListener(mNotificationButtonLongClick);
 			}
 		}
 
@@ -2770,6 +2772,18 @@ public class PhoneStatusBar extends BaseStatusBar {
 	private View.OnClickListener mNotificationButtonListener = new View.OnClickListener() {
 		public void onClick(View v) {
 			animateExpandNotificationsPanel();
+		}
+	};
+	
+	private View.OnLongClickListener mNotificationButtonLongClick = new View.OnLongClickListener() {
+		
+		@Override
+		public boolean onLongClick(View v) {
+			if(mQS!=null){
+				mQS.toggleEgg();
+				return true;
+			}
+			return false;
 		}
 	};
 

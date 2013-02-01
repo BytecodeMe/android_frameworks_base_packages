@@ -18,6 +18,8 @@ package com.android.systemui.statusbar.phone;
 
 import java.util.Random;
 
+import com.android.systemui.R;
+
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -46,17 +48,17 @@ class QuickSettingsTileView extends FrameLayout {
         mColSpan = 1;
         mRowSpan = 1;
         
-        if(enableColors()){
+    }
+    
+    void setEgg(boolean enabled){
+    	if(enabled){
 	        Random generator = new Random();
-	        int color = context.getResources().getColor(Colors[generator.nextInt(Colors.length)]);
+	        int color = getContext().getResources().getColor(Colors[generator.nextInt(Colors.length)]);
 	        this.setBackgroundColor(color);
+        }else{
+        	this.setBackgroundResource(R.drawable.qs_tile_background);
         }
     }
-
-    private boolean enableColors() {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	void setColumnSpan(int span) {
         mColSpan = span;
