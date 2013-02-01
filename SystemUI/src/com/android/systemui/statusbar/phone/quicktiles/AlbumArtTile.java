@@ -161,7 +161,7 @@ public class AlbumArtTile extends QuickSettingsTileContent {
     private void loadAlbumsData(){
         // load all of the albums into a cursor
         // we use this to compare to the meta data in order to
-        // find the proper ablum id that we can use to 
+        // find the proper album id that we can use to 
         // grab the correct album art
         String[] projection = { MediaStore.Audio.Media.ALBUM_ID, MediaStore.Audio.Media.ALBUM };
         String selection = "";
@@ -187,7 +187,7 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         //TODO: allow the user to unlock this link to Google Music
         // so that this may work as a general media button event
         
-        if(mMusicPackage == null || mMusicPackage == null){
+        if(mMusicPackage == null || mMusicService == null){
             Log.w(TAG, "The Google music service was not found");
             Toast.makeText(mContext, "Google Music was not found", Toast.LENGTH_SHORT).show();
         }

@@ -20,9 +20,16 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import android.animation.Animator;
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorSet;
+import android.animation.Animator.AnimatorListener;
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Handler;
 import android.provider.Settings;
+import android.text.util.QuickTileToken;
+import android.text.util.QuickTileTokenizer;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,7 +39,6 @@ import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.quicktiles.*;
 import com.android.systemui.statusbar.policy.BatteryController;
 import com.android.systemui.statusbar.policy.BluetoothController;
-import com.android.systemui.statusbar.policy.BrightnessController;
 import com.android.systemui.statusbar.policy.LocationController;
 import com.android.systemui.statusbar.policy.NetworkController;
 
@@ -45,102 +51,73 @@ class QuickSettings {
 	public static final boolean SHOW_IME_TILE = false;
 	private static final boolean DEBUG = true;
 
-	private ArrayList<QuickSettingsTileContent> mAllCustomTiles;
+	private ArrayList<QuickSettingsTileContent> mAllCustomTiles = new ArrayList<QuickSettingsTileContent>();
 	private String mLoadedSettings;
 	private boolean mTilesSetUp = false;
 
 	private final HashMap<String, Boolean> mConfigs = new HashMap<String, Boolean>();
-
-	/**
-	 *  These must be in sync with QuickSettingsUtil in BAMF settings and vice versa
-	 */
-	//TODO: move these to Settings.System in an array instead of maintaining two copies
-	private static final String QUICK_AIRPLANE = "QuickAirplane";
-	private static final String QUICK_ROTATE = "QuickRotate";
-	private static final String QUICK_BRIGHTNESS = "QuickBrightness";
-	private static final String QUICK_BLUETOOTH = "QuickBluetooth";
-	private static final String QUICK_NODISTURB = "QuickNoDisturb";
-	private static final String QUICK_TORCH = "QuickTorch";
-	private static final String QUICK_SETTING = "QuickSetting";
-	private static final String QUICK_WIFI = "QuickWifi";
-	private static final String QUICK_VOLUME = "QuickVolume";
-	private static final String QUICK_LTE = "QuickLTE";
-	private static final String QUICK_CUSTOM = "QuickCustom";
-	private static final String QUICK_ADB = "QuickAdb";
-	private static final String QUICK_GPS = "QuickGPS";
-	private static final String QUICK_MOBILE_DATA = "QuickMobileData";
-	private static final String QUICK_SYNC = "QuickSync";
-	private static final String QUICK_MEDIA = "QuickMedia";
-	private static final String QUICK_HOTSPOT = "QuickHotspot";
-	private static final String QUICK_TETHER = "QuickTether";
-	private static final String QUICK_SIGNAL = "QuickSignal";
-	private static final String QUICK_BATTERY = "QuickBattery";
-	private static final String QUICK_ALARM = "QuickAlarm";
-	private static final String QUICK_USER = "QuickUser";
-
-
 	private static final HashMap<String, Class<? extends QuickSettingsTileContent>> SETTINGS = 
 			new HashMap<String, Class<? extends QuickSettingsTileContent>>();
 
 	// TODO: ones that are not converted yet are commented out here
 	static{
-		SETTINGS.put(QUICK_AIRPLANE, AirplaneModeTile.class);
-		SETTINGS.put(QUICK_ROTATE, AutoRotateTile.class);
-		SETTINGS.put(QUICK_BRIGHTNESS, BrightnessTile.class);
-		SETTINGS.put(QUICK_NODISTURB, DoNotDisturbTile.class); 
-		SETTINGS.put(QUICK_TORCH, TorchTile.class);
-		SETTINGS.put(QUICK_SETTING, SettingsShortcutTile.class);
-		SETTINGS.put(QUICK_WIFI, WifiTile.class); 
-		//SETTINGS.put(QUICK_VOLUME, Volume.class);
-		SETTINGS.put(QUICK_LTE, LTETile.class);
-		SETTINGS.put(QUICK_CUSTOM, CustomTile.class);
-		SETTINGS.put(QUICK_BLUETOOTH, BluetoothTile.class);
-		SETTINGS.put(QUICK_ADB, WirelessADBTile.class);
-		SETTINGS.put(QUICK_GPS, GPSModeTile.class);
-		SETTINGS.put(QUICK_MOBILE_DATA, MobileDataTile.class);
-		SETTINGS.put(QUICK_SYNC, SyncDataTile.class);
-		SETTINGS.put(QUICK_MEDIA, AlbumArtTile.class);
-		SETTINGS.put(QUICK_HOTSPOT, HotspotTile.class);
-		SETTINGS.put(QUICK_TETHER, USBTetherTile.class);
-		SETTINGS.put(QUICK_SIGNAL, SignalTile.class);
-		SETTINGS.put(QUICK_BATTERY, BatteryTile.class);
-		SETTINGS.put(QUICK_ALARM, AlarmTile.class);
-		SETTINGS.put(QUICK_USER, UserTile.class);
+		SETTINGS.put(Settings.System.QUICK_AIRPLANE, AirplaneModeTile.class);
+		SETTINGS.put(Settings.System.QUICK_ROTATE, AutoRotateTile.class);
+		SETTINGS.put(Settings.System.QUICK_BRIGHTNESS, BrightnessTile.class);
+		SETTINGS.put(Settings.System.QUICK_NODISTURB, DoNotDisturbTile.class); 
+		SETTINGS.put(Settings.System.QUICK_TORCH, TorchTile.class);
+		SETTINGS.put(Settings.System.QUICK_SETTING, SettingsShortcutTile.class);
+		SETTINGS.put(Settings.System.QUICK_WIFI, WifiTile.class); 
+		//SETTINGS.put(Settings.System.QUICK_VOLUME, Volume.class);
+		SETTINGS.put(Settings.System.QUICK_LTE, LTETile.class);
+		SETTINGS.put(Settings.System.QUICK_CUSTOM, CustomTile.class);
+		SETTINGS.put(Settings.System.QUICK_BLUETOOTH, BluetoothTile.class);
+		SETTINGS.put(Settings.System.QUICK_ADB, WirelessADBTile.class);
+		SETTINGS.put(Settings.System.QUICK_GPS, GPSModeTile.class);
+		SETTINGS.put(Settings.System.QUICK_MOBILE_DATA, MobileDataTile.class);
+		SETTINGS.put(Settings.System.QUICK_SYNC, SyncDataTile.class);
+		SETTINGS.put(Settings.System.QUICK_MEDIA, AlbumArtTile.class);
+		SETTINGS.put(Settings.System.QUICK_HOTSPOT, HotspotTile.class);
+		SETTINGS.put(Settings.System.QUICK_TETHER, USBTetherTile.class);
+		SETTINGS.put(Settings.System.QUICK_SIGNAL, SignalTile.class);
+		SETTINGS.put(Settings.System.QUICK_BATTERY, BatteryTile.class);
+		SETTINGS.put(Settings.System.QUICK_ALARM, AlarmTile.class);
+		SETTINGS.put(Settings.System.QUICK_USER, UserTile.class);
 	}
 
 	private static final String SETTING_DELIMITER = "|";
-	private static final String SUB_DELIMITER = ",";
 
 	// do not use anything here that may not work on ALL devices
-	private static final String SETTINGS_DEFAULT = QUICK_AIRPLANE
-			+ SETTING_DELIMITER + QUICK_MEDIA
-			+ SETTING_DELIMITER + QUICK_VOLUME
-			+ SETTING_DELIMITER + QUICK_ROTATE
-			+ SETTING_DELIMITER + QUICK_BRIGHTNESS
-			+ SETTING_DELIMITER + QUICK_SETTING;
+	private static final String SETTINGS_DEFAULT = new QuickTileToken(Settings.System.QUICK_USER,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_AIRPLANE,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_MEDIA,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_VOLUME,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_ROTATE,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_BRIGHTNESS,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_SETTING,1,1).toString();
 
 	// this is only for testing, do not use
-	private static final String SETTINGS_ALL = QUICK_USER + SUB_DELIMITER + "1,3"
-			+ SETTING_DELIMITER + QUICK_LTE + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_SIGNAL + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_BATTERY + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_GPS + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_WIFI + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_NODISTURB + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_MEDIA + SUB_DELIMITER + "2,2"
-			+ SETTING_DELIMITER + QUICK_TORCH + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_CUSTOM + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_ADB + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_AIRPLANE + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_ROTATE + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_SETTING + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_MOBILE_DATA + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_TETHER + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_BLUETOOTH + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_HOTSPOT + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_BRIGHTNESS + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_SYNC + SUB_DELIMITER + "1,1"
-			+ SETTING_DELIMITER + QUICK_ALARM + SUB_DELIMITER + "1,1";
+	private static final String SETTINGS_ALL = new QuickTileToken(Settings.System.QUICK_USER,1,3).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_LTE,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_SIGNAL,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_BATTERY,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_GPS,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_WIFI,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_NODISTURB,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_MEDIA,2,2).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_TORCH,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_CUSTOM,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_ADB,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_AIRPLANE,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_ROTATE,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_SETTING,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_MOBILE_DATA,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_TETHER,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_BLUETOOTH,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_HOTSPOT,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_BRIGHTNESS,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_SYNC,1,1).toString()
+			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_ALARM,1,1).toString();
 
 	private static final String EMPTY_STRING = "";
 
@@ -148,6 +125,9 @@ class QuickSettings {
 	private PanelBar mBar;
 	private ViewGroup mContainerView;
 	private PhoneStatusBar mStatusBarService;
+
+	private boolean mEggEnabled;
+	private Handler mHandler = new Handler();
 
 	public QuickSettings(Context context, QuickSettingsContainerView container) {
 
@@ -161,22 +141,22 @@ class QuickSettings {
 		// setup config values - only need to load these once
 		// TODO: these configs need to use updated APIs now available
 
-		mConfigs.put(QUICK_TORCH, mContext.getResources()
+		mConfigs.put(Settings.System.QUICK_TORCH, mContext.getResources()
 				.getBoolean(com.android.internal.R.bool.config_allowQuickSettingTorch));
-		mConfigs.put(QUICK_LTE, mContext.getResources()
+		mConfigs.put(Settings.System.QUICK_LTE, mContext.getResources()
 				.getBoolean(com.android.internal.R.bool.config_allowQuickSettingLTE));
-		mConfigs.put(QUICK_MOBILE_DATA, mContext.getResources()
+		mConfigs.put(Settings.System.QUICK_MOBILE_DATA, mContext.getResources()
 				.getBoolean(com.android.internal.R.bool.config_allowQuickSettingMobileData));
-		mConfigs.put(QUICK_HOTSPOT, context.getResources()
+		mConfigs.put(Settings.System.QUICK_HOTSPOT, context.getResources()
 				.getBoolean(com.android.internal.R.bool.config_allowQuickSettingMobileData));
-		mConfigs.put(QUICK_TETHER, context.getResources()
+		mConfigs.put(Settings.System.QUICK_TETHER, context.getResources()
 				.getBoolean(com.android.internal.R.bool.config_allowQuickSettingMobileData));
 
 	}
-	
+
 	void setBar(PanelBar bar) {
-        mBar = bar;
-    }
+		mBar = bar;
+	}
 
 	public void setService(PhoneStatusBar phoneStatusBar) {
 		mStatusBarService = phoneStatusBar;
@@ -189,6 +169,48 @@ class QuickSettings {
 	public void setImeWindowStatus(boolean visible) {
 		//mModel.onImeWindowStatusChanged(visible);
 	}
+
+	void toggleEgg() {
+		// used strictly for the easter egg
+		mEggEnabled = !mEggEnabled;
+		int delay = 0;
+		for(int x = 0; x < mContainerView.getChildCount(); x++){
+			QuickSettingsTileView tileView = (QuickSettingsTileView)mContainerView.getChildAt(x);
+			delay += 100;
+			flipTile(tileView, delay);
+		}
+	}
+	
+	private void flipTile(final QuickSettingsTileView view, int delay){
+    	final AnimatorSet anim = (AnimatorSet) AnimatorInflater.loadAnimator(mContext, R.anim.flip_right);
+		anim.setTarget(view);
+		anim.setDuration(200);		
+		anim.addListener(new AnimatorListener(){
+
+			@Override
+			public void onAnimationEnd(Animator animation) {
+				if(view!=null){
+					view.setEgg(mEggEnabled);
+				}
+			}
+			@Override
+			public void onAnimationStart(Animator animation) {}
+			@Override
+			public void onAnimationCancel(Animator animation) {}
+			@Override
+			public void onAnimationRepeat(Animator animation) {}
+			
+		});
+		
+		Runnable doAnimation = new Runnable(){
+			@Override
+			public void run() {
+				anim.start();
+			}
+		};
+		
+		mHandler.postDelayed(doAnimation, delay);
+    }
 
 	void setup(NetworkController networkController, BluetoothController bluetoothController,
 			BatteryController batteryController, LocationController locationController) {
@@ -219,53 +241,55 @@ class QuickSettings {
 		mTilesSetUp = true;
 	}
 
-	public void addCustomTiles(final ViewGroup parent, LayoutInflater inflater){
+	private void addCustomTiles(final ViewGroup parent, final LayoutInflater inflater){
 
-		String settings = Settings.System.getString(mContext.getContentResolver(), 
+		String savedSettings = Settings.System.getString(mContext.getContentResolver(), 
 				Settings.System.QUICK_SETTINGS_TILES);
-		if(settings == null) {
+		if(savedSettings == null) {
 			if(DEBUG)Log.i(TAG, "Default settings being loaded");
-			settings = SETTINGS_DEFAULT;
+			savedSettings = SETTINGS_DEFAULT;
 		}
 
 		// TODO: remove this after testing
-		settings = SETTINGS_ALL;
+		savedSettings = SETTINGS_ALL;
 
-		if(mLoadedSettings.equals(settings)){
+		if(DEBUG)Log.i(TAG, "quick tiles: "+savedSettings);
+
+		if(mLoadedSettings.equals(savedSettings)){
 			if(DEBUG)Log.i(TAG, "no changes; not reloading");
 			return;
 		}
 
 		// just in case one sneaks in, get rid of it
 		for(String config: mConfigs.keySet()){
-			if(settings.contains(config) && !mConfigs.get(config)){
-				String removeMe = settings.substring(
-						settings.indexOf(config),
-						settings.indexOf("|", settings.indexOf(config))+1);
+			if(savedSettings.contains(config) && !mConfigs.get(config)){
+				String removeMe = savedSettings.substring(
+						savedSettings.indexOf(config),
+						savedSettings.indexOf("|", savedSettings.indexOf(config))+1);
 				if(DEBUG)Log.d(TAG, "removeMe: "+removeMe);
-				settings = settings.replace(removeMe, EMPTY_STRING).replace("||", "|");
+				savedSettings = savedSettings.replace(removeMe, EMPTY_STRING).replace("||", "|");
 			}
 		}
 
+
+		final String settings = savedSettings;
 		mLoadedSettings = settings;
-
-		//removeAllViews();
-
-		mAllCustomTiles = new ArrayList<QuickSettingsTileContent>();
+		
 		int count = 0;
-		for(String setting : settings.split("\\|")) {
-			if(DEBUG)Log.i(TAG, "Inflating setting: " + setting);
-			String[] settingParts = setting.split(",");
-			if(SETTINGS.containsKey(settingParts[0])){
+		for(QuickTileToken token : QuickTileTokenizer.tokenize(settings)) {
+			if(DEBUG)Log.i(TAG, "Inflating setting: " + token.getName());
+
+			if(SETTINGS.containsKey(token.getName())){
 				try {
 					// inflate the setting
 					final QuickSettingsTileView tileView = (QuickSettingsTileView)inflater.inflate(R.layout.quick_settings_tile, mContainerView, false);
 					tileView.setContent(R.layout.quick_settings_tile_general, inflater);
 					// get the tile size from the setting
-					tileView.setRowSpan(Integer.parseInt(settingParts[1]));
-					tileView.setColumnSpan(Integer.parseInt(settingParts[2]));
+					tileView.setRowSpan(token.getRows());
+					tileView.setColumnSpan(token.getColumns());
+					tileView.setEgg(mEggEnabled);
 
-					Class<?> cls = SETTINGS.get(settingParts[0]);
+					Class<?> cls = SETTINGS.get(token.getName());
 
 					Constructor<?> con = cls.getConstructor(new Class[]{Context.class, View.class});
 					QuickSettingsTileContent pref = 
@@ -325,6 +349,22 @@ class QuickSettings {
 
 		((QuickSettingsContainerView)mContainerView).updateResources();
 		mContainerView.requestLayout();
+	}
+
+	void removeAll(){
+		if(mAllCustomTiles.size()==0) return;
+		
+		for(QuickSettingsTileContent qs : mAllCustomTiles){
+			try{
+				qs.release();
+				qs = null;
+			}catch(Exception e){
+				Log.e(TAG, "Error on remove ("+((qs==null)?"None selected":qs.getTag())+")");
+			}
+		}
+		mContainerView.removeAllViews();
+		mAllCustomTiles.clear();
+		
 	}
 
 }
