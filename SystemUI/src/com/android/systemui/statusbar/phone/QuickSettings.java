@@ -55,7 +55,7 @@ class QuickSettings {
 	private String mLoadedSettings;
 	private boolean mTilesSetUp = false;
 
-	private final HashMap<String, Boolean> mConfigs = new HashMap<String, Boolean>();
+	private final ConfigHashMap<String, Boolean> mConfigs = new ConfigHashMap<String, Boolean>();
 	private static final HashMap<String, Class<? extends QuickSettingsTileContent>> SETTINGS = 
 			new HashMap<String, Class<? extends QuickSettingsTileContent>>();
 
@@ -170,8 +170,8 @@ class QuickSettings {
 		//mModel.onImeWindowStatusChanged(visible);
 	}
 
-	void toggleEgg() {
-		// used strictly for the easter egg
+	void toggleColor() {
+		// toggles colored tiles
 		mEggEnabled = !mEggEnabled;
 		int delay = 0;
 		for(int x = 0; x < mContainerView.getChildCount(); x++){
@@ -190,7 +190,7 @@ class QuickSettings {
 			@Override
 			public void onAnimationEnd(Animator animation) {
 				if(view!=null){
-					view.setEgg(mEggEnabled);
+					view.setColor(mEggEnabled);
 				}
 			}
 			@Override
@@ -260,26 +260,16 @@ class QuickSettings {
 			return;
 		}
 
-		// just in case one sneaks in, get rid of it
-		for(String config: mConfigs.keySet()){
-			if(savedSettings.contains(config) && !mConfigs.get(config)){
-				String removeMe = savedSettings.substring(
-						savedSettings.indexOf(config),
-						savedSettings.indexOf("|", savedSettings.indexOf(config))+1);
-				if(DEBUG)Log.d(TAG, "removeMe: "+removeMe);
-				savedSettings = savedSettings.replace(removeMe, EMPTY_STRING).replace("||", "|");
-			}
-		}
-
-
 		final String settings = savedSettings;
 		mLoadedSettings = settings;
 		
 		int count = 0;
 		for(QuickTileToken token : QuickTileTokenizer.tokenize(settings)) {
 			if(DEBUG)Log.i(TAG, "Inflating setting: " + token.getName());
-
-			if(SETTINGS.containsKey(token.getName())){
+			
+			Boolean enabled = mConfigs.getNonNull(token.getName(), true);
+			
+			if(SETTINGS.containsKey(token.getName()) && enabled){
 				try {
 					// inflate the setting
 					final QuickSettingsTileView tileView = (QuickSettingsTileView)inflater.inflate(R.layout.quick_settings_tile, mContainerView, false);
@@ -287,7 +277,7 @@ class QuickSettings {
 					// get the tile size from the setting
 					tileView.setRowSpan(token.getRows());
 					tileView.setColumnSpan(token.getColumns());
-					tileView.setEgg(mEggEnabled);
+					tileView.setColor(mEggEnabled);
 
 					Class<?> cls = SETTINGS.get(token.getName());
 
@@ -365,6 +355,20 @@ class QuickSettings {
 		mContainerView.removeAllViews();
 		mAllCustomTiles.clear();
 		
+	}
+	
+	private class ConfigHashMap<K,V> extends HashMap<K,V> {
+
+		private static final long serialVersionUID = 10L;
+
+		private V getNonNull(Object o, V def){
+			V value = this.get(o);
+			
+			if(value == null){
+				return def;
+			}
+			return value;
+		}
 	}
 
 }
