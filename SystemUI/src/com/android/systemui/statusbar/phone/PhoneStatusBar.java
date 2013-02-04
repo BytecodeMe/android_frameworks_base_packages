@@ -2780,7 +2780,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 		@Override
 		public boolean onLongClick(View v) {
 			if(mQS!=null){
-				mQS.toggleEgg();
+				mQS.toggleColor();
 				return true;
 			}
 			return false;

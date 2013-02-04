@@ -50,7 +50,7 @@ class QuickSettingsTileView extends FrameLayout {
         
     }
     
-    void setEgg(boolean enabled){
+    void setColor(boolean enabled){
     	if(enabled){
 	        Random generator = new Random();
 	        int color = getContext().getResources().getColor(Colors[generator.nextInt(Colors.length)]);
