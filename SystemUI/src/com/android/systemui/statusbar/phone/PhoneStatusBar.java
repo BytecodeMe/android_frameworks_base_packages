@@ -106,6 +106,7 @@ import com.android.systemui.statusbar.policy.NetworkController;
 import com.android.systemui.statusbar.policy.NotificationRowLayout;
 import com.android.systemui.statusbar.policy.OnSizeChangedListener;
 import com.android.systemui.statusbar.policy.Prefs;
+import com.android.systemui.statusbar.policy.SkinHelper;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -680,6 +681,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 		filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
 		filter.addAction(Intent.ACTION_SCREEN_OFF);
 		filter.addAction(Intent.ACTION_SCREEN_ON);
+		filter.addAction(Intent.ACTION_BATTERY_ICON_CHANGED);
+		filter.addAction(Intent.ACTION_SIGNAL_ICON_CHANGED);		
 		context.registerReceiver(mBroadcastReceiver, filter);
 
 		// Added to handle Settings change on NavBar settings
@@ -775,6 +778,9 @@ public class PhoneStatusBar extends BaseStatusBar {
 			resolver.registerContentObserver(Settings.System
 					.getUriFor(Settings.System.ALWAYS_QUICK_LAUNCH), false,
 					this);
+			resolver.registerContentObserver(Settings.System
+					.getUriFor(Settings.System.CUSTOM_NAVBAR_PACKAGE), false,
+					this);
 		}
 
 		@Override
@@ -789,6 +795,9 @@ public class PhoneStatusBar extends BaseStatusBar {
 			// reloadQuickSettings();
 			updateClock();
 			updateSearchLightListeners();
+			if(mStatusBarView != null)
+				mStatusBarView.setBackground(SkinHelper.getIconDrawable(
+						mContext,R.drawable.status_bar_background,Settings.System.CUSTOM_NAVBAR_PACKAGE));
 		}
 	}
 
@@ -2848,6 +2857,11 @@ public class PhoneStatusBar extends BaseStatusBar {
 				// stable while screen is off (bug 7086018)
 				repositionNavigationBar();
 				notifyNavigationBarScreenOn(true);
+			} else if (Intent.ACTION_BATTERY_ICON_CHANGED.equals(action) || 
+					Intent.ACTION_SIGNAL_ICON_CHANGED.equals(action)) {
+				if(mQS != null){
+					mQS.updateResources();
+				}
 			}
 		}
 	};

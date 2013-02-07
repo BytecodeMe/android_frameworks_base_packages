@@ -4,11 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.provider.Settings;
 import android.view.View;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
 import com.android.systemui.statusbar.policy.NetworkController.NetworkSignalChangedCallback;
+import com.android.systemui.statusbar.policy.SkinHelper;
 
 public class SignalTile extends QuickSettingsTileContent implements
 		View.OnClickListener, NetworkSignalChangedCallback {
@@ -37,16 +39,17 @@ public class SignalTile extends QuickSettingsTileContent implements
 
 	@Override
 	public void refreshResources() {
-		// TODO Auto-generated method stub
-
+		updateGUI(mRSSIState);
 	}
 
 	private void updateGUI(State state) {
         RSSIState rssiState = (RSSIState) state;
-        mRSSIImage.setImageResource(rssiState.signalIconId);
+        mRSSIImage.setImageDrawable(SkinHelper.getIconDrawable(mContext, 
+        		rssiState.signalIconId,Settings.System.CUSTOM_SIGNAL_PACKAGE));
 
         if (rssiState.dataTypeIconId > 0) {
-        	mRSSIImageOverlay.setImageResource(rssiState.dataTypeIconId);
+        	mRSSIImageOverlay.setImageDrawable(SkinHelper.getIconDrawable(mContext, 
+        			rssiState.dataTypeIconId,Settings.System.CUSTOM_SIGNAL_PACKAGE));
         } else {
         	mRSSIImageOverlay.setImageDrawable(null);
         }
