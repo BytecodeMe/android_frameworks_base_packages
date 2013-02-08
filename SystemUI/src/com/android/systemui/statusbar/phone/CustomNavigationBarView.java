@@ -100,15 +100,17 @@ public class CustomNavigationBarView extends NavigationBarView {
         mMenuWidth = res.getDimensionPixelSize(R.dimen.navigation_menu_key_width);        
         mContext = context;
         mMenuMode = Settings.System.getInt(context.getContentResolver(), Settings.System.NAVBAR_MENU_MODE,MENU_DEFAULT);        
-        mMenuLeftIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_menu,Settings.System.CUSTOM_NAVBAR_PACKAGE);
-        mMenuLeftLandIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_menu_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
-        mMenuLeftAltIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_left_arrow,Settings.System.CUSTOM_NAVBAR_PACKAGE);
-        mMenuLeftAltLandIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_left_arrow_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuLeftIcon = SkinHelper.getIconDrawable(context,R.drawable.ic_sysbar_menu,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuLeftLandIcon = SkinHelper.getIconDrawable(context,R.drawable.ic_sysbar_menu_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuLeftAltIcon = SkinHelper.getIconDrawable(context,R.drawable.ic_sysbar_left_arrow,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuLeftAltLandIcon = SkinHelper.getIconDrawable(context,R.drawable.ic_sysbar_left_arrow_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
         
-        mMenuRightIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_menu,Settings.System.CUSTOM_NAVBAR_PACKAGE);
-        mMenuRightLandIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_menu_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
-        mMenuRightAltIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_right_arrow,Settings.System.CUSTOM_NAVBAR_PACKAGE);
-        mMenuRightAltLandIcon = SkinHelper.getIconDrawable(mContext,R.drawable.ic_sysbar_right_arrow_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuRightIcon = SkinHelper.getIconDrawable(context,R.drawable.ic_sysbar_menu,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuRightLandIcon = SkinHelper.getIconDrawable(context,R.drawable.ic_sysbar_menu_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuRightAltIcon = SkinHelper.getIconDrawable(context,R.drawable.ic_sysbar_right_arrow,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        mMenuRightAltLandIcon = SkinHelper.getIconDrawable(context,R.drawable.ic_sysbar_right_arrow_land,Settings.System.CUSTOM_NAVBAR_PACKAGE);
+        
+        setBackground(SkinHelper.getIconDrawable(context, R.drawable.navbar_background, Settings.System.CUSTOM_NAVBAR_PACKAGE));
         
         mSettingsObserver.observe();
     }
@@ -141,6 +143,7 @@ public class CustomNavigationBarView extends NavigationBarView {
         	for(int i = 0;i<mRotatedViews.length;i++){
 				configureMenuKeys(mRotatedViews[i].findViewById(R.id.nav_buttons));        		
 			} 
+        	setBackground(SkinHelper.getIconDrawable(mContext, R.drawable.navbar_background, Settings.System.CUSTOM_NAVBAR_PACKAGE));
         	setButtonImages(mHasReflections);
         	updateMenuImages();
 			setMenuVisibility(mShowMenu, true /* force */,mArrows);

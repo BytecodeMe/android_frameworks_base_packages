@@ -4,11 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.net.wifi.WifiManager;
+import android.provider.Settings;
 import android.view.View;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
 import com.android.systemui.statusbar.policy.NetworkController.NetworkSignalChangedCallback;
+import com.android.systemui.statusbar.policy.SkinHelper;
 
 public class WifiTile extends QuickSettingsTileContent implements
 		NetworkSignalChangedCallback, View.OnClickListener,
@@ -37,8 +39,7 @@ public class WifiTile extends QuickSettingsTileContent implements
 
 	@Override
 	public void refreshResources() {
-		// TODO Auto-generated method stub
-
+		updateGUI(mWifiState);
 	}
 
 	@Override
@@ -59,8 +60,8 @@ public class WifiTile extends QuickSettingsTileContent implements
 
 	private void updateGUI(State state) {
 		WifiState wifiState = (WifiState) state;
-		mTextView.setCompoundDrawablesWithIntrinsicBounds(0, wifiState.iconId,
-				0, 0);
+		mTextView.setCompoundDrawablesWithIntrinsicBounds(null, SkinHelper.getIconDrawable
+				(mContext, wifiState.iconId,Settings.System.CUSTOM_SIGNAL_PACKAGE),	null, null);
 		mTextView.setText(wifiState.label);
 		mContentView.setContentDescription(mContext.getString(
 				R.string.accessibility_quick_settings_wifi,

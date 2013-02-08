@@ -30,6 +30,7 @@ import android.os.Handler;
 import android.provider.Settings;
 import android.text.util.QuickTileToken;
 import android.text.util.QuickTileTokenizer;
+import android.util.ConfigHashMap;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -86,15 +87,6 @@ class QuickSettings {
 	}
 
 	private static final String SETTING_DELIMITER = "|";
-
-	// do not use anything here that may not work on ALL devices
-	private static final String SETTINGS_DEFAULT = new QuickTileToken(Settings.System.QUICK_USER,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_AIRPLANE,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_MEDIA,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_VOLUME,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_ROTATE,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_BRIGHTNESS,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_SETTING,1,1).toString();
 
 	// this is only for testing, do not use
 	private static final String SETTINGS_ALL = new QuickTileToken(Settings.System.QUICK_USER,1,3).toString()
@@ -247,7 +239,7 @@ class QuickSettings {
 				Settings.System.QUICK_SETTINGS_TILES);
 		if(savedSettings == null) {
 			if(DEBUG)Log.i(TAG, "Default settings being loaded");
-			savedSettings = SETTINGS_DEFAULT;
+			savedSettings = Settings.System.QUICK_TILES_DEFAULT;
 		}
 
 		// TODO: remove this after testing
@@ -356,19 +348,4 @@ class QuickSettings {
 		mAllCustomTiles.clear();
 		
 	}
-	
-	private class ConfigHashMap<K,V> extends HashMap<K,V> {
-
-		private static final long serialVersionUID = 10L;
-
-		private V getNonNull(Object o, V def){
-			V value = this.get(o);
-			
-			if(value == null){
-				return def;
-			}
-			return value;
-		}
-	}
-
 }

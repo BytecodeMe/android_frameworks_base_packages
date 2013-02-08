@@ -6,12 +6,14 @@ import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LevelListDrawable;
 import android.os.Handler;
+import android.provider.Settings;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
 import com.android.systemui.statusbar.policy.BatteryController.BatteryStateChangeCallback;
+import com.android.systemui.statusbar.policy.SkinHelper;
 
 public class BatteryTile extends QuickSettingsTileContent implements
 		View.OnClickListener, BatteryStateChangeCallback {
@@ -32,10 +34,11 @@ public class BatteryTile extends QuickSettingsTileContent implements
 		mBatteryImageView.setVisibility(View.VISIBLE);
 
 		Resources r = mContext.getResources();
-		mBatteryLevels = (LevelListDrawable) r
-				.getDrawable(R.drawable.qs_sys_battery);
-		mChargingBatteryLevels = (LevelListDrawable) r
-				.getDrawable(R.drawable.qs_sys_battery_charging);
+		mBatteryLevels = (LevelListDrawable) SkinHelper.getIconDrawable(
+				mContext, R.drawable.qs_sys_battery, Settings.System.CUSTOM_BATTERY_PACKAGE);
+				
+		mChargingBatteryLevels = (LevelListDrawable) SkinHelper.getIconDrawable(
+				mContext, R.drawable.qs_sys_battery_charging, Settings.System.CUSTOM_BATTERY_PACKAGE);
 		mSlider.setOnTouchListener(new View.OnTouchListener(){
 
 			@Override
@@ -112,6 +115,11 @@ public class BatteryTile extends QuickSettingsTileContent implements
 
 	@Override
 	public void refreshResources() {
+		mBatteryLevels = (LevelListDrawable) SkinHelper.getIconDrawable(
+				mContext, R.drawable.qs_sys_battery, Settings.System.CUSTOM_BATTERY_PACKAGE);
+				
+		mChargingBatteryLevels = (LevelListDrawable) SkinHelper.getIconDrawable(
+				mContext, R.drawable.qs_sys_battery_charging, Settings.System.CUSTOM_BATTERY_PACKAGE);
 		updateGUI(mBatteryState);
 	}
 	

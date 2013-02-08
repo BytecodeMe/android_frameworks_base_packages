@@ -21,12 +21,14 @@ import android.app.StatusBarManager;
 import android.content.Context;
 import android.content.res.Resources;
 import android.content.res.Resources.NotFoundException;
+import android.provider.Settings;
 import android.util.AttributeSet;
 import android.util.Slog;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import com.android.systemui.R;
+import com.android.systemui.statusbar.policy.SkinHelper;
 
 public class PhoneStatusBarView extends PanelBar {
     private static final String TAG = "PhoneStatusBarView";
@@ -55,6 +57,7 @@ public class PhoneStatusBarView extends PanelBar {
             mSettingsPanelDragzoneFrac = 0f;
         }
         mFullWidthNotifications = mSettingsPanelDragzoneFrac <= 0f;
+        setBackground(SkinHelper.getIconDrawable(context, R.drawable.status_bar_background, Settings.System.CUSTOM_NAVBAR_PACKAGE));
     }
 
     public void setBar(PhoneStatusBar bar) {
