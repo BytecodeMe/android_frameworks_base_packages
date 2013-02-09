@@ -415,7 +415,7 @@ public class CustomNavigationBarView extends NavigationBarView {
     	getLeftMenuButton().setImageDrawable(mHideLeft ? null :
 			mVertical ? mMenuLeftLandIcon : mMenuLeftIcon);
     	   	
-    	
+    	invalidate();
     }
 	
 	public void updateMenuImages(){

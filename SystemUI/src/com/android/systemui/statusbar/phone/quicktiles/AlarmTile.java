@@ -9,6 +9,7 @@ import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.os.Handler;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 
 import com.android.systemui.R;
@@ -17,6 +18,8 @@ import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
 public class AlarmTile extends QuickSettingsTileContent implements
 		View.OnClickListener {
 
+	private static final boolean DEBUG = true;
+	private static final String TAG = AlarmTile.class.getSimpleName();
 	private NextAlarmObserver mNextAlarmObserver;
 	private Handler mHandler;
 	private State mAlarmState = new State();
@@ -44,7 +47,7 @@ public class AlarmTile extends QuickSettingsTileContent implements
 		IntentFilter alarmIntentFilter = new IntentFilter();
 		alarmIntentFilter.addAction(Intent.ACTION_ALARM_CHANGED);
 		mContext.registerReceiver(mAlarmIntentReceiver, alarmIntentFilter);
-		updateGUI();
+		onNextAlarmChanged();
 	}
 
 	@Override
@@ -97,6 +100,8 @@ public class AlarmTile extends QuickSettingsTileContent implements
 		mAlarmState.label = Settings.System.getString(
 				mContext.getContentResolver(),
 				Settings.System.NEXT_ALARM_FORMATTED);
+		mAlarmState.enabled = !mAlarmState.label.equals("");
+		if(DEBUG)Log.d(TAG, String.format("label: %s, enabled: %s", mAlarmState.label, mAlarmState.enabled));
 		updateGUI();
 	}
 

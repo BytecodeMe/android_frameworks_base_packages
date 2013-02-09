@@ -316,6 +316,10 @@ public class NetworkController extends BroadcastReceiver {
         mSignalsChangedCallbacks.add(cb);
         notifySignalsChangedCallbacks(cb);
     }
+    
+    public void removeNetworkSignalChangedCallback(NetworkSignalChangedCallback cb) {
+        mSignalsChangedCallbacks.remove(cb);
+    }
 
     public void refreshSignalCluster(SignalCluster cluster) {
         cluster.setWifiIndicators(

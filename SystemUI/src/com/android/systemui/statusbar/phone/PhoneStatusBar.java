@@ -49,6 +49,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.inputmethodservice.InputMethodService;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -654,8 +655,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 				}
 				mQS.setService(this);
 				mQS.setBar(mStatusBarView);
-				mQS.setup(mNetworkController, mBluetoothController,
-						mBatteryController, mLocationController);
+				mQS.setup(mNetworkController, mBatteryController);
 			} else {
 				mQS = null; // fly away, be free
 			}
@@ -749,9 +749,6 @@ public class PhoneStatusBar extends BaseStatusBar {
 			resolver.registerContentObserver(Settings.System
 					.getUriFor(Settings.System.SHOW_NAVBAR_REFLECTION), false,
 					this);
-			resolver.registerContentObserver(
-					Settings.System.getUriFor(Settings.System.QUICK_SETTINGS),
-					false, this);
 			resolver.registerContentObserver(Settings.System
 					.getUriFor(Settings.System.NAVBAR_BUTTON_COLOR), false,
 					this);
@@ -778,27 +775,70 @@ public class PhoneStatusBar extends BaseStatusBar {
 			resolver.registerContentObserver(Settings.System
 					.getUriFor(Settings.System.ALWAYS_QUICK_LAUNCH), false,
 					this);
-			resolver.registerContentObserver(Settings.System
-					.getUriFor(Settings.System.CUSTOM_NAVBAR_PACKAGE), false,
-					this);
+			//resolver.registerContentObserver(Settings.System
+			//		.getUriFor(Settings.System.CUSTOM_NAVBAR_PACKAGE), false,
+			//		this);
 		}
+		
+		@Override
+		 public void onChange(boolean selfChange) {
+		     onChange(selfChange, Uri.EMPTY);
+		 }
 
 		@Override
-		public void onChange(boolean selfChange) {
-			update();
+		public void onChange(boolean selfChange, Uri uri) {
+			Log.d(TAG, "SettingsObserver:"+uri.toSafeString());
+			if(uri.equals(Settings.System
+					.getUriFor(Settings.System.ALWAYS_QUICK_LAUNCH)) ||
+					uri.equals(Settings.System
+					.getUriFor(Settings.System.LONG_ACTION_HOME))){
+				Log.d(TAG, "SettingsObserver:prepareNavigationBarView()");
+				prepareNavigationBarView();
+			}
+			if(uri.equals(Settings.System
+					.getUriFor(Settings.System.NAVBAR_FLIP_OVER)) ||
+				uri.equals(Settings.System
+					.getUriFor(Settings.System.NAVBAR_KEY_ORDER)) ||
+				uri.equals(Settings.System
+					.getUriFor(Settings.System.SHOW_NAVBAR_SEARCH))){
+				Log.d(TAG, "SettingsObserver:redrawNavigationBar()");
+				redrawNavigationBar();
+			}
+			if(uri.equals(Settings.System
+					.getUriFor(Settings.System.SHOW_STATUSBAR_CLOCK)) ||
+			   uri.equals(Settings.System
+					.getUriFor(Settings.System.CENTER_STATUSBAR_CLOCK)) ||
+			   uri.equals(Settings.System
+					.getUriFor(Settings.System.STATUS_CLOCK_COLOR))){
+				Log.d(TAG, "SettingsObserver:updateClock()");
+				updateClock();
+			}
+			if(uri.equals(Settings.System
+					.getUriFor(Settings.System.SHOW_NAVBAR_REFLECTION))){
+				Log.d(TAG, "SettingsObserver:setNavbarReflections()");
+				setNavbarReflections();
+			}
+			if(uri.equals(Settings.System
+					.getUriFor(Settings.System.NAVBAR_BUTTON_COLOR)) ||
+				uri.equals(Settings.System
+					.getUriFor(Settings.System.NAVBAR_EASTER_EGG))){
+				Log.d(TAG, "SettingsObserver:setNavbarButtonColor()");
+				setNavbarButtonColor();
+			}
 		}
 
-		public void update() {
+		/*public void update() {
 			redrawNavigationBar();
 			setNavbarButtonColor();
 			setNavbarReflections();
 			// reloadQuickSettings();
 			updateClock();
 			updateSearchLightListeners();
-			if(mStatusBarView != null)
-				mStatusBarView.setBackground(SkinHelper.getIconDrawable(
-						mContext,R.drawable.status_bar_background,Settings.System.CUSTOM_NAVBAR_PACKAGE));
-		}
+			// this is already done in CustomNavigationBarView
+			//if(mStatusBarView != null)
+			//	mStatusBarView.setBackground(SkinHelper.getIconDrawable(
+			//			mContext,R.drawable.status_bar_background,Settings.System.CUSTOM_NAVBAR_PACKAGE));
+		}*/
 	}
 
 	/**
