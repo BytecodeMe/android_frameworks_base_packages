@@ -19,11 +19,12 @@ package com.android.systemui.statusbar.phone;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
-import android.animation.Animator.AnimatorListener;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Handler;
@@ -39,21 +40,20 @@ import android.view.ViewGroup;
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.quicktiles.*;
 import com.android.systemui.statusbar.policy.BatteryController;
-import com.android.systemui.statusbar.policy.BluetoothController;
-import com.android.systemui.statusbar.policy.LocationController;
 import com.android.systemui.statusbar.policy.NetworkController;
+import com.android.systemui.statusbar.policy.QuickTileController;
+import com.android.systemui.statusbar.policy.QuickTileController.QuickTileChangeCallback;
 
 
 /**
  *
  */
-class QuickSettings {
+class QuickSettings implements QuickTileChangeCallback {
 	private static final String TAG = "QuickSettings";
 	public static final boolean SHOW_IME_TILE = false;
 	private static final boolean DEBUG = true;
 
 	private ArrayList<QuickSettingsTileContent> mAllCustomTiles = new ArrayList<QuickSettingsTileContent>();
-	private String mLoadedSettings;
 	private boolean mTilesSetUp = false;
 
 	private final ConfigHashMap<String, Boolean> mConfigs = new ConfigHashMap<String, Boolean>();
@@ -86,38 +86,18 @@ class QuickSettings {
 		SETTINGS.put(Settings.System.QUICK_USER, UserTile.class);
 	}
 
-	private static final String SETTING_DELIMITER = "|";
-
-	// this is only for testing, do not use
-	private static final String SETTINGS_ALL = new QuickTileToken(Settings.System.QUICK_USER,1,3).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_LTE,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_SIGNAL,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_BATTERY,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_GPS,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_WIFI,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_NODISTURB,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_MEDIA,2,2).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_TORCH,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_CUSTOM,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_ADB,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_AIRPLANE,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_ROTATE,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_SETTING,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_MOBILE_DATA,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_TETHER,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_BLUETOOTH,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_HOTSPOT,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_BRIGHTNESS,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_SYNC,1,1).toString()
-			+ SETTING_DELIMITER + new QuickTileToken(Settings.System.QUICK_ALARM,1,1).toString();
-
-	private static final String EMPTY_STRING = "";
-
 	private Context mContext;
 	private PanelBar mBar;
 	private ViewGroup mContainerView;
 	private PhoneStatusBar mStatusBarService;
-
+	
+	@SuppressWarnings("unused")
+	private QuickTileController mTileController;
+	private LayoutInflater mLayoutInflater;
+	
+	private NetworkController mNetworkController;
+	private BatteryController mBatteryController;
+	
 	private boolean mEggEnabled;
 	private Handler mHandler = new Handler();
 
@@ -125,8 +105,6 @@ class QuickSettings {
 
 		mContext = context;
 		mContainerView = container;
-
-		mLoadedSettings = EMPTY_STRING;
 
 		Resources r = mContext.getResources();
 
@@ -204,58 +182,52 @@ class QuickSettings {
 		mHandler.postDelayed(doAnimation, delay);
     }
 
-	void setup(NetworkController networkController, BluetoothController bluetoothController,
-			BatteryController batteryController, LocationController locationController) {
+	void setup(final NetworkController networkController, final BatteryController batteryController) {
 
+		mNetworkController = networkController;
+		mBatteryController = batteryController;
+		
 		setupQuickSettings();
 		updateResources();
+		
+		mTileController = new QuickTileController(mContext, new Handler(), this);
 
-		for(QuickSettingsTileContent qs: mAllCustomTiles){
-			if(qs instanceof WifiTile){
-				networkController.addNetworkSignalChangedCallback((WifiTile)qs);
-			}
-			if(qs instanceof SignalTile){
-				networkController.addNetworkSignalChangedCallback((SignalTile)qs);
-			}
-			if(qs instanceof BatteryTile){
-				batteryController.addStateChangedCallback((BatteryTile)qs);
-			}
-		}
+		mTilesSetUp = true;
 	}
 
 	private void setupQuickSettings() {
 		// Setup the tiles that we are going to be showing (including the temporary ones)
-		LayoutInflater inflater = LayoutInflater.from(mContext);
+		mLayoutInflater = LayoutInflater.from(mContext);
 
 		// add custom tiles here for now
-		addCustomTiles(mContainerView, inflater);
-
-		mTilesSetUp = true;
+		addCustomTiles(mContainerView, mLayoutInflater);
+		
+		for(QuickSettingsTileContent qs: mAllCustomTiles){
+			if(qs instanceof WifiTile){
+				mNetworkController.addNetworkSignalChangedCallback((WifiTile)qs);
+			}
+			if(qs instanceof SignalTile){
+				mNetworkController.addNetworkSignalChangedCallback((SignalTile)qs);
+			}
+			if(qs instanceof BatteryTile){
+				mBatteryController.addStateChangedCallback((BatteryTile)qs);
+			}
+		}
 	}
 
 	private void addCustomTiles(final ViewGroup parent, final LayoutInflater inflater){
 
 		String savedSettings = Settings.System.getString(mContext.getContentResolver(), 
-				Settings.System.QUICK_SETTINGS_TILES);
-		if(savedSettings == null) {
+				Settings.System.QUICK_SETTINGS_TILES, Settings.System.QUICK_TILES_DEFAULT);
+		if(savedSettings == "") {
 			if(DEBUG)Log.i(TAG, "Default settings being loaded");
 			savedSettings = Settings.System.QUICK_TILES_DEFAULT;
 		}
 
-		// TODO: remove this after testing
-		savedSettings = SETTINGS_ALL;
-
 		if(DEBUG)Log.i(TAG, "quick tiles: "+savedSettings);
 
-		if(mLoadedSettings.equals(savedSettings)){
-			if(DEBUG)Log.i(TAG, "no changes; not reloading");
-			return;
-		}
-
 		final String settings = savedSettings;
-		mLoadedSettings = settings;
 		
-		int count = 0;
 		for(QuickTileToken token : QuickTileTokenizer.tokenize(settings)) {
 			if(DEBUG)Log.i(TAG, "Inflating setting: " + token.getName());
 			
@@ -263,54 +235,10 @@ class QuickSettings {
 			
 			if(SETTINGS.containsKey(token.getName()) && enabled){
 				try {
-					// inflate the setting
-					final QuickSettingsTileView tileView = (QuickSettingsTileView)inflater.inflate(R.layout.quick_settings_tile, mContainerView, false);
-					tileView.setContent(R.layout.quick_settings_tile_general, inflater);
-					// get the tile size from the setting
-					tileView.setRowSpan(token.getRows());
-					tileView.setColumnSpan(token.getColumns());
-					tileView.setColor(mEggEnabled);
-
-					Class<?> cls = SETTINGS.get(token.getName());
-
-					Constructor<?> con = cls.getConstructor(new Class[]{Context.class, View.class});
-					QuickSettingsTileContent pref = 
-							(QuickSettingsTileContent)con.newInstance(new Object[]{mContext, tileView.getChildAt(0)});
-					final int pos = count;
-					pref.mCallBack = new QuickSettingsTileContent.TileCallback(){
-						int position = pos;
-						@Override
-						public void changeSize(int height, int width) {
-							// removing and adding the view to take advantage
-							// of the layout transitions
-							position = parent.indexOfChild(tileView);
-							parent.removeView(tileView);
-							tileView.setRowSpan(height);
-							tileView.setColumnSpan(width);
-							parent.addView(tileView, position);
-						}
-
-						@Override
-						public void show(boolean visible) {
-							if(visible && parent.indexOfChild(tileView)==-1){
-								parent.addView(tileView, position);
-							}else if (!visible && parent.indexOfChild(tileView)!=-1){
-								position = parent.indexOfChild(tileView);
-								parent.removeView(tileView);
-							}
-						}
-
-						@Override
-						public void refreshTiles() {
-							updateResources();
-						}
-
-					};
-					// add it to the view here
-					parent.addView(tileView);
-					mAllCustomTiles.add(pref);
-
-					count++;
+					QuickSettingsTileContent pref = inflateNewTile(token);
+					if(pref!=null){
+						mAllCustomTiles.add(pref);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 				}         
@@ -334,9 +262,18 @@ class QuickSettings {
 	}
 
 	void removeAll(){
-		if(mAllCustomTiles.size()==0) return;
+		if(mAllCustomTiles.isEmpty()) return;
 		
-		for(QuickSettingsTileContent qs : mAllCustomTiles){
+		for(QuickSettingsTileContent qs: mAllCustomTiles){
+			if(qs instanceof WifiTile){
+				mNetworkController.removeNetworkSignalChangedCallback((WifiTile)qs);
+			}
+			if(qs instanceof SignalTile){
+				mNetworkController.removeNetworkSignalChangedCallback((SignalTile)qs);
+			}
+			if(qs instanceof BatteryTile){
+				mBatteryController.removeStateChangedCallback((BatteryTile)qs);
+			}
 			try{
 				qs.release();
 				qs = null;
@@ -344,8 +281,165 @@ class QuickSettings {
 				Log.e(TAG, "Error on remove ("+((qs==null)?"None selected":qs.getTag())+")");
 			}
 		}
+		
 		mContainerView.removeAllViews();
 		mAllCustomTiles.clear();
 		
+	}
+	
+	private QuickSettingsTileContent inflateNewTile(QuickTileToken token){
+		QuickSettingsTileContent pref;
+		try {
+			// inflate the setting
+			final QuickSettingsTileView tileView = (QuickSettingsTileView)mLayoutInflater.inflate(R.layout.quick_settings_tile, mContainerView, false);
+			tileView.setContent(R.layout.quick_settings_tile_general, mLayoutInflater);
+			// get the tile size from the setting
+			tileView.setRowSpan(token.getRows());
+			tileView.setColumnSpan(token.getColumns());
+			tileView.setColor(mEggEnabled);
+			tileView.setTag(token);
+
+			Class<?> cls = SETTINGS.get(token.getName());
+
+			Constructor<?> con = cls.getConstructor(new Class[]{Context.class, View.class});
+			pref = (QuickSettingsTileContent)con.newInstance(new Object[]{mContext, tileView.getChildAt(0)});
+
+			pref.mCallBack = new QuickSettingsTileContent.TileCallback(){
+
+				@Override
+				public void changeSize(int height, int width) {
+					// removing and adding the view to take advantage
+					// of the layout transitions
+					mContainerView.removeView(tileView);
+					tileView.setRowSpan(height);
+					tileView.setColumnSpan(width);
+					final int position = getPosition(tileView.getTag());
+					if(position>mContainerView.getChildCount() || position < 0){
+						mContainerView.addView(tileView);
+					}else{
+						mContainerView.addView(tileView, position);
+					}
+				}
+
+				@Override
+				public void show(boolean visible) {
+					if(visible && mContainerView.indexOfChild(tileView)==-1){
+						final int position = getPosition(tileView.getTag());
+						if(position>mContainerView.getChildCount() || position < 0){
+							mContainerView.addView(tileView);
+						}else{
+							mContainerView.addView(tileView, position);
+						}
+					}else if (!visible && mContainerView.indexOfChild(tileView)!=-1){
+						mContainerView.removeView(tileView);
+					}
+				}
+
+				@Override
+				public void refreshTiles() {
+					updateResources();
+				}
+
+			};
+			
+			mContainerView.addView(tileView);
+			return pref;
+		}catch(Exception e){
+			e.printStackTrace();
+			return null; 
+		}
+	}
+	
+	private int getPosition(Object token){
+		List<QuickTileToken> settings = new ArrayList<QuickTileToken>();
+		QuickTileTokenizer.tokenize(Settings.System.getString(mContext.getContentResolver(), 
+				Settings.System.QUICK_SETTINGS_TILES,Settings.System.QUICK_TILES_DEFAULT), settings);
+		for(QuickTileToken setting: settings){
+			if(setting.getName().equals(((QuickTileToken)token).getName())){
+				return settings.indexOf(setting);
+			}
+		}
+		return -1;
+	}
+
+	@Override
+	public void onTileChange(List<QuickTileToken> newList) {
+		
+		if(!mTilesSetUp) return;
+
+		List<View> keeperViews = new ArrayList<View>();
+		List<QuickSettingsTileContent> keeperContents = new ArrayList<QuickSettingsTileContent>();
+
+		// unhide tiles
+		for(QuickSettingsTileContent pref: mAllCustomTiles){
+			pref.mCallBack.show(true);
+		}
+		
+		if(DEBUG)Log.d(TAG, "children:"+mContainerView.getChildCount()+" prefs:"+mAllCustomTiles.size());
+		if(mContainerView.getChildCount() != mAllCustomTiles.size()){
+			Log.e(TAG, "onTileChange: array sizes do not match, exiting");
+			return;
+		}
+		
+		// find out which ones we need to keep
+		for(QuickTileToken token: newList){
+			for(int c = 0; c < mContainerView.getChildCount(); c++){
+				final QuickTileToken tag = (QuickTileToken)mContainerView.getChildAt(c).getTag();
+				if(tag.getName().equals(token.getName())){
+					keeperViews.add(mContainerView.getChildAt(c));
+					keeperContents.add(mAllCustomTiles.get(c));
+					mContainerView.removeViewAt(c);
+					mAllCustomTiles.remove(c);
+				}
+			}
+		}
+		// get rid of the ones we do not need
+		removeAll();
+		
+		// add back existing and new tiles in correct order
+		for(QuickTileToken token: newList){
+			int position = getOldTileLocation(keeperViews, keeperContents, token);
+			if(position > -1){
+				QuickSettingsTileView oldTileView = (QuickSettingsTileView)keeperViews.get(position);
+				QuickSettingsTileContent pref = (QuickSettingsTileContent)keeperContents.get(position);
+				
+				oldTileView.setRowSpan(token.getRows());
+				oldTileView.setColumnSpan(token.getColumns());
+				mContainerView.addView(oldTileView);
+				mAllCustomTiles.add(pref);
+			}else{
+				QuickSettingsTileContent pref = inflateNewTile(token);
+				mAllCustomTiles.add(pref);
+				
+				if(pref instanceof WifiTile){
+					mNetworkController.addNetworkSignalChangedCallback((WifiTile)pref);
+				}
+				if(pref instanceof SignalTile){
+					mNetworkController.addNetworkSignalChangedCallback((SignalTile)pref);
+				}
+				if(pref instanceof BatteryTile){
+					mBatteryController.addStateChangedCallback((BatteryTile)pref);
+				}
+			}
+		}
+		
+		keeperViews.clear();
+		keeperContents.clear();
+		updateResources();
+	}
+	
+	private int getOldTileLocation(List<View> keeperViews, 
+		List<QuickSettingsTileContent> keeperContents, QuickTileToken token){
+		
+		for(int v = 0; v < keeperViews.size(); v++){
+			if(keeperViews.get(v) instanceof QuickSettingsTileView){
+				QuickSettingsTileView tile = (QuickSettingsTileView)keeperViews.get(v);
+				final QuickTileToken tag = (QuickTileToken)tile.getTag();
+				if(tag.getName().equals(token.getName())){
+					return v;
+				}
+			}
+		}
+		return -1;
 	}
 }
