@@ -1946,6 +1946,10 @@ public class PhoneStatusBar extends BaseStatusBar {
 	}
 
 	public void switchToSettings() {
+		if(mQS!=null){
+			mQS.updateResources();
+		}
+		
 		mFlipSettingsView.setScaleX(1f);
 		mFlipSettingsView.setVisibility(View.VISIBLE);
 		mSettingsButton.setVisibility(View.GONE);
@@ -1957,6 +1961,10 @@ public class PhoneStatusBar extends BaseStatusBar {
 	}
 
 	public void flipToSettings() {
+		if(mQS!=null){
+			mQS.updateResources();
+		}
+		
 		if (mFlipSettingsViewAnim != null)
 			mFlipSettingsViewAnim.cancel();
 		if (mScrollViewAnim != null)
