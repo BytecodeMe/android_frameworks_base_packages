@@ -22,7 +22,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.View;
-import android.view.WindowManager.LayoutParams;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -130,14 +130,9 @@ public class HotspotTile extends QuickSettingsTileContent implements
 	}
 
 	@Override
-	public boolean onLongClick(View v) {
-		KeyguardManager kgm = (KeyguardManager) mContext
-				.getSystemService(Context.KEYGUARD_SERVICE);
-		if (kgm.isKeyguardLocked()) {
-			return false;
-		}
-
-		mDialog.getWindow().setType(LayoutParams.TYPE_SYSTEM_ALERT);
+	public boolean onLongClick(View v) {		
+		mDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_KEYGUARD_DIALOG);
+		mDialog.getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
 		getStatusBarManager().collapsePanels();
 		mDialog.show();
 		return true;
@@ -419,7 +414,7 @@ public class HotspotTile extends QuickSettingsTileContent implements
 
 			mView = getLayoutInflater().inflate(R.layout.wifi_ap_dialog, null);
 			Spinner mSecurity = ((Spinner) mView.findViewById(R.id.security));
-
+			
 			setView(mView);
 			setInverseBackgroundForced(true);
 
