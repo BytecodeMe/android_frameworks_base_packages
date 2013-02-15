@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.RemoteException;
 import android.os.UserHandle;
 import android.os.UserManager;
@@ -68,9 +69,11 @@ public class UserTile extends QuickSettingsTileContent implements
 		final UserManager um = (UserManager) mContext
 				.getSystemService(Context.USER_SERVICE);
 		if (um.getUsers(true).size() > 1) {
+			Bundle opts = null;
+			opts = new Bundle();
+            opts.putInt(LockPatternUtils.KEYGUARD_SHOW_USER_SWITCHER, UserHandle.USER_CURRENT);
 			try {
-				WindowManagerGlobal.getWindowManagerService().lockNow(
-						LockPatternUtils.USER_SWITCH_LOCK_OPTIONS);
+				WindowManagerGlobal.getWindowManagerService().lockNow(opts);
 			} catch (RemoteException e) {
 				Log.e(TAG, "Couldn't show user switcher", e);
 			}

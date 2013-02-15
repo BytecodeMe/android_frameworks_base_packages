@@ -336,7 +336,7 @@ public class PhoneStatusBar extends BaseStatusBar {
 				Slog.d(TAG, String.format("User setup changed: "
 						+ "selfChange=%s userSetup=%s mUserSetup=%s",
 						selfChange, userSetup, mUserSetup));
-			if (mSettingsButton != null && !mHasSettingsPanel) {
+            if (mSettingsButton != null && mHasFlipSettings) {
 				mSettingsButton.setVisibility(userSetup ? View.VISIBLE
 						: View.INVISIBLE);
 			}
@@ -1931,6 +1931,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 		if ((mDisabled & StatusBarManager.DISABLE_EXPAND) != 0) {
 			return;
 		}
+        // Settings are not available in setup
+        if (!mUserSetup) return;
 
 		if (mHasFlipSettings) {
 			mNotificationPanel.expand();
@@ -1946,6 +1948,9 @@ public class PhoneStatusBar extends BaseStatusBar {
 	}
 
 	public void switchToSettings() {
+	        // Settings are not available in setup
+        if (!mUserSetup) return;
+
 		if(mQS!=null){
 			mQS.updateResources();
 		}
@@ -1961,6 +1966,8 @@ public class PhoneStatusBar extends BaseStatusBar {
 	}
 
 	public void flipToSettings() {
+	// Settings are not available in setup
+        if (!mUserSetup) return;
 		if(mQS!=null){
 			mQS.updateResources();
 		}

@@ -88,9 +88,10 @@ public class RecentsPanelView extends FrameLayout implements
 
 	private boolean mShowing;
 	private boolean mWaitingToShow;
-	private int mNumItemsWaitingForThumbnailsAndIcons;
-	private ViewHolder mItemToAnimateInWhenWindowAnimationIsFinished;
-	private boolean mWaitingForWindowAnimation;
+    private ViewHolder mItemToAnimateInWhenWindowAnimationIsFinished;
+    private boolean mAnimateIconOfFirstTask;
+    private boolean mWaitingForWindowAnimation;
+    private long mWindowAnimationStartTime;
 
 	private RecentTasksLoader mRecentTasksLoader;
 	private ArrayList<TaskDescription> mRecentTaskDescriptions;
@@ -202,10 +203,9 @@ public class RecentsPanelView extends FrameLayout implements
 			if (td.isLoaded()) {
 				updateThumbnail(holder, td.getThumbnail(), true, false);
 				updateIcon(holder, td.getIcon(), true, false);
-				mNumItemsWaitingForThumbnailsAndIcons--;
 			}
 			if (index == 0) {
-				if (mWaitingForWindowAnimation) {
+                if (mAnimateIconOfFirstTask) {
 					if (mItemToAnimateInWhenWindowAnimationIsFinished != null) {
 						holder.iconView.setAlpha(1f);
 						holder.iconView.setTranslationX(0f);
@@ -219,58 +219,60 @@ public class RecentsPanelView extends FrameLayout implements
 							holder.calloutLine.setTranslationY(0f);
 						}
 					}
-					mItemToAnimateInWhenWindowAnimationIsFinished = holder;
-					final int translation = -getResources()
-							.getDimensionPixelSize(
-									R.dimen.status_bar_recents_app_icon_translate_distance);
-					final Configuration config = getResources()
-							.getConfiguration();
-					if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
-						holder.iconView.setAlpha(0f);
-						holder.iconView.setTranslationX(translation);
-						holder.labelView.setAlpha(0f);
-						holder.labelView.setTranslationX(translation);
-						holder.calloutLine.setAlpha(0f);
-						holder.calloutLine.setTranslationX(translation);
-					} else {
-						holder.iconView.setAlpha(0f);
-						holder.iconView.setTranslationY(translation);
-					}
-				}
-			}
+                    mItemToAnimateInWhenWindowAnimationIsFinished = holder;
+                    final int translation = -getResources().getDimensionPixelSize(
+                            R.dimen.status_bar_recents_app_icon_translate_distance);
+                    final Configuration config = getResources().getConfiguration();
+                    if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
+                        holder.iconView.setAlpha(0f);
+                        holder.iconView.setTranslationX(translation);
+                        holder.labelView.setAlpha(0f);
+                        holder.labelView.setTranslationX(translation);
+                        holder.calloutLine.setAlpha(0f);
+                        holder.calloutLine.setTranslationX(translation);
+                    } else {
+                        holder.iconView.setAlpha(0f);
+                        holder.iconView.setTranslationY(translation);
+                    }
+                    if (!mWaitingForWindowAnimation) {
+                        animateInIconOfFirstTask();
+                    }
+                }
+            }
 
 			holder.thumbnailView.setTag(td);
-			holder.thumbnailView
-					.setOnLongClickListener(new OnLongClickDelegate(convertView));
+            holder.thumbnailView.setOnLongClickListener(new OnLongClickDelegate(convertView));
 			holder.taskDescription = td;
 			return convertView;
 		}
 
-		public void recycleView(View v) {
-			ViewHolder holder = (ViewHolder) v.getTag();
-			updateThumbnail(holder, mRecentTasksLoader.getDefaultThumbnail(),
-					false, false);
-			holder.iconView.setImageBitmap(mRecentTasksLoader.getDefaultIcon());
-			holder.iconView.setVisibility(INVISIBLE);
-			holder.labelView.setText(null);
-			holder.thumbnailView.setContentDescription(null);
-			holder.thumbnailView.setTag(null);
-			holder.thumbnailView.setOnLongClickListener(null);
-			holder.thumbnailView.setVisibility(INVISIBLE);
-			holder.iconView.setAlpha(1f);
-			holder.iconView.setTranslationX(0f);
-			holder.iconView.setTranslationY(0f);
-			holder.labelView.setAlpha(1f);
-			holder.labelView.setTranslationX(0f);
-			holder.labelView.setTranslationY(0f);
-			if (holder.calloutLine != null) {
-				holder.calloutLine.setAlpha(1f);
-				holder.calloutLine.setTranslationX(0f);
-				holder.calloutLine.setTranslationY(0f);
-			}
-			holder.taskDescription = null;
-			holder.loadedThumbnailAndIcon = false;
-		}
+        public void recycleView(View v) {
+            ViewHolder holder = (ViewHolder) v.getTag();
+            updateThumbnail(holder, mRecentTasksLoader.getDefaultThumbnail(), false, false);
+            holder.iconView.setImageBitmap(mRecentTasksLoader.getDefaultIcon());
+            holder.iconView.setVisibility(INVISIBLE);
+            holder.iconView.animate().cancel();
+            holder.labelView.setText(null);
+            holder.labelView.animate().cancel();
+            holder.thumbnailView.setContentDescription(null);
+            holder.thumbnailView.setTag(null);
+            holder.thumbnailView.setOnLongClickListener(null);
+            holder.thumbnailView.setVisibility(INVISIBLE);
+            holder.iconView.setAlpha(1f);
+            holder.iconView.setTranslationX(0f);
+            holder.iconView.setTranslationY(0f);
+            holder.labelView.setAlpha(1f);
+            holder.labelView.setTranslationX(0f);
+            holder.labelView.setTranslationY(0f);
+            if (holder.calloutLine != null) {
+                holder.calloutLine.setAlpha(1f);
+                holder.calloutLine.setTranslationX(0f);
+                holder.calloutLine.setTranslationY(0f);
+                holder.calloutLine.animate().cancel();
+            }
+            holder.taskDescription = null;
+            holder.loadedThumbnailAndIcon = false;
+        }
 	}
 
 	public RecentsPanelView(Context context, AttributeSet attrs) {
@@ -323,10 +325,10 @@ public class RecentsPanelView extends FrameLayout implements
 		show(show, null, false, false);
 	}
 
-	public void show(boolean show,
-			ArrayList<TaskDescription> recentTaskDescriptions,
-			boolean firstScreenful, boolean waitingForWindowAnimation) {
-		mWaitingForWindowAnimation = waitingForWindowAnimation;
+    public void show(boolean show, ArrayList<TaskDescription> recentTaskDescriptions,
+            boolean firstScreenful, boolean animateIconOfFirstTask) {
+        mAnimateIconOfFirstTask = animateIconOfFirstTask;
+        mWaitingForWindowAnimation = animateIconOfFirstTask;
 		if (show) {
 			mWaitingToShow = true;
 			refreshRecentTasksList(recentTaskDescriptions, firstScreenful);
@@ -592,7 +594,6 @@ public class RecentsPanelView extends FrameLayout implements
 							updateThumbnail(h, td.getThumbnail(), true,
 									animateShow);
 							h.loadedThumbnailAndIcon = true;
-							mNumItemsWaitingForThumbnailsAndIcons--;
 						}
 					}
 				}
@@ -601,25 +602,34 @@ public class RecentsPanelView extends FrameLayout implements
 		showIfReady();
 	}
 
-	public void onWindowAnimationStart() {
-		if (mItemToAnimateInWhenWindowAnimationIsFinished != null) {
-			final int startDelay = 150;
-			final int duration = 250;
-			final ViewHolder holder = mItemToAnimateInWhenWindowAnimationIsFinished;
-			final TimeInterpolator cubic = new DecelerateInterpolator(1.5f);
-			for (View v : new View[] { holder.iconView, holder.labelView,
-					holder.calloutLine }) {
-				if (v != null) {
-					v.animate().translationX(0).translationY(0).alpha(1f)
-							.setStartDelay(startDelay).setDuration(duration)
-							.setInterpolator(cubic);
-				}
-			}
-			mItemToAnimateInWhenWindowAnimationIsFinished = null;
-			mWaitingForWindowAnimation = false;
-		}
-	}
+    private void animateInIconOfFirstTask() {
+        if (mItemToAnimateInWhenWindowAnimationIsFinished != null &&
+                !mRecentTasksLoader.isFirstScreenful()) {
+            int timeSinceWindowAnimation =
+                    (int) (System.currentTimeMillis() - mWindowAnimationStartTime);
+            final int minStartDelay = 150;
+            final int startDelay = Math.max(0, Math.min(
+                    minStartDelay - timeSinceWindowAnimation, minStartDelay));
+            final int duration = 250;
+            final ViewHolder holder = mItemToAnimateInWhenWindowAnimationIsFinished;
+            final TimeInterpolator cubic = new DecelerateInterpolator(1.5f);
+            for (View v :
+                new View[] { holder.iconView, holder.labelView, holder.calloutLine }) {
+                if (v != null) {
+                    v.animate().translationX(0).translationY(0).alpha(1f).setStartDelay(startDelay)
+                            .setDuration(duration).setInterpolator(cubic);
+                }
+            }
+            mItemToAnimateInWhenWindowAnimationIsFinished = null;
+            mAnimateIconOfFirstTask = false;
+        }
+    }
 
+    public void onWindowAnimationStart() {
+        mWaitingForWindowAnimation = false;
+        mWindowAnimationStartTime = System.currentTimeMillis();
+        animateInIconOfFirstTask();
+    }
 	public void clearRecentTasksList() {
 		// Clear memory used by screenshots
 		if (mRecentTaskDescriptions != null) {
@@ -655,11 +665,7 @@ public class RecentsPanelView extends FrameLayout implements
 		}
 	}
 
-	public void onTasksLoaded(ArrayList<TaskDescription> tasks,
-			boolean firstScreenful) {
-		mNumItemsWaitingForThumbnailsAndIcons = firstScreenful ? tasks.size()
-				: mRecentTaskDescriptions == null ? 0 : mRecentTaskDescriptions
-						.size();
+    public void onTasksLoaded(ArrayList<TaskDescription> tasks, boolean firstScreenful) {
 		if (mRecentTaskDescriptions == null) {
 			mRecentTaskDescriptions = new ArrayList<TaskDescription>(tasks);
 		} else {
@@ -760,6 +766,7 @@ public class RecentsPanelView extends FrameLayout implements
 		if (DEBUG)
 			Log.v(TAG, "Jettison " + ad.getLabel());
 		mRecentTaskDescriptions.remove(ad);
+        mRecentTasksLoader.remove(ad);
 
 		// Handled by widget containers to enable LayoutTransitions properly
 		// mListAdapter.notifyDataSetChanged();
