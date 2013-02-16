@@ -218,7 +218,7 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         mBatteryImageView.setScaleType(ScaleType.CENTER_CROP);
         
         mTextView.setText(R.string.status_bar_settings_mediaplayer);
-        mTextView.setBackgroundColor(0xCC000000);
+        mTextView.setBackgroundColor(mContext.getResources().getColor(R.color.qs_user_banner_background));
         
         adjustLayouts();
         

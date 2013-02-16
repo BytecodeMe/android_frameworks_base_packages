@@ -91,7 +91,7 @@ public class UserTile extends QuickSettingsTileContent implements
 	protected void init() {
 		mContentView.setOnClickListener(this);
 		mImageView.setVisibility(View.VISIBLE);
-		mTextView.setBackgroundColor(0xCC000000);
+		mTextView.setBackgroundColor(mContext.getResources().getColor(R.color.qs_user_banner_background));
 		adjustLayouts();
 		queryForUserInformation();
 		mTilesSetUp = true;
