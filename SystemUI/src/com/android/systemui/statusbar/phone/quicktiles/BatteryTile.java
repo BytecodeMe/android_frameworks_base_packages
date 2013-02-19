@@ -7,7 +7,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.LevelListDrawable;
 import android.os.Handler;
 import android.provider.Settings;
-import android.view.MotionEvent;
 import android.view.View;
 
 import com.android.systemui.R;
@@ -39,7 +38,7 @@ public class BatteryTile extends QuickSettingsTileContent implements
 				
 		mChargingBatteryLevels = (LevelListDrawable) SkinHelper.getIconDrawable(
 				mContext, R.drawable.qs_sys_battery_charging, Settings.System.CUSTOM_BATTERY_PACKAGE);
-		mSlider.setOnTouchListener(new View.OnTouchListener(){
+		/*mSlider.setOnTouchListener(new View.OnTouchListener(){
 
 			@Override
 			public boolean onTouch(View v, MotionEvent event) {
@@ -56,7 +55,7 @@ public class BatteryTile extends QuickSettingsTileContent implements
 				return false;
 			}
 			
-		});
+		});*/
 
 	}
 
@@ -98,13 +97,13 @@ public class BatteryTile extends QuickSettingsTileContent implements
 
 	@Override
 	public void onClick(View v) {
-		//launchActivity(new Intent(Intent.ACTION_POWER_USAGE_SUMMARY));
-		mHandler.removeCallbacks(mResetRunnable);
+		launchActivity(new Intent(Intent.ACTION_POWER_USAGE_SUMMARY));
+		/*mHandler.removeCallbacks(mResetRunnable);
 		if(mCallBack!=null){
 			mSlider.setVisibility(View.VISIBLE);
 			mCallBack.changeSize(1,3);
 			mHandler.postDelayed(mResetRunnable, 3000);
-		}
+		}*/
 	}
 
 	@Override
@@ -123,7 +122,7 @@ public class BatteryTile extends QuickSettingsTileContent implements
 		updateGUI(mBatteryState);
 	}
 	
-	Runnable mResetRunnable = new Runnable(){
+	/*Runnable mResetRunnable = new Runnable(){
 
 		@Override
 		public void run() {
@@ -131,6 +130,6 @@ public class BatteryTile extends QuickSettingsTileContent implements
 			mCallBack.changeSize(1,1);
 		}
 		
-	};
+	};*/
 
 }

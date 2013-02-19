@@ -1,27 +1,23 @@
 package com.android.systemui.statusbar.phone.quicktiles;
 
-import android.app.Dialog;
 import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.os.Handler;
-import android.os.RemoteException;
 import android.provider.Settings;
+import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.WindowManagerGlobal;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
 import com.android.systemui.statusbar.policy.BrightnessController;
 import com.android.systemui.statusbar.policy.BrightnessController.BrightnessStateChangeCallback;
 import com.android.systemui.statusbar.policy.CurrentUserTracker;
-import com.android.systemui.statusbar.policy.ToggleSlider;
 
 public class BrightnessTile extends QuickSettingsTileContent implements
 		View.OnClickListener, BrightnessStateChangeCallback {
@@ -31,9 +27,7 @@ public class BrightnessTile extends QuickSettingsTileContent implements
 	private BrightnessController mBrightnessController;
 
 	private Handler mHandler;
-	private Dialog mBrightnessDialog;
-	private int mBrightnessDialogShortTimeout;
-	private int mBrightnessDialogLongTimeout;
+	private ImageView mImageFoo;
 	
 	private CurrentUserTracker mUserTracker = new CurrentUserTracker(mContext) {
 		@Override
@@ -44,17 +38,13 @@ public class BrightnessTile extends QuickSettingsTileContent implements
 	};
 
 	private static final String TAG = "QuickBrightnessTile";
+	private static final int TIMEOUT = 3000;
 
 	public BrightnessTile(Context context, View view) {
 		super(context, view);
 		
-		Resources r = mContext.getResources();
-		mBrightnessDialogLongTimeout = r
-				.getInteger(R.integer.quick_settings_brightness_dialog_long_timeout);
-		mBrightnessDialogShortTimeout = r
-				.getInteger(R.integer.quick_settings_brightness_dialog_short_timeout);
-
 		mHandler = new Handler();
+		mImageFoo = new ImageView(mContext);
 		init();
 	}
 
@@ -64,16 +54,46 @@ public class BrightnessTile extends QuickSettingsTileContent implements
 		mTag = TAG;
 		mBrightnessObserver = new BrightnessObserver(mHandler);
 		mBrightnessObserver.startObserving();
+		
+		final SeekBar slider = (SeekBar)mSlider.findViewById(R.id.slider);
+		slider.setOnTouchListener(new View.OnTouchListener(){
+
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				switch(event.getAction()){
+					case MotionEvent.ACTION_DOWN:
+					case MotionEvent.ACTION_MOVE:
+						mHandler.removeCallbacks(mResetRunnable);
+						return false;
+					case MotionEvent.ACTION_UP:
+					case MotionEvent.ACTION_CANCEL:
+						mHandler.postDelayed(mResetRunnable, TIMEOUT);
+						return false;
+				}
+				return false;
+			}
+			
+		});
+		
+		mBrightnessController = new BrightnessController(mContext,
+				mImageFoo, mSlider);
+		mBrightnessController.addStateChangedCallback(this);
+		
 		refreshResources();
 
 	}
 
 	@Override
 	public void onClick(View v) {
-		getStatusBarManager().collapsePanels();
-		showBrightnessDialog();
+		mHandler.removeCallbacks(mResetRunnable);
+		if(mCallBack!=null){
+			mSlider.setVisibility(View.VISIBLE);
+			updateGUI(true);
+			mCallBack.changeSize(1,3);
+			mHandler.postDelayed(mResetRunnable, TIMEOUT);
+		}
 	}
-
+	
 	@Override
 	public void onBrightnessLevelChanged() {
 		Resources r = mContext.getResources();
@@ -86,99 +106,48 @@ public class BrightnessTile extends QuickSettingsTileContent implements
 				: R.drawable.ic_qs_brightness_auto_off;
 		mBrightnessState.label = r
 				.getString(R.string.quick_settings_brightness_label);
-		updateGUI();
+		updateGUI(mSlider.getVisibility()==View.VISIBLE);
 	}
-
-	private void updateGUI() {
-		mTextView.setCompoundDrawablesWithIntrinsicBounds(0,
-				mBrightnessState.iconId, 0, 0);
+	
+	private void updateGUI(boolean adjustForSlider) {
+		mTextView.setCompoundDrawablesWithIntrinsicBounds(
+				(adjustForSlider?mBrightnessState.iconId:0),
+				(adjustForSlider?0:mBrightnessState.iconId), 0, 0);
 		mTextView.setText(mBrightnessState.label);
-		dismissBrightnessDialog(mBrightnessDialogShortTimeout);
+		mTextView.setPadding(mTextView.getPaddingLeft(), 
+				mTextView.getPaddingTop(), 
+				mTextView.getPaddingRight(), 
+				(adjustForSlider?(int)dpToPx(70f):0));
+	}
+	
+	private float dpToPx(float dp) {
+		Resources r = mContext.getResources();
+		float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
+				r.getDisplayMetrics());
+		return px;
 	}
 
 	@Override
 	public void release() {
-		// TODO Auto-generated method stub
 		mBrightnessObserver.stop();
 		mBrightnessObserver = null;
+		mBrightnessController = null;
 		mUserTracker = null;		
 	}
 
 	@Override
 	public void refreshResources() {
-		// Reset the dialog
-		boolean isBrightnessDialogVisible = false;
-		if (mBrightnessDialog != null) {
-			removeAllBrightnessDialogCallbacks();
-
-			isBrightnessDialogVisible = mBrightnessDialog.isShowing();
-			mBrightnessDialog.dismiss();
-		}
-		mBrightnessDialog = null;
-		if (isBrightnessDialogVisible) {
-			showBrightnessDialog();
-		}
 		onBrightnessLevelChanged();
 	}
-
-	private void removeAllBrightnessDialogCallbacks() {
-		mHandler.removeCallbacks(mDismissBrightnessDialogRunnable);
-	}
-
-	private Runnable mDismissBrightnessDialogRunnable = new Runnable() {
+	
+	Runnable mResetRunnable = new Runnable(){
+		@Override
 		public void run() {
-			if (mBrightnessDialog != null && mBrightnessDialog.isShowing()) {
-				mBrightnessDialog.dismiss();
-			}
-			removeAllBrightnessDialogCallbacks();
-		};
+			mSlider.setVisibility(View.GONE);
+			updateGUI(false);
+			mCallBack.changeSize(1,1);
+		}
 	};
-
-	void showBrightnessDialog() {
-
-		if (mBrightnessDialog == null) {
-			mBrightnessDialog = new Dialog(mContext);
-			mBrightnessDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-			mBrightnessDialog
-					.setContentView(R.layout.quick_settings_brightness_dialog);
-			mBrightnessDialog.setCanceledOnTouchOutside(true);
-
-			mBrightnessController = new BrightnessController(mContext,
-					(ImageView) mBrightnessDialog
-							.findViewById(R.id.brightness_icon),
-					(ToggleSlider) mBrightnessDialog
-							.findViewById(R.id.brightness_slider));
-			mBrightnessController.addStateChangedCallback(this);
-			mBrightnessDialog
-					.setOnDismissListener(new DialogInterface.OnDismissListener() {
-						@Override
-						public void onDismiss(DialogInterface dialog) {
-							mBrightnessController = null;
-						}
-					});
-
-			mBrightnessDialog.getWindow().setType(
-					WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-			mBrightnessDialog.getWindow().getAttributes().privateFlags |= WindowManager.LayoutParams.PRIVATE_FLAG_SHOW_FOR_ALL_USERS;
-			mBrightnessDialog.getWindow().clearFlags(
-					WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-		}
-		if (!mBrightnessDialog.isShowing()) {
-			try {
-				WindowManagerGlobal.getWindowManagerService().dismissKeyguard();
-			} catch (RemoteException e) {
-			}
-			mBrightnessDialog.show();
-			dismissBrightnessDialog(mBrightnessDialogLongTimeout);
-		}
-	}
-
-	void dismissBrightnessDialog(int timeout) {
-		removeAllBrightnessDialogCallbacks();
-		if (mBrightnessDialog != null) {
-			mHandler.postDelayed(mDismissBrightnessDialogRunnable, timeout);
-		}
-	}
 
 	void onUserSwitched() {
 		mBrightnessObserver.startObserving();

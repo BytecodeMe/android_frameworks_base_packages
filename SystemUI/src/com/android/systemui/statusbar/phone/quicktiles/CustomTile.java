@@ -113,21 +113,9 @@ public class CustomTile extends QuickSettingsTileContent implements
 				icon = customIcon;
 			}
 		}
-
-		switch (mContext.getResources().getDisplayMetrics().densityDpi) {
-		case DisplayMetrics.DENSITY_MEDIUM:
-			iconSize = 32;
-			break;
-		case DisplayMetrics.DENSITY_HIGH:
-			iconSize = 48;
-			break;
-		case DisplayMetrics.DENSITY_XHIGH:
-			iconSize = 64;
-			break;
-		default:
-			iconSize = 64;
-			break;
-		}
+		
+		// more accurate for other screen sizes
+		iconSize = mContext.getResources().getDisplayMetrics().densityDpi / 5;
 
 		newIcon = CustomIconHelper.resizeIcon(mContext,
 				((BitmapDrawable) icon).getBitmap(), iconSize, iconSize);
