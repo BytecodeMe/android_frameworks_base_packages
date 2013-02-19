@@ -543,8 +543,10 @@
     <string name="quick_settings_hotspot_on">Hotspot On</string>
     <!-- QuickSettings: Wi-Fi Hotspot button off [CHAR LIMIT=NONE] -->
     <string name="quick_settings_hotspot_off">Hotspot Off</string>
-	 <!-- QuickSettings: Alarm button off [CHAR LIMIT=NONE] -->
+	<!-- QuickSettings: Alarm button off [CHAR LIMIT=NONE] -->
     <string name="quick_settings_alarm_off">Alarm Off</string>
+    <!-- QuickSettings: Volume [CHAR LIMIT=NONE] -->
+    <string name="quick_settings_volume_label">Volume</string>
     
     <!-- Title of help text shown when the notification panel is pulled down for the very first time. [CHAR LIMIT=NONE] -->
     <string name="status_bar_help_title">Notifications appear here</string>

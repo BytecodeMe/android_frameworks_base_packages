@@ -69,7 +69,7 @@ class QuickSettings implements QuickTileChangeCallback {
 		SETTINGS.put(Settings.System.QUICK_TORCH, TorchTile.class);
 		SETTINGS.put(Settings.System.QUICK_SETTING, SettingsShortcutTile.class);
 		SETTINGS.put(Settings.System.QUICK_WIFI, WifiTile.class); 
-		//SETTINGS.put(Settings.System.QUICK_VOLUME, Volume.class);
+		SETTINGS.put(Settings.System.QUICK_VOLUME, VolumeTile.class);
 		SETTINGS.put(Settings.System.QUICK_LTE, LTETile.class);
 		SETTINGS.put(Settings.System.QUICK_CUSTOM, CustomTile.class);
 		SETTINGS.put(Settings.System.QUICK_BLUETOOTH, BluetoothTile.class);

@@ -88,7 +88,7 @@ public class BrightnessTile extends QuickSettingsTileContent implements
 		mHandler.removeCallbacks(mResetRunnable);
 		if(mCallBack!=null){
 			mSlider.setVisibility(View.VISIBLE);
-			updateGUI(true);
+			updateGUI();
 			mCallBack.changeSize(1,3);
 			mHandler.postDelayed(mResetRunnable, TIMEOUT);
 		}
@@ -106,10 +106,12 @@ public class BrightnessTile extends QuickSettingsTileContent implements
 				: R.drawable.ic_qs_brightness_auto_off;
 		mBrightnessState.label = r
 				.getString(R.string.quick_settings_brightness_label);
-		updateGUI(mSlider.getVisibility()==View.VISIBLE);
+		updateGUI();
 	}
 	
-	private void updateGUI(boolean adjustForSlider) {
+	private void updateGUI() {
+		boolean adjustForSlider = (mSlider.getVisibility()==View.VISIBLE);
+		
 		mTextView.setCompoundDrawablesWithIntrinsicBounds(
 				(adjustForSlider?mBrightnessState.iconId:0),
 				(adjustForSlider?0:mBrightnessState.iconId), 0, 0);
@@ -144,7 +146,7 @@ public class BrightnessTile extends QuickSettingsTileContent implements
 		@Override
 		public void run() {
 			mSlider.setVisibility(View.GONE);
-			updateGUI(false);
+			updateGUI();
 			mCallBack.changeSize(1,1);
 		}
 	};
