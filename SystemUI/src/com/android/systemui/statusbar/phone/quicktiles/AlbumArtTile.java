@@ -540,7 +540,8 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case ALBUM_ART_DECODED:
-                	mImageView.setScaleType(ScaleType.FIT_CENTER);
+                	//mImageView.setScaleType(ScaleType.FIT_CENTER);
+                	mImageView.setScaleType(ScaleType.CENTER_CROP);
                 	mImageView.setImageBitmap((Bitmap)msg.obj);
                 	mImageView.getDrawable().setDither(true);
                     break;

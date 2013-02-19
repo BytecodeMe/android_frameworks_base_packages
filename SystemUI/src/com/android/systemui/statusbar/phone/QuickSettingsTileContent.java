@@ -25,11 +25,9 @@ import android.os.RemoteException;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.view.View;
-import android.view.ViewParent;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.android.systemui.R;
@@ -49,7 +47,7 @@ public abstract class QuickSettingsTileContent {
     protected ImageView mBatteryImageView;
     protected ImageView mImageView;
     protected TextView mTextView;
-    protected SeekBar mSlider;
+    protected ToggleSlider mSlider;
     protected String mTag;
     
     public interface TileCallback {
@@ -73,7 +71,7 @@ public abstract class QuickSettingsTileContent {
     	mBatteryImageView = (ImageView)mContentView.findViewById(R.id.quick_settings_battery_image);
         mImageView = (ImageView)mContentView.findViewById(R.id.quick_settings_iv);
         mTextView = (TextView)mContentView.findViewById(R.id.quick_settings_tv);
-        mSlider = (SeekBar)mContentView.findViewById(R.id.slider);
+        mSlider = (ToggleSlider)mContentView.findViewById(R.id.tile_slider);
     }
     
     protected abstract void init();
