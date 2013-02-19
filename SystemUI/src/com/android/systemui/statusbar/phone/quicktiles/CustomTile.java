@@ -69,9 +69,9 @@ public class CustomTile extends QuickSettingsTileContent implements
 	}
 
 	private void openSettings() {
-		mContext.startActivity(new Intent().setComponent(
-				new ComponentName("com.bamf.settings",
-						"com.bamf.settings.activities.QuickSettingsActivity"))
+		mContext.startActivity(new Intent("com.bamf.settings.quicktiles")
+				.addCategory(Intent.CATEGORY_DEFAULT)
+				.putExtra("settings", true)
 				.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
 		getStatusBarManager().collapsePanels();
 	}
