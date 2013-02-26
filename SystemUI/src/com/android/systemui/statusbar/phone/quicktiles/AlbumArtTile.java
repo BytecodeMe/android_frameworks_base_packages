@@ -96,33 +96,47 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         init();
     }
     
-    /*private MediaPlayerWidget.Listener mMediaButtonListener = new MediaPlayerWidget.Listener(){
-
-		@Override
-		public void onClick(View v) {
-			try{
-	            switch(v.getId()){
-	                case R.id.prev:
-	                    sendMediaButtonEvent("com.android.music.musicservicecommand.previous");
-	                    if(DEBUG)Log.d(TAG, "prev");
-	                    break;
-	                case R.id.playpause:
-	                    sendMediaButtonEvent("com.android.music.musicservicecommand.togglepause");
-	                    setPauseButtonImage();
-	                    break;
-	                case R.id.next:
-	                    sendMediaButtonEvent("com.android.music.musicservicecommand.next");
-	                    if(DEBUG)Log.d(TAG, "next");
-	                    break;
-	                default:
-	            }
-	        }catch(NullPointerException e){
-	            e.printStackTrace();
-	        }
-		}
-    	
-    };*/
-
+    @Override
+    protected void init() {
+        mTag = TAG;
+        
+        mImageView.setVisibility(View.VISIBLE);
+        Bitmap defaultImage = MusicUtils.getDefaultArtwork(mContext);
+        mImageView.setImageBitmap(defaultImage);
+        
+        mBatteryImageView.setVisibility(View.VISIBLE);
+        mBatteryImageView.setImageResource(R.drawable.btn_playback_play_normal_holo_dark);
+        mBatteryImageView.setAlpha(0.0f);
+        mBatteryImageView.setScaleType(ScaleType.FIT_CENTER);
+        
+        mTextView.setText(R.string.status_bar_settings_mediaplayer);
+        mTextView.setBackgroundColor(mContext.getResources().getColor(R.color.qs_user_banner_background));
+        
+        adjustLayouts();
+        
+        // dont even bother going any further
+        if(!findMusicService())return;
+        
+        mGestureScanner = new GestureDetector(mContext, new GestureScanner());
+        mContentView.setOnTouchListener(new View.OnTouchListener() {
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				return mGestureScanner.onTouchEvent(event);
+			}
+		});
+        
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(MusicUtils.PLAYSTATE_CHANGED);
+        filter.addAction(MusicUtils.META_CHANGED);
+        mContext.registerReceiver(mReceiver, filter);
+        
+        mAutoFlip = true;
+           
+        loadAlbumsData();
+        loadOnlineAlbumsData();
+        updateTrackInfo();
+    }
+    
     public void openMusic() {
     	
     	if(findMusicService()){
@@ -205,48 +219,6 @@ public class AlbumArtTile extends QuickSettingsTileContent {
     }
 
     @Override
-    protected void init() {
-        mTag = TAG;
-        
-        mImageView.setVisibility(View.VISIBLE);
-        Bitmap defaultImage = MusicUtils.getDefaultArtwork(mContext);
-        mImageView.setImageBitmap(defaultImage);
-        
-        mBatteryImageView.setVisibility(View.VISIBLE);
-        mBatteryImageView.setImageResource(R.drawable.btn_playback_play_normal_holo_dark);
-        mBatteryImageView.setAlpha(0.0f);
-        mBatteryImageView.setScaleType(ScaleType.CENTER_CROP);
-        
-        mTextView.setText(R.string.status_bar_settings_mediaplayer);
-        mTextView.setBackgroundColor(mContext.getResources().getColor(R.color.qs_user_banner_background));
-        
-        adjustLayouts();
-        
-        // dont even bother going any further
-        if(!findMusicService())return;
-        
-        mGestureScanner = new GestureDetector(mContext, new GestureScanner());
-        mContentView.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				return mGestureScanner.onTouchEvent(event);
-			}
-		});
-        
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(MusicUtils.PLAYSTATE_CHANGED);
-        filter.addAction(MusicUtils.META_CHANGED);
-        mContext.registerReceiver(mReceiver, filter);
-        
-        mAutoFlip = true;
-           
-        loadAlbumsData();
-        loadOnlineAlbumsData();
-        updateTrackInfo();
-        //setPauseButtonImage();
-    }
-
-    @Override
     public void release() {
         
         mContext.unregisterReceiver(mReceiver);
@@ -282,29 +254,21 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         lp.height = FrameLayout.LayoutParams.WRAP_CONTENT;
         lp.gravity = Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM;
         
-        //((LinearLayout)mTextView.getParent()).setLayoutParams(lp);
-        
         final LinearLayout.LayoutParams lp2 = (LinearLayout.LayoutParams) mTextView.getLayoutParams();
         lp2.width = LinearLayout.LayoutParams.MATCH_PARENT;
         lp2.height = LinearLayout.LayoutParams.WRAP_CONTENT;
         lp2.gravity = Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM;
-        
-        //mTextView.setLayoutParams(lp2);
         
         final FrameLayout.LayoutParams lp3 = (FrameLayout.LayoutParams) ((LinearLayout)mBatteryImageView.getParent()).getLayoutParams();
         lp3.width = FrameLayout.LayoutParams.MATCH_PARENT;
         lp3.height = FrameLayout.LayoutParams.MATCH_PARENT;
         lp3.gravity = Gravity.CENTER_HORIZONTAL;
         
-        //((LinearLayout)mBatteryImageView.getParent()).setLayoutParams(lp3);
-        
         final LinearLayout.LayoutParams lp4 = (LinearLayout.LayoutParams) mBatteryImageView.getLayoutParams();
         lp4.width = LinearLayout.LayoutParams.MATCH_PARENT;
         lp4.height = 0;
         lp4.gravity = Gravity.CENTER_HORIZONTAL;
         lp4.weight = 1;
-        
-        //mBatteryImageView.setLayoutParams(lp4);
     }
     
     private void updateTrackInfo() {
@@ -540,7 +504,6 @@ public class AlbumArtTile extends QuickSettingsTileContent {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case ALBUM_ART_DECODED:
-                	//mImageView.setScaleType(ScaleType.FIT_CENTER);
                 	mImageView.setScaleType(ScaleType.CENTER_CROP);
                 	mImageView.setImageBitmap((Bitmap)msg.obj);
                 	mImageView.getDrawable().setDither(true);

@@ -6,6 +6,7 @@ import java.util.List;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.Handler;
 import android.provider.Settings;
 import android.text.util.QuickTileToken;
@@ -19,6 +20,7 @@ public class QuickTileController extends ContentObserver {
 	
 	public interface QuickTileChangeCallback {
 		public void onTileChange(List<QuickTileToken> newList);
+		public void onColumnsChange();
 	}
 
 	public QuickTileController(Context context, Handler handler, QuickTileChangeCallback callback) {
@@ -37,16 +39,33 @@ public class QuickTileController extends ContentObserver {
 	
 	@Override
 	public void onChange(boolean selfChange) {
-		update();
+		onChange(selfChange, Uri.EMPTY);
 	}
 	
+	@Override
+	public void onChange(boolean selfChange, Uri uri){
+		if(uri.equals(Settings.System.getUriFor(Settings.System.QUICK_SETTINGS_TILES))){
+			updateTiles();
+		}
+		if(uri.equals(Settings.System.getUriFor(Settings.System.QUICK_SETTINGS_NUM_COLUMNS_PORT))
+				|| uri.equals(Settings.System.getUriFor(Settings.System.QUICK_SETTINGS_NUM_COLUMNS_LAND))){
+			updateColumns();
+		}
+	}
+
 	private void observe(){
 		mResolver.registerContentObserver(Settings.System
 				.getUriFor(Settings.System.QUICK_SETTINGS_TILES), false,
 				this);
+		mResolver.registerContentObserver(Settings.System
+				.getUriFor(Settings.System.QUICK_SETTINGS_NUM_COLUMNS_PORT), false,
+				this);
+		mResolver.registerContentObserver(Settings.System
+				.getUriFor(Settings.System.QUICK_SETTINGS_NUM_COLUMNS_LAND), false,
+				this);
 	}
 	
-	private void update(){
+	private void updateTiles(){
 		if(mCallback!=null){
 			List<QuickTileToken> newList = new ArrayList<QuickTileToken>();
 	        QuickTileTokenizer.tokenize(Settings.System.getString(mContext.getContentResolver(), 
@@ -59,6 +78,10 @@ public class QuickTileController extends ContentObserver {
 		}
 	}
 	
-	
+	private void updateColumns() {
+		if(mCallback!=null){
+			mCallback.onColumnsChange();
+		}
+	}	
 
 }

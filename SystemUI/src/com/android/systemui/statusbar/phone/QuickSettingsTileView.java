@@ -64,7 +64,7 @@ class QuickSettingsTileView extends FrameLayout {
         mColSpan = span;
     }
 
-    int getColumnSpan() {
+    public int getColumnSpan() {
         return mColSpan;
     }
     
@@ -72,7 +72,7 @@ class QuickSettingsTileView extends FrameLayout {
     	mRowSpan = span;
     }
     
-    int getRowSpan() {
+    public int getRowSpan() {
     	return mRowSpan;
     }
 
