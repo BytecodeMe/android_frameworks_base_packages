@@ -395,6 +395,7 @@ class QuickSettings implements QuickTileChangeCallback {
 				
 				oldTileView.setRowSpan(token.getRows());
 				oldTileView.setColumnSpan(token.getColumns());
+				pref.setDimensions(token.getRows(), token.getColumns());
 				mContainerView.addView(oldTileView);
 				mAllCustomTiles.add(pref);
 			}else{
