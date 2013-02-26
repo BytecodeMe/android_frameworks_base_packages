@@ -112,22 +112,15 @@ public class BrightnessTile extends QuickSettingsTileContent implements
 	
 	private void updateGUI() {
 		boolean adjustForSlider = (mSlider.getVisibility()==View.VISIBLE);
-		
+		mContentView.getHeight();
 		mTextView.setCompoundDrawablesWithIntrinsicBounds(
 				(adjustForSlider?mBrightnessState.iconId:0),
 				(adjustForSlider?0:mBrightnessState.iconId), 0, 0);
 		mTextView.setText(mBrightnessState.label);
 		mTextView.setPadding(mTextView.getPaddingLeft(), 
 				mTextView.getPaddingTop(), 
-				mTextView.getPaddingRight(), 
-				(adjustForSlider?(int)dpToPx(70f):0));
-	}
-	
-	private float dpToPx(float dp) {
-		Resources r = mContext.getResources();
-		float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
-				r.getDisplayMetrics());
-		return px;
+				mTextView.getPaddingRight(),
+				(adjustForSlider?mContentView.getHeight()/2:0));
 	}
 
 	@Override
