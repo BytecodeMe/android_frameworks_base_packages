@@ -50,6 +50,9 @@ public abstract class QuickSettingsTileContent {
     protected ToggleSlider mSlider;
     protected String mTag;
     
+    protected int mOriginalRows = 1;
+    protected int mOriginalColumns = 1;
+    
     public interface TileCallback {
         public void changeSize(int height, int width);
         public void refreshTiles();
@@ -84,6 +87,11 @@ public abstract class QuickSettingsTileContent {
     
     public String getTag(){
         return mTag;
+    }
+    
+    public void setDimensions(int height, int width){
+    	mOriginalRows = height;
+    	mOriginalColumns = width;
     }
     
     protected void launchActivity(Intent intent) throws ActivityNotFoundException {

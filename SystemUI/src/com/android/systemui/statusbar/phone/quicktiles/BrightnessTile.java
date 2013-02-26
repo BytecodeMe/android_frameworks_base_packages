@@ -15,6 +15,7 @@ import android.widget.SeekBar;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
+import com.android.systemui.statusbar.phone.QuickSettingsTileHelper;
 import com.android.systemui.statusbar.policy.BrightnessController;
 import com.android.systemui.statusbar.policy.BrightnessController.BrightnessStateChangeCallback;
 import com.android.systemui.statusbar.policy.CurrentUserTracker;
@@ -89,7 +90,7 @@ public class BrightnessTile extends QuickSettingsTileContent implements
 		if(mCallBack!=null){
 			mSlider.setVisibility(View.VISIBLE);
 			updateGUI();
-			mCallBack.changeSize(1,3);
+			mCallBack.changeSize(mOriginalRows,QuickSettingsTileHelper.getMaxColumns(mContext));
 			mHandler.postDelayed(mResetRunnable, TIMEOUT);
 		}
 	}
@@ -147,7 +148,7 @@ public class BrightnessTile extends QuickSettingsTileContent implements
 		public void run() {
 			mSlider.setVisibility(View.GONE);
 			updateGUI();
-			mCallBack.changeSize(1,1);
+			mCallBack.changeSize(mOriginalRows,mOriginalColumns);
 		}
 	};
 

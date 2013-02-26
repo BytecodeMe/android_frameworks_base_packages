@@ -26,7 +26,6 @@ import android.animation.Animator.AnimatorListener;
 import android.animation.AnimatorInflater;
 import android.animation.AnimatorSet;
 import android.content.Context;
-import android.content.res.Resources;
 import android.os.Handler;
 import android.provider.Settings;
 import android.text.util.QuickTileToken;
@@ -60,7 +59,6 @@ class QuickSettings implements QuickTileChangeCallback {
 	private static final HashMap<String, Class<? extends QuickSettingsTileContent>> SETTINGS = 
 			new HashMap<String, Class<? extends QuickSettingsTileContent>>();
 
-	// TODO: ones that are not converted yet are commented out here
 	static{
 		SETTINGS.put(Settings.System.QUICK_AIRPLANE, AirplaneModeTile.class);
 		SETTINGS.put(Settings.System.QUICK_ROTATE, AutoRotateTile.class);
@@ -88,7 +86,7 @@ class QuickSettings implements QuickTileChangeCallback {
 
 	private Context mContext;
 	private PanelBar mBar;
-	private ViewGroup mContainerView;
+	private QuickSettingsContainerView mContainerView;
 	private PhoneStatusBar mStatusBarService;
 	
 	@SuppressWarnings("unused")
@@ -105,8 +103,6 @@ class QuickSettings implements QuickTileChangeCallback {
 
 		mContext = context;
 		mContainerView = container;
-
-		Resources r = mContext.getResources();
 
 		// setup config values - only need to load these once
 		// TODO: these configs need to use updated APIs now available
@@ -304,6 +300,7 @@ class QuickSettings implements QuickTileChangeCallback {
 			Constructor<?> con = cls.getConstructor(new Class[]{Context.class, View.class});
 			pref = (QuickSettingsTileContent)con.newInstance(new Object[]{mContext, tileView.getChildAt(0)});
 
+			pref.setDimensions(token.getRows(), token.getColumns());
 			pref.mCallBack = new QuickSettingsTileContent.TileCallback(){
 
 				@Override
@@ -313,7 +310,7 @@ class QuickSettings implements QuickTileChangeCallback {
 					mContainerView.removeView(tileView);
 					tileView.setRowSpan(height);
 					tileView.setColumnSpan(width);
-					final int position = getPosition(tileView.getTag());
+					final int position = QuickSettingsTileHelper.getPosition(mContext,tileView.getTag());
 					if(position>mContainerView.getChildCount() || position < 0){
 						mContainerView.addView(tileView);
 					}else{
@@ -324,7 +321,7 @@ class QuickSettings implements QuickTileChangeCallback {
 				@Override
 				public void show(boolean visible) {
 					if(visible && mContainerView.indexOfChild(tileView)==-1){
-						final int position = getPosition(tileView.getTag());
+						final int position = QuickSettingsTileHelper.getPosition(mContext, tileView.getTag());
 						if(position>mContainerView.getChildCount() || position < 0){
 							mContainerView.addView(tileView);
 						}else{
@@ -349,17 +346,10 @@ class QuickSettings implements QuickTileChangeCallback {
 			return null; 
 		}
 	}
-	
-	private int getPosition(Object token){
-		List<QuickTileToken> settings = new ArrayList<QuickTileToken>();
-		QuickTileTokenizer.tokenize(Settings.System.getString(mContext.getContentResolver(), 
-				Settings.System.QUICK_SETTINGS_TILES,Settings.System.QUICK_TILES_DEFAULT), settings);
-		for(QuickTileToken setting: settings){
-			if(setting.getName().equals(((QuickTileToken)token).getName())){
-				return settings.indexOf(setting);
-			}
-		}
-		return -1;
+
+	@Override
+	public void onColumnsChange() {
+		mContainerView.updateResources();
 	}
 
 	@Override

@@ -19,6 +19,7 @@ import android.widget.SeekBar;
 
 import com.android.systemui.R;
 import com.android.systemui.statusbar.phone.QuickSettingsTileContent;
+import com.android.systemui.statusbar.phone.QuickSettingsTileHelper;
 import com.android.systemui.statusbar.policy.CurrentUserTracker;
 import com.android.systemui.statusbar.policy.ToggleSlider;
 
@@ -76,6 +77,7 @@ public class VolumeTile extends QuickSettingsTileContent
     
     @Override
     public void init() {
+		
     	mContentView.setOnClickListener(this);
     	mContentView.setOnLongClickListener(this);
     	
@@ -122,7 +124,7 @@ public class VolumeTile extends QuickSettingsTileContent
 		if(mCallBack!=null){
 			mSlider.setVisibility(View.VISIBLE);
 			updateGUI();
-			mCallBack.changeSize(1,3);
+			mCallBack.changeSize(mOriginalRows,QuickSettingsTileHelper.getMaxColumns(mContext));
 			mHandler.postDelayed(mResetRunnable, TIMEOUT);
 		}
 	}
@@ -158,7 +160,7 @@ public class VolumeTile extends QuickSettingsTileContent
 		public void run() {
 			mSlider.setVisibility(View.GONE);
 			updateGUI();
-			mCallBack.changeSize(1,1);
+			mCallBack.changeSize(mOriginalRows,mOriginalColumns);
 		}
 	};
 	
