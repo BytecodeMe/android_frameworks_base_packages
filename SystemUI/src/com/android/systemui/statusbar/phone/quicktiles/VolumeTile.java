@@ -144,15 +144,8 @@ public class VolumeTile extends QuickSettingsTileContent
 		mTextView.setText(mVolumeState.label);
 		mTextView.setPadding(mTextView.getPaddingLeft(), 
 				mTextView.getPaddingTop(), 
-				mTextView.getPaddingRight(), 
-				(adjustForSlider?(int)dpToPx(70f):0));
-	}
-	
-	private float dpToPx(float dp) {
-		Resources r = mContext.getResources();
-		float px = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp,
-				r.getDisplayMetrics());
-		return px;
+				mTextView.getPaddingRight(),
+				(adjustForSlider?mContentView.getHeight()/2:0));
 	}
 	
 	Runnable mResetRunnable = new Runnable(){
