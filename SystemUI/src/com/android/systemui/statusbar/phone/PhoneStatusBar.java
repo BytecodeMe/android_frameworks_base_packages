@@ -1022,6 +1022,9 @@ public class PhoneStatusBar extends BaseStatusBar {
 	}
 
 	private void prepareNavigationBarView() {
+		
+		if(mNavigationBarView == null) return;
+		
 		mNavigationBarView.reorient();
 
 		// mNavigationBarView.getRecentsButton().setOnClickListener(mRecentsClickListener);
