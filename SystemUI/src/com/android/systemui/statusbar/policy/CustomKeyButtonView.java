@@ -19,6 +19,7 @@ package com.android.systemui.statusbar.policy;
 import java.util.List;
 import java.util.Random;
 
+import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.app.ActivityManagerNative;
 import android.app.IActivityManager;
@@ -371,7 +372,7 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
             if (res.activityInfo != null && !res.activityInfo.packageName.equals("android")) {
                 defaultHomePackage = res.activityInfo.packageName;
             }            
-            IActivityManager am = ActivityManagerNative.getDefault();
+            ActivityManager am = (ActivityManager)mContext.getSystemService(Context.ACTIVITY_SERVICE);
             List<RunningAppProcessInfo> apps = am.getRunningAppProcesses();
             for (RunningAppProcessInfo appInfo : apps) {
                 int uid = appInfo.uid;
@@ -382,7 +383,7 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
                     if (appInfo.pkgList != null && (appInfo.pkgList.length > 0)) {
                         for (String pkg : appInfo.pkgList) {
                             if (!pkg.equals("com.android.systemui") && !pkg.equals(defaultHomePackage)) {
-                                am.forceStopPackage(pkg,uid);
+                                am.forceStopPackage(pkg);
                                 targetKilled = true;
                                 break;
                             }
@@ -403,7 +404,7 @@ public class CustomKeyButtonView extends KeyButtonView implements OnLongClickLis
                     break;
                 }
             }
-        } catch (RemoteException remoteException) {
+        } catch (Exception remoteException) {
             // Do nothing; just let it go.
         }
 		return targetKilled;
