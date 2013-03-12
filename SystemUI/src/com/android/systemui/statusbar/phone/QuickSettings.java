@@ -82,6 +82,8 @@ class QuickSettings implements QuickTileChangeCallback {
 		SETTINGS.put(Settings.System.QUICK_BATTERY, BatteryTile.class);
 		SETTINGS.put(Settings.System.QUICK_ALARM, AlarmTile.class);
 		SETTINGS.put(Settings.System.QUICK_USER, UserTile.class);
+		SETTINGS.put(Settings.System.QUICK_QUIET_HOURS, QuietHoursTile.class);
+
 	}
 
 	private Context mContext;
