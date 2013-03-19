@@ -235,6 +235,9 @@ public class BatteryController extends BroadcastReceiver {
 	}
 
 	private Drawable getChargingIndicator() {
+		if(!(Settings.System.getInt(mContext.getContentResolver(),
+				Settings.System.SHOW_BATTERY_CHARGE, 1) == 1)) return null;
+		
 		return SkinHelper.getIconDrawable(mContext,
 				R.drawable.stat_sys_battery_charge_indicator,
 				Settings.System.CUSTOM_BATTERY_PACKAGE);
