@@ -123,9 +123,9 @@ public class AlarmTile extends QuickSettingsTileContent implements
 						mAlarmState.label));
 		
 		// this will hide the tile if it is not enabled
-		if(mCallBack!=null){
-			mCallBack.show(mAlarmState.enabled);
-		}
+//		if(mCallBack!=null){
+//			mCallBack.show(mAlarmState.enabled);
+//		}
 	}
 
 }
